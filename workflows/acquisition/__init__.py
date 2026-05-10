@@ -1,0 +1,1 @@
+from .config import ACQUISITION_WORKFLOW_CONFIG

@@ -213,7 +213,7 @@ def render_sidebar() -> None:
         ">
             <div style="font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #64748B; margin-bottom: 0.35rem;">Decision pulse</div>
             <div style="font-size: 1rem; font-weight: 700; color: #0F172A; margin-bottom: 0.25rem;">{packet.get('recommendation', 'Not enough data')}</div>
-            <div style="font-size: 0.88rem; line-height: 1.45; color: #475569; margin-bottom: 0.55rem;">Weighted score: {packet.get('weighted_score', 0)} · Confidence: {packet.get('confidence', 'Low')}</div>
+            <div style="font-size: 0.88rem; line-height: 1.45; color: #475569; margin-bottom: 0.55rem;">Weighted score: {packet.get('weighted_score', 0)} · Confidence: {packet.get('confidence', 'Unknown')}</div>
             <div style="font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #64748B; margin-bottom: 0.2rem;">Biggest unresolved risk</div>
             <div style="font-size: 0.84rem; line-height: 1.45; color: #475569;">{top_risk}</div>
         </div>

@@ -1,4 +1,3 @@
-
 # app.py
 
 from __future__ import annotations
@@ -10,7 +9,7 @@ from typing import Final
 import streamlit as st
 
 from app_state import initialize_app_state, reset_assessment_state
-from branding import APP_PRODUCT, APP_TAGLINE, FIT_PAGE_LABEL
+from branding import APP_PRODUCT, FIT_PAGE_LABEL
 from buildout_tracker_ui import render_buildout_tracker
 from decision_engine import build_decision_packet
 from deal_model_ui import render_deal_model
@@ -19,7 +18,6 @@ from execution_report_ui import render_execution_report
 from final_decision_ui import render_final_decision
 from financial_model_ui import render_financial_model
 from free_report_ui import render_free_report
-from nav_ui import render_page_nav
 from opportunity_fit_ui import render_opportunity_fit
 from overview_ui import render_overview
 from page_config import DEFAULT_PAGE, PAGES, SIDEBAR_PAGES, get_page_config, is_pro_page
@@ -35,6 +33,8 @@ from shared_ui import render_compact_brand_bar, render_sidebar_branding
 from theme import apply_theme
 from ui_styles import inject_global_styles
 from welcome_ui import render_welcome
+from workflow_config import DEFAULT_WORKFLOW, WORKFLOW_CONFIG, get_workflow_config
+from workflow_placeholder_ui import render_workflow_placeholder
 
 
 PageRenderer = Callable[[], None]
@@ -51,6 +51,7 @@ RESET_KEYS_TO_KEEP: Final[list[str]] = [
     "signed_anything",
     "premium_access",
     "dev_pro_access",
+    "workflow_type",
 ]
 
 PAGE_RENDERERS: Final[dict[str, PageRenderer]] = {
@@ -79,11 +80,22 @@ def configure_app() -> None:
     inject_global_styles()
 
 
+def _current_workflow() -> str:
+    workflow_type = st.session_state.get("workflow_type", DEFAULT_WORKFLOW)
+    if workflow_type not in WORKFLOW_CONFIG:
+        workflow_type = DEFAULT_WORKFLOW
+    st.session_state["workflow_type"] = workflow_type
+    return workflow_type
+
+
 def ensure_required_state() -> None:
     st.session_state.setdefault("auth_complete", False)
     st.session_state.setdefault("profile_complete", False)
     st.session_state.setdefault("premium_access", False)
     st.session_state.setdefault("dev_pro_access", True)
+    st.session_state.setdefault("workflow_type", DEFAULT_WORKFLOW)
+
+    _current_workflow()
 
     current_page = st.session_state.get("current_page", DEFAULT_PAGE)
     if current_page not in PAGES:
@@ -105,30 +117,15 @@ def render_gates() -> bool:
 
 def _recommended_page() -> tuple[str, str]:
     if not st.session_state.get("phase_0_complete"):
-        return (
-            FIT_PAGE_LABEL,
-            "Start with fit: time demand, ownership reality, and downside exposure.",
-        )
+        return FIT_PAGE_LABEL, "Start with fit: time demand, ownership reality, and downside exposure."
     if not st.session_state.get("phase_1_complete"):
-        return (
-            "Concept Validation",
-            "Pressure-test whether the concept itself deserves more time.",
-        )
+        return "Concept Validation", "Pressure-test whether the concept itself deserves more time."
     if not st.session_state.get("financial_model_done"):
-        return (
-            "Financial Model",
-            "Run the economics before treating momentum as proof.",
-        )
+        return "Financial Model", "Run the economics before treating momentum as proof."
     if not st.session_state.get("phase_2_complete"):
-        return (
-            "Post-Discovery",
-            "Tighten the unknowns before you call this investable.",
-        )
+        return "Post-Discovery", "Tighten the unknowns before you call this investable."
     if not st.session_state.get("phase_3_complete"):
-        return (
-            "Final Decision",
-            "Turn the evidence into a clear go, no-go, or conditions-based call.",
-        )
+        return "Final Decision", "Turn the evidence into a clear go, no-go, or conditions-based call."
     return "Report", "Review the final signal and unresolved conditions."
 
 
@@ -137,96 +134,56 @@ def _go_to(page_name: str) -> None:
     st.rerun()
 
 
+def _render_workflow_sidebar(workflow_type: str) -> bool:
+    workflow_config = get_workflow_config(workflow_type)
+    st.sidebar.caption("Active workflow")
+    st.sidebar.info(f"{workflow_config['label']}\n\n{workflow_config['status']}")
+
+    if workflow_type == "franchise":
+        return True
+
+    st.sidebar.caption("This workflow path is staged for Phase 2 expansion.")
+    if st.sidebar.button("Switch to Franchise workflow", use_container_width=True):
+        st.session_state["workflow_type"] = "franchise"
+        st.session_state["current_page"] = DEFAULT_PAGE
+        st.rerun()
+    return False
+
+
 def render_sidebar() -> None:
     render_sidebar_branding()
+
+    workflow_type = _current_workflow()
+    if not _render_workflow_sidebar(workflow_type):
+        return
 
     is_paid_pro = bool(st.session_state.get("premium_access", False))
     has_dev_pro = bool(st.session_state.get("dev_pro_access", False))
     pro_enabled = is_paid_pro or has_dev_pro
 
     plan_label = "Pro" if pro_enabled else "Core"
-    plan_subtext = "Execution tools unlocked" if pro_enabled else "Core workflow only"
-    if has_dev_pro and not is_paid_pro:
-        plan_subtext = "Developer override enabled"
-
-    st.sidebar.markdown(
-        f"""
-        <div style="
-            background: linear-gradient(135deg, rgba(249,115,22,0.10), rgba(249,115,22,0.03));
-            border: 1px solid rgba(249,115,22,0.18);
-            border-radius: 18px;
-            padding: 0.95rem 1rem 0.9rem 1rem;
-            margin-bottom: 0.9rem;
-            box-shadow: 0 8px 24px rgba(17, 24, 39, 0.05);
-        ">
-            <div style="
-                font-size: 0.72rem;
-                font-weight: 700;
-                letter-spacing: 0.08em;
-                text-transform: uppercase;
-                color: #64748B;
-                margin-bottom: 0.38rem;
-            ">
-                Your plan
-            </div>
-            <div style="
-                display: inline-block;
-                padding: 0.22rem 0.58rem;
-                border-radius: 999px;
-                background: rgba(249,115,22,0.10);
-                border: 1px solid rgba(249,115,22,0.16);
-                color: #C2410C;
-                font-size: 0.7rem;
-                font-weight: 800;
-                letter-spacing: 0.04em;
-                text-transform: uppercase;
-                margin-bottom: 0.45rem;
-            ">
-                {plan_label}
-            </div>
-            <div style="
-                font-size: 0.92rem;
-                line-height: 1.45;
-                color: #334155;
-            ">
-                {plan_subtext}
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True,
+    plan_subtext = "Developer override enabled" if has_dev_pro and not is_paid_pro else (
+        "Execution tools unlocked" if pro_enabled else "Core workflow only"
     )
+    st.sidebar.caption("Your plan")
+    st.sidebar.info(f"{plan_label}\n\n{plan_subtext}")
 
     packet = build_decision_packet()
     next_page, next_reason = _recommended_page()
     risks = packet.get("risks") or packet.get("key_risks") or []
     top_risk = risks[0] if risks else "No meaningful risk signal yet. Complete more of the workflow."
 
-    st.sidebar.markdown(
-        f"""
-        <div style="
-            background: #ffffff;
-            border: 1px solid rgba(17,24,39,0.08);
-            border-radius: 18px;
-            padding: 0.95rem 1rem 0.9rem 1rem;
-            margin-bottom: 0.9rem;
-            box-shadow: 0 8px 24px rgba(17, 24, 39, 0.04);
-        ">
-            <div style="font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #64748B; margin-bottom: 0.35rem;">Decision pulse</div>
-            <div style="font-size: 1rem; font-weight: 700; color: #0F172A; margin-bottom: 0.25rem;">{packet.get('recommendation', 'Not enough data')}</div>
-            <div style="font-size: 0.88rem; line-height: 1.45; color: #475569; margin-bottom: 0.55rem;">Weighted score: {packet.get('weighted_score', 0)} · Confidence: {packet.get('confidence', 'Unknown')}</div>
-            <div style="font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #64748B; margin-bottom: 0.2rem;">Biggest unresolved risk</div>
-            <div style="font-size: 0.84rem; line-height: 1.45; color: #475569;">{top_risk}</div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+    st.sidebar.caption("Decision pulse")
+    st.sidebar.write(f"**{packet.get('recommendation', 'Not enough data')}**")
+    st.sidebar.caption(f"Weighted score: {packet.get('weighted_score', 0)} · Confidence: {packet.get('confidence', 'Unknown')}")
+    st.sidebar.caption(f"Biggest unresolved risk: {top_risk}")
 
     if st.sidebar.button(f"Go to: {next_page}", use_container_width=True, type="primary"):
         _go_to(next_page)
 
     st.sidebar.caption(next_reason)
     st.sidebar.markdown("---")
-    st.sidebar.caption("Workflow")
+    st.sidebar.caption("Workflow navigation")
 
     current_page = st.session_state["current_page"]
     grouped_pages: dict[str, list[str]] = defaultdict(list)
@@ -237,18 +194,8 @@ def render_sidebar() -> None:
         with st.sidebar.expander(section_name, expanded=current_page in section_pages):
             for page_name in section_pages:
                 locked = is_pro_page(page_name) and not pro_enabled
-                label = page_name
-                if locked:
-                    label += " 🔒"
-                elif current_page == page_name:
-                    label += " •"
-
-                if st.button(
-                    label,
-                    key=f"nav_{page_name}",
-                    use_container_width=True,
-                    disabled=locked,
-                ):
+                label = page_name + (" 🔒" if locked else " •" if current_page == page_name else "")
+                if st.button(label, key=f"nav_{page_name}", use_container_width=True, disabled=locked):
                     _go_to(page_name)
 
     st.sidebar.markdown("---")
@@ -267,20 +214,11 @@ def render_sidebar() -> None:
 def render_reset_controls() -> None:
     with st.sidebar.expander("Reset assessment"):
         st.caption("This clears assessment progress and keeps your basic profile info.")
-
         confirm_reset = st.checkbox(
             "I understand this will reset my assessment progress.",
             key="confirm_reset_assessment",
         )
-
-        reset_clicked = st.button(
-            "Reset now",
-            type="secondary",
-            disabled=not confirm_reset,
-            use_container_width=True,
-        )
-
-        if reset_clicked:
+        if st.button("Reset now", type="secondary", disabled=not confirm_reset, use_container_width=True):
             reset_assessment_state(keys_to_keep=RESET_KEYS_TO_KEEP)
             st.session_state["current_page"] = DEFAULT_PAGE
             st.session_state["confirm_reset_assessment"] = False
@@ -295,19 +233,25 @@ def get_current_page() -> str:
 
 
 def render_current_page(page: str) -> None:
-    renderer = PAGE_RENDERERS.get(page)
+    render_compact_brand_bar()
 
+    if _current_workflow() != "franchise":
+        render_workflow_placeholder()
+        return
+
+    renderer = PAGE_RENDERERS.get(page)
     if renderer is None:
         st.error(f'No renderer is registered for page "{page}".')
         return
 
-    render_compact_brand_bar()
     renderer()
 
 
 def render_prev_next_buttons(page: str) -> None:
-    visible_pages = list(PAGES)
+    if _current_workflow() != "franchise":
+        return
 
+    visible_pages = list(PAGES)
     if page not in visible_pages:
         return
 
@@ -316,16 +260,12 @@ def render_prev_next_buttons(page: str) -> None:
     next_page = visible_pages[current_index + 1] if current_index < len(visible_pages) - 1 else None
 
     left, spacer, right = st.columns([1, 4, 1])
-
     with left:
         if prev_page and st.button("← Back", use_container_width=True):
-            st.session_state["current_page"] = prev_page
-            st.rerun()
-
+            _go_to(prev_page)
     with right:
         if next_page and st.button("Next →", use_container_width=True):
-            st.session_state["current_page"] = next_page
-            st.rerun()
+            _go_to(next_page)
 
 
 def main() -> None:
@@ -336,15 +276,13 @@ def main() -> None:
         st.stop()
 
     render_sidebar()
-
     page = get_current_page()
 
-    if not guard_page_or_warn(page):
+    if _current_workflow() == "franchise" and not guard_page_or_warn(page):
         st.stop()
 
     render_current_page(page)
     render_prev_next_buttons(page)
-    
 
 
 if __name__ == "__main__":

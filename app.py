@@ -35,6 +35,12 @@ from ui_styles import inject_global_styles
 from welcome_ui import render_welcome
 from workflow_config import DEFAULT_WORKFLOW, WORKFLOW_CONFIG, get_workflow_config
 from workflow_placeholder_ui import render_workflow_placeholder
+from workflows.startup.concept_validation_ui import render_startup_concept_validation
+from workflows.startup.financial_assumptions_ui import render_startup_financial_assumptions
+from workflows.startup.market_pressure_ui import render_startup_market_pressure_test
+from workflows.startup.overview_ui import render_startup_overview
+from workflows.startup.page_config import STARTUP_DEFAULT_PAGE, STARTUP_PAGES
+from workflows.startup.readiness_report_ui import render_startup_readiness_report
 
 
 PageRenderer = Callable[[], None]
@@ -72,6 +78,14 @@ PAGE_RENDERERS: Final[dict[str, PageRenderer]] = {
     "Paywall": render_paywall,
 }
 
+STARTUP_PAGE_RENDERERS: Final[dict[str, PageRenderer]] = {
+    "Startup Overview": render_startup_overview,
+    "Startup Concept Validation": render_startup_concept_validation,
+    "Startup Market Pressure Test": render_startup_market_pressure_test,
+    "Startup Financial Assumptions": render_startup_financial_assumptions,
+    "Startup Readiness Report": render_startup_readiness_report,
+}
+
 
 def configure_app() -> None:
     st.set_page_config(page_title=APP_PRODUCT, layout="wide")
@@ -95,11 +109,15 @@ def ensure_required_state() -> None:
     st.session_state.setdefault("dev_pro_access", True)
     st.session_state.setdefault("workflow_type", DEFAULT_WORKFLOW)
 
-    _current_workflow()
-
+    workflow_type = _current_workflow()
     current_page = st.session_state.get("current_page", DEFAULT_PAGE)
-    if current_page not in PAGES:
+
+    if workflow_type == "startup":
+        if current_page not in STARTUP_PAGES:
+            current_page = STARTUP_DEFAULT_PAGE
+    elif current_page not in PAGES:
         current_page = DEFAULT_PAGE
+
     st.session_state["current_page"] = current_page
 
 
@@ -142,7 +160,7 @@ def _render_workflow_sidebar(workflow_type: str) -> bool:
     if workflow_type == "franchise":
         return True
 
-    st.sidebar.caption("This workflow path is staged for Phase 2 expansion.")
+    st.sidebar.caption("This workflow path is staged for future expansion.")
     if st.sidebar.button("Switch to Franchise workflow", use_container_width=True):
         st.session_state["workflow_type"] = "franchise"
         st.session_state["current_page"] = DEFAULT_PAGE
@@ -150,10 +168,36 @@ def _render_workflow_sidebar(workflow_type: str) -> bool:
     return False
 
 
+def _render_startup_sidebar() -> None:
+    workflow_config = get_workflow_config("startup")
+    st.sidebar.caption("Active workflow")
+    st.sidebar.info(f"{workflow_config['label']}\n\n{workflow_config['status']}")
+    st.sidebar.caption("Startup workflow shell")
+    st.sidebar.markdown("---")
+    st.sidebar.caption("Startup navigation")
+
+    current_page = st.session_state.get("current_page", STARTUP_DEFAULT_PAGE)
+    for page_name in STARTUP_PAGES:
+        label = page_name + (" •" if current_page == page_name else "")
+        if st.sidebar.button(label, key=f"startup_nav_{page_name}", use_container_width=True):
+            _go_to(page_name)
+
+    st.sidebar.markdown("---")
+    if st.sidebar.button("Switch to Franchise workflow", use_container_width=True):
+        st.session_state["workflow_type"] = "franchise"
+        st.session_state["current_page"] = DEFAULT_PAGE
+        st.rerun()
+
+
 def render_sidebar() -> None:
     render_sidebar_branding()
 
     workflow_type = _current_workflow()
+
+    if workflow_type == "startup":
+        _render_startup_sidebar()
+        return
+
     if not _render_workflow_sidebar(workflow_type):
         return
 
@@ -227,6 +271,9 @@ def render_reset_controls() -> None:
 
 def get_current_page() -> str:
     page = st.session_state.get("current_page", DEFAULT_PAGE)
+    workflow_type = _current_workflow()
+    if workflow_type == "startup":
+        return page if page in STARTUP_PAGES else STARTUP_DEFAULT_PAGE
     if page not in PAGES:
         return DEFAULT_PAGE
     return page
@@ -235,7 +282,14 @@ def get_current_page() -> str:
 def render_current_page(page: str) -> None:
     render_compact_brand_bar()
 
-    if _current_workflow() != "franchise":
+    workflow_type = _current_workflow()
+
+    if workflow_type == "startup":
+        renderer = STARTUP_PAGE_RENDERERS.get(page, render_startup_overview)
+        renderer()
+        return
+
+    if workflow_type != "franchise":
         render_workflow_placeholder()
         return
 
@@ -248,10 +302,15 @@ def render_current_page(page: str) -> None:
 
 
 def render_prev_next_buttons(page: str) -> None:
-    if _current_workflow() != "franchise":
+    workflow_type = _current_workflow()
+
+    if workflow_type == "startup":
+        visible_pages = list(STARTUP_PAGES)
+    elif workflow_type == "franchise":
+        visible_pages = list(PAGES)
+    else:
         return
 
-    visible_pages = list(PAGES)
     if page not in visible_pages:
         return
 

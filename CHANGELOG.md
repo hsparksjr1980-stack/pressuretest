@@ -2,34 +2,43 @@
 
 ## v0.5.0-dev
 
-### Phase 3C — Startup Scoring MVP
+### Phase 3D — Startup Readiness Report Enhancements
 
 Added:
-- startup-specific scoring engine
-- startup readiness MVP signal
-- startup scoring summaries
-- startup risk-flag summaries
-- strongest-signal summaries
-- weakest-assumption summaries
-- next validation-question prompts
-- startup scoring integration into readiness report
+- enhanced startup readiness report structure
+- startup readiness signal presentation improvements
+- startup execution-pressure sections
+- founder/operator consideration sections
+- capital and runway observations
+- startup validation checklist section
+- startup readiness summary section
+- expanded startup risk explanations
+- improved report hierarchy and section separation
 
-Startup scoring currently evaluates:
-- liquidity/runway pressure
-- market validation
-- pricing assumptions
-- customer acquisition approach
-- founder/operator involvement
-- execution complexity
-- launch readiness
+Startup readiness report now includes:
+- startup readiness signal
+- key risk areas
+- strongest signals
+- weakest assumptions
+- execution pressure areas
+- validation questions
+- founder/operator considerations
+- capital and runway observations
+- final readiness summary
 
-Startup scoring outputs:
-- Stronger foundation
-- Needs validation
-- High pressure / high uncertainty
+Validation checklist examples include:
+- customer interviews
+- pricing validation
+- demand testing
+- launch assumptions
+- CAC validation
+- runway sufficiency
+- operational bottleneck review
 
 Not yet implemented:
 - advanced startup financial modeling
+- startup forecasting engine
+- startup PDF export
 - generated investment recommendations
 - startup persistence/database layer
 - acquisition workflow engine

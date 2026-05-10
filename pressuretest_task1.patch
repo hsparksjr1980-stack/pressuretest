@@ -1,0 +1,888 @@
+Only in pt/pressuretest_phase1_6_blunt_pressuretest_review: .gitignore
+Only in pt/pressuretest_phase1_6_blunt_pressuretest_review: .venv
+Only in pt/pressuretest_phase1_6_blunt_pressuretest_review: FILE_MAP.md
+Only in pt/pressuretest_phase1_6_blunt_pressuretest_review: OPENAI_SETUP.md
+Only in pt/pressuretest_phase1_6_blunt_pressuretest_review: PHASE1_README.md
+Only in pt/pressuretest_phase1_6_blunt_pressuretest_review: README.md
+Only in pt/pressuretest_phase1_6_blunt_pressuretest_review: README.txt
+Only in pt/pressuretest_phase1_6_blunt_pressuretest_review: README_batch2.txt
+Only in pt/pressuretest_phase1_6_blunt_pressuretest_review: __pycache__
+Only in pt/pressuretest_phase1_6_blunt_pressuretest_review: anchored_slider.py
+diff -ru pt/pressuretest_phase1_6_blunt_pressuretest_review/app.py pressuretest_task1_replacements/app.py
+--- pt/pressuretest_phase1_6_blunt_pressuretest_review/app.py	2026-05-09 20:02:54.000000000 +0000
++++ pressuretest_task1_replacements/app.py	2026-05-09 23:57:00.203389396 +0000
+@@ -57,7 +57,7 @@
+ 
+ # Home is new. All other pages reuse your existing app modules.
+ PAGE_RENDERERS: Final[dict[str, PageRenderer]] = {
+-    "Home": render_premium_home,
++    "Home": render_overview,
+     "Overview": render_overview,
+     "Brand & Territory Snapshot": render_brand_territory,
+     FIT_PAGE_LABEL: render_phase_0,
+@@ -112,18 +112,20 @@
+ 
+ 
+ def _recommended_page() -> tuple[str, str]:
+-    if not st.session_state.get("brand_analysis_done"):
+-        return "Brand & Territory Snapshot", "Start by adding brand and territory context so the workflow feels more tailored."
+     if not st.session_state.get("phase_0_complete"):
+-        return FIT_PAGE_LABEL, "Start with fit, downside tolerance, and operator reality."
++        return FIT_PAGE_LABEL, "Start with operator fit, downside tolerance, and ownership reality."
++    if not st.session_state.get("brand_analysis_done"):
++        return "Brand & Territory Snapshot", "Add brand and territory context so the workflow is less generic."
+     if not st.session_state.get("phase_1_complete"):
+         return "Concept Validation", "Pressure-test the concept before momentum takes over."
+     if not st.session_state.get("financial_model_done"):
+-        return "Financial Model", "Run the economics and document what must be true."
++        return "Financial Model", "Run economics, ramp, and working-capital pressure before treating the deal as viable."
++    if not st.session_state.get("free_report_generated"):
++        return "Free Report", "Package the current signal into a first diligence summary."
+     if not st.session_state.get("phase_2_complete"):
+         return "Post-Discovery", "Convert Discovery Day answers into conditions and gaps."
+     if not st.session_state.get("phase_3_complete"):
+-        return "Final Decision", "Turn the evidence into a clear yes, no, or conditions-based call."
++        return "Final Decision", "Turn the evidence into a clear proceed, pause, renegotiate, or walk-away call."
+     return "Report", "Package the decision signal and remaining conditions."
+ 
+ 
+@@ -154,8 +156,8 @@
+     has_dev_pro = bool(st.session_state.get("dev_pro_access", False))
+     pro_enabled = is_paid_pro or has_dev_pro
+ 
+-    plan_label = "Pro" if is_paid_pro else "Core Preview"
+-    plan_subtext = "Assessment workflow open. Execution tools are previewed, not unlocked." if not is_paid_pro else "Execution tools unlocked."
++    plan_label = "Pro" if is_paid_pro else "Free Assessment"
++    plan_subtext = "Core diligence workflow open. Execution tools require Pro." if not is_paid_pro else "Execution tools unlocked."
+ 
+     st.sidebar.markdown(
+         f"""
+@@ -176,10 +178,10 @@
+     st.sidebar.caption(next_reason)
+ 
+     st.sidebar.markdown("---")
+-    if st.sidebar.button("Home / Cockpit", use_container_width=True):
++    if st.sidebar.button("Decision Cockpit", use_container_width=True):
+         _go_to("Home")
+ 
+-    st.sidebar.caption("Guided workflow")
++    st.sidebar.caption("Guided diligence flow")
+     current_page = st.session_state["current_page"]
+     grouped_pages: dict[str, list[str]] = defaultdict(list)
+     for page_name in SIDEBAR_PAGES:
+diff -ru pt/pressuretest_phase1_6_blunt_pressuretest_review/app_state.py pressuretest_task1_replacements/app_state.py
+--- pt/pressuretest_phase1_6_blunt_pressuretest_review/app_state.py	2026-05-08 18:50:40.000000000 +0000
++++ pressuretest_task1_replacements/app_state.py	2026-05-09 23:57:00.203890642 +0000
+@@ -14,7 +14,7 @@
+     "auth_complete": False,
+     "profile_complete": False,
+     "premium_access": False,
+-    "dev_pro_access": True,
++    "dev_pro_access": False,
+     "current_page": DEFAULT_PAGE,
+     "nav_target_page": DEFAULT_PAGE,
+ }
+@@ -26,6 +26,8 @@
+     "franchise_name": "",
+     "units_considered": "",
+     "ownership_style": "",
++    "diligence_stage": "Exploring",
++    "capital_range": "Not sure yet",
+     "signed_anything": False,
+ }
+ 
+Only in pt/pressuretest_phase1_6_blunt_pressuretest_review: brand_territory_analyzer.py
+Only in pt/pressuretest_phase1_6_blunt_pressuretest_review: brand_territory_ui.py
+Only in pt/pressuretest_phase1_6_blunt_pressuretest_review: branding.py
+Only in pt/pressuretest_phase1_6_blunt_pressuretest_review: buildout_tracker_logic.py
+Only in pt/pressuretest_phase1_6_blunt_pressuretest_review: buildout_tracker_ui.py
+Only in pt/pressuretest_phase1_6_blunt_pressuretest_review: deal_model_logic.py
+Only in pt/pressuretest_phase1_6_blunt_pressuretest_review: deal_model_ui.py
+Only in pt/pressuretest_phase1_6_blunt_pressuretest_review: deal_workspace_logic.py
+Only in pt/pressuretest_phase1_6_blunt_pressuretest_review: deal_workspace_ui.py
+Only in pt/pressuretest_phase1_6_blunt_pressuretest_review: decision_engine.py
+Only in pt/pressuretest_phase1_6_blunt_pressuretest_review: docs
+Only in pt/pressuretest_phase1_6_blunt_pressuretest_review: execution_report_ui.py
+Only in pt/pressuretest_phase1_6_blunt_pressuretest_review: final_decision_ui.py
+Only in pt/pressuretest_phase1_6_blunt_pressuretest_review: financial_model_ui.py
+Only in pt/pressuretest_phase1_6_blunt_pressuretest_review: framework_ui.py
+Only in pt/pressuretest_phase1_6_blunt_pressuretest_review: free_report_ui.py
+Only in pt/pressuretest_phase1_6_blunt_pressuretest_review: gotcha_engine.py
+Only in pt/pressuretest_phase1_6_blunt_pressuretest_review: guardrails_engine.py
+Only in pt/pressuretest_phase1_6_blunt_pressuretest_review: local_state_io.py
+Only in pt/pressuretest_phase1_6_blunt_pressuretest_review: logo.png
+diff -ru pt/pressuretest_phase1_6_blunt_pressuretest_review/nav_ui.py pressuretest_task1_replacements/nav_ui.py
+--- pt/pressuretest_phase1_6_blunt_pressuretest_review/nav_ui.py	2026-05-08 18:50:40.000000000 +0000
++++ pressuretest_task1_replacements/nav_ui.py	2026-05-09 23:56:47.023333356 +0000
+@@ -1,12 +1,31 @@
+ import streamlit as st
++
+ from page_config import PAGES, PRO_PAGES
+ from phase_gate import is_page_unlocked
+ 
++OUTCOME_LABELS = {
++    "Overview": "Decision Cockpit",
++    "Brand & Territory Snapshot": "Brand Context",
++    "Franchise Fit": "Operator Fit",
++    "Concept Validation": "Concept Validation",
++    "Opportunity Fit & Recommendations": "Recommendation Signal",
++    "Financial Model": "Financial Reality",
++    "Free Report": "First Report",
++    "Post-Discovery": "Discovery Review",
++    "Final Decision": "Final Decision",
++    "Report": "Decision Report",
++    "Plans & Support": "Support Options",
++    "Deal Workspace": "Deal Workspace",
++    "Deal Model": "Deal Model",
++    "Buildout & Launch Tracker": "Buildout Tracker",
++    "Execution Report": "Execution Report",
++}
++
+ 
+ def get_display_label(page: str, unlocked: bool) -> str:
+-    status_icon = "✅" if unlocked else "🔒"
++    status_icon = "✓" if unlocked else "Locked"
+     pro_suffix = " — Pro" if page in PRO_PAGES else ""
+-    return f"{status_icon} {page}{pro_suffix}"
++    return f"{status_icon} {OUTCOME_LABELS.get(page, page)}{pro_suffix}"
+ 
+ 
+ def render_page_nav(pages, current_page):
+Only in pt/pressuretest_phase1_6_blunt_pressuretest_review: opportunity_fit_engine.py
+Only in pt/pressuretest_phase1_6_blunt_pressuretest_review: opportunity_fit_ui.py
+diff -ru pt/pressuretest_phase1_6_blunt_pressuretest_review/overview_ui.py pressuretest_task1_replacements/overview_ui.py
+--- pt/pressuretest_phase1_6_blunt_pressuretest_review/overview_ui.py	2026-05-08 18:50:40.000000000 +0000
++++ pressuretest_task1_replacements/overview_ui.py	2026-05-09 23:56:47.016815988 +0000
+@@ -14,199 +14,191 @@
+     render_section_intro,
+ )
+ 
++WORKFLOW_STEPS: list[tuple[str, str, str]] = [
++    ("Operator Fit", "Franchise Fit", "Test time demand, downside tolerance, and owner-role fit."),
++    ("Brand Context", "Brand & Territory Snapshot", "Add brand, territory, and local-market context."),
++    ("Concept Validation", "Concept Validation", "Pressure-test demand, unit economics claims, and operating complexity."),
++    ("Financial Reality", "Financial Model", "Model startup cost, runway, ramp, and margin pressure."),
++    ("Decision Output", "Free Report", "Package a first summary of open risks and next steps."),
++]
++
++
++def _go_to(page_name: str) -> None:
++    st.session_state["current_page"] = page_name
++    st.rerun()
++
+ 
+ def _recommended_next_step() -> tuple[str, str]:
+     if not st.session_state.get("phase_0_complete"):
+-        return (
+-            "Franchise Fit",
+-            "Start by testing whether the ownership model, time demand, and downside fit you.",
+-        )
++        return "Franchise Fit", "Start with operator fit before spending more time on brand story or economics."
++    if not st.session_state.get("brand_analysis_done"):
++        return "Brand & Territory Snapshot", "Add brand and territory context so the rest of the workflow is less generic."
+     if not st.session_state.get("phase_1_complete"):
+-        return (
+-            "Concept Validation",
+-            "Pressure-test the concept before you give more weight to momentum or brand story.",
+-        )
++        return "Concept Validation", "Pressure-test the concept before momentum makes weak assumptions feel settled."
+     if not st.session_state.get("financial_model_done"):
+-        return (
+-            "Financial Model",
+-            "Check the economics before treating the opportunity as investable.",
+-        )
++        return "Financial Model", "Check economics, ramp, and capital pressure before treating the opportunity as viable."
++    if not st.session_state.get("free_report_generated"):
++        return "Free Report", "Package the current signal into a usable first diligence summary."
+     if not st.session_state.get("phase_2_complete"):
+-        return (
+-            "Post-Discovery",
+-            "Use discovery to tighten assumptions and surface unresolved issues.",
+-        )
+-    return (
+-        "Final Decision",
+-        "Bring the evidence together and decide whether to proceed, pause, or walk away.",
+-    )
++        return "Post-Discovery", "Use discovery answers to convert unknowns into conditions, gaps, or no-go issues."
++    return "Final Decision", "Bring the evidence together and decide whether to proceed, pause, renegotiate, or walk away."
+ 
+ 
+ def _profile_summary() -> list[str]:
+-    items: list[str] = []
++    fields = [
++        ("Operator", st.session_state.get("full_name")),
++        ("Concept", st.session_state.get("franchise_name")),
++        ("Market", st.session_state.get("city_state")),
++        ("Units", st.session_state.get("units_considered")),
++        ("Ownership style", st.session_state.get("ownership_style")),
++        ("Stage", st.session_state.get("diligence_stage")),
++        ("Capital range", st.session_state.get("capital_range")),
++    ]
++    return [f"{label}: {value}" for label, value in fields if value]
+ 
+-    full_name = st.session_state.get("full_name")
+-    franchise_name = st.session_state.get("franchise_name")
+-    units = st.session_state.get("units_considered")
+-    ownership_style = st.session_state.get("ownership_style")
+-
+-    if full_name:
+-        items.append(f"Profile: {full_name}")
+-    if franchise_name:
+-        items.append(f"Concept: {franchise_name}")
+-    if units:
+-        items.append(f"Units considered: {units}")
+-    if ownership_style:
+-        items.append(f"Ownership style: {ownership_style}")
+ 
+-    return items
++def _step_done(page_name: str) -> bool:
++    completion_map = {
++        "Franchise Fit": bool(st.session_state.get("phase_0_complete")),
++        "Brand & Territory Snapshot": bool(st.session_state.get("brand_analysis_done")),
++        "Concept Validation": bool(st.session_state.get("phase_1_complete")),
++        "Financial Model": bool(st.session_state.get("financial_model_done")),
++        "Free Report": bool(st.session_state.get("free_report_generated")),
++    }
++    return completion_map.get(page_name, False)
+ 
+ 
+ def _workflow_status() -> list[str]:
+-    steps = [
+-        ("Franchise Fit", st.session_state.get("phase_0_complete", False)),
+-        ("Concept Validation", st.session_state.get("phase_1_complete", False)),
+-        ("Financial Model", st.session_state.get("financial_model_done", False)),
+-        ("Post-Discovery", st.session_state.get("phase_2_complete", False)),
+-        ("Final Decision", st.session_state.get("phase_3_complete", False)),
+-    ]
+-    return [f"{name}: {'Complete' if done else 'Not complete'}" for name, done in steps]
++    return [f"{label}: {'Complete' if _step_done(page) else 'Open'}" for label, page, _ in WORKFLOW_STEPS]
+ 
+ 
+-def _overview_snapshot() -> dict[str, str]:
+-    phase_0 = st.session_state.get("phase_0_complete", False)
+-    phase_1 = st.session_state.get("phase_1_complete", False)
+-    financial = st.session_state.get("financial_model_done", False)
+-    phase_2 = st.session_state.get("phase_2_complete", False)
+-    phase_3 = st.session_state.get("phase_3_complete", False)
++def _completion_count() -> int:
++    return sum(1 for _, page, _ in WORKFLOW_STEPS if _step_done(page))
+ 
+-    completed = sum([phase_0, phase_1, financial, phase_2, phase_3])
++
++def _overview_snapshot() -> dict[str, str]:
++    completed = _completion_count()
++    signed = bool(st.session_state.get("signed_anything"))
+ 
+     if completed == 0:
+         return {
+-            "signal": "Early",
+-            "signal_explainer": "You are still at the start. Use the first pages to test fit before getting attached to the opportunity.",
+-            "top_risk": "Not enough evidence yet",
+-            "top_risk_explainer": "The biggest current risk is making assumptions before you have enough signal.",
+-            "stance": "Too early to call",
+-            "stance_explainer": "Complete the early workflow before making a recommendation.",
++            "signal": "Not enough evidence yet",
++            "signal_explainer": "The opportunity may still be interesting, but the current file does not support a decision.",
++            "top_risk": "Assumption risk",
++            "top_risk_explainer": "Early enthusiasm can hide unknowns around owner role, capital need, ramp, and local execution.",
++            "stance": "Start the pressure snapshot",
++            "stance_explainer": "Complete operator fit first, then add brand context and financial pressure testing.",
+         }
+ 
+-    if not financial:
++    if signed and completed < 4:
+         return {
+-            "signal": "Promising, but incomplete",
+-            "signal_explainer": "You have early directional signal, but the economics have not been pressure-tested yet.",
+-            "top_risk": "Economics still untested",
+-            "top_risk_explainer": "Without a financial view, a good concept can still be a bad deal.",
+-            "stance": "Needs pressure testing",
+-            "stance_explainer": "Do not move forward confidently until the numbers hold up.",
++            "signal": "Commitment pressure present",
++            "signal_explainer": "You flagged that something may already be signed or materially committed.",
++            "top_risk": "Reduced optionality",
++            "top_risk_explainer": "After commitment, unresolved assumptions become execution risks instead of diligence questions.",
++            "stance": "Document gaps now",
++            "stance_explainer": "Use the remaining pages to identify what must be validated quickly.",
+         }
+ 
+-    if not phase_3:
++    if not st.session_state.get("financial_model_done"):
+         return {
+             "signal": "Developing",
+-            "signal_explainer": "You have enough evidence to start forming a view, but unresolved conditions may still change the decision.",
+-            "top_risk": "Unresolved conditions",
+-            "top_risk_explainer": "Discovery gaps, assumptions, or operator mismatch may still be open.",
+-            "stance": "Close, but not final",
+-            "stance_explainer": "Use the remaining pages to convert signal into a clear recommendation.",
++            "signal_explainer": "You have some early signal, but economics have not been pressure-tested yet.",
++            "top_risk": "Untested financial reality",
++            "top_risk_explainer": "A concept can look strong and still fail the working-capital, ramp, or margin test.",
++            "stance": "Keep validating",
++            "stance_explainer": "Move through concept validation and financial modeling before forming a decision view.",
+         }
+ 
+     return {
+-        "signal": "Built",
+-        "signal_explainer": "You have enough completed work to make a more grounded recommendation.",
+-        "top_risk": "Execution risk",
+-        "top_risk_explainer": "Even good decisions can fail in execution if conditions and discipline are weak.",
+-        "stance": "Ready for decision",
+-        "stance_explainer": "Review the final decision page and report before committing.",
++        "signal": "Usable diligence file forming",
++        "signal_explainer": "Enough of the workflow is complete to start summarizing risks and conditions.",
++        "top_risk": "Execution discipline",
++        "top_risk_explainer": "The remaining issue is whether the assumptions can survive launch, staffing, buildout, and cash-pressure realities.",
++        "stance": "Prepare decision output",
++        "stance_explainer": "Generate the report, then use final decision pages for proceed / pause / walk-away discipline.",
+     }
+ 
+ 
++def _render_workflow_cards() -> None:
++    for label, page, body in WORKFLOW_STEPS:
++        done = _step_done(page)
++        status = "Complete" if done else "Open"
++        cols = st.columns([.18, .62, .2])
++        with cols[0]:
++            st.markdown(f"<div class='pt-pill'>{status}</div>", unsafe_allow_html=True)
++        with cols[1]:
++            st.markdown(f"**{label}**  \n{body}")
++        with cols[2]:
++            if st.button("Open", key=f"overview_open_{page}", use_container_width=True):
++                _go_to(page)
++        st.markdown("<hr style='margin:.55rem 0; border:none; border-top:1px solid #E5E7EB;' />", unsafe_allow_html=True)
++
++
+ def render_overview() -> None:
+     open_shell()
+ 
+     render_page_header(
+         eyebrow=APP_PRODUCT,
+-        title="Overview",
+-        subtitle="Use this page to see what matters now, where the risk is, and what to do next.",
++        title="Decision Cockpit",
++        subtitle="Start with the next step that improves decision quality. Keep assumptions visible until they are validated.",
+         wide=True,
+     )
+ 
+     next_step, next_reason = _recommended_next_step()
++    completed = _completion_count()
+ 
+     render_action_banner(
+-        eyebrow="Recommended next step",
++        eyebrow="Recommended next action",
+         title=next_step,
+         body=next_reason,
+-        chips=["Focus", "Risk", "Decision quality"],
++        chips=[f"{completed}/{len(WORKFLOW_STEPS)} core steps complete", "Guided flow", "Operator-focused"],
+     )
+ 
+-    snapshot = _overview_snapshot()
++    if st.button(f"Continue: {next_step}", type="primary", use_container_width=True, key="overview_continue_next"):
++        _go_to(next_step)
+ 
+-    col1, col2, col3 = st.columns(3)
++    snapshot = _overview_snapshot()
++    st.markdown('<div class="rc-gap-md"></div>', unsafe_allow_html=True)
+ 
++    col1, col2, col3 = st.columns(3, gap="large")
+     with col1:
+-        render_card(
+-            label="Current signal",
+-            title=snapshot["signal"],
+-            body=snapshot["signal_explainer"],
+-            soft=True,
+-        )
+-
++        render_card("Current signal", snapshot["signal"], snapshot["signal_explainer"], soft=True)
+     with col2:
+-        render_card(
+-            label="Biggest unresolved risk",
+-            title=snapshot["top_risk"],
+-            body=snapshot["top_risk_explainer"],
+-            soft=True,
+-        )
+-
++        render_card("Biggest unresolved risk", snapshot["top_risk"], snapshot["top_risk_explainer"], soft=True)
+     with col3:
+-        render_card(
+-            label="Current stance",
+-            title=snapshot["stance"],
+-            body=snapshot["stance_explainer"],
+-            navy=True,
+-        )
++        render_card("Current stance", snapshot["stance"], snapshot["stance_explainer"], navy=True)
+ 
+     st.markdown('<div class="rc-gap-md"></div>', unsafe_allow_html=True)
+ 
+-    left, right = st.columns([1.15, 1], gap="large")
+-
++    left, right = st.columns([1.2, .8], gap="large")
+     with left:
+         render_section_intro(
+-            title="What to focus on now",
+-            body="Do the next step that changes the decision, not just the next step in the checklist.",
+-        )
+-
+-        render_bullet_panel(
+-            label="Workflow status",
+-            title="Progress through the evaluation",
+-            items=_workflow_status(),
+-            empty_text="No workflow data yet.",
+-        )
+-
+-        render_gotcha_section(
+-            page="overview",
+-            title="Watchouts to resolve",
+-            max_items=3,
++            title="Core assessment path",
++            body="This replaces a phase-heavy starting experience with a clearer first-run path.",
+         )
++        _render_workflow_cards()
++        render_gotcha_section(page="overview", title="Watchouts to resolve", max_items=3)
+ 
+     with right:
+         render_bullet_panel(
+-            label="Profile",
++            label="Opportunity profile",
+             title="Current setup",
+             items=_profile_summary(),
+-            empty_text="Complete your profile setup to personalize the workflow.",
++            empty_text="Complete first-run setup to personalize the workflow.",
++        )
++        render_bullet_panel(
++            label="Progress",
++            title="Assessment status",
++            items=_workflow_status(),
+         )
+-
+         render_bullet_panel(
+-            label="How to use this",
+-            title="Decision discipline",
++            label="Decision discipline",
++            title="How to use this page",
+             items=[
+-                "Focus first on fit, then concept, then economics.",
+-                "Treat unanswered assumptions as risk, not as neutral.",
+-                "Use the final decision only after the earlier pages are complete.",
++                "Do not skip economics because the brand story feels strong.",
++                "Treat unanswered assumptions as open risk, not neutral information.",
++                "Use the report only after the core steps have enough evidence.",
+             ],
+         )
+ 
+diff -ru pt/pressuretest_phase1_6_blunt_pressuretest_review/page_config.py pressuretest_task1_replacements/page_config.py
+--- pt/pressuretest_phase1_6_blunt_pressuretest_review/page_config.py	2026-05-09 18:53:24.000000000 +0000
++++ pressuretest_task1_replacements/page_config.py	2026-05-09 23:57:00.204067586 +0000
+@@ -52,15 +52,15 @@
+ }
+ 
+ SECTION_HELPERS: Final[dict[str, str]] = {
+-    "Start Here": "Orient the assessment, add brand context, and localize the diligence workflow.",
+-    "Operator Fit": "Assess lifestyle, risk tolerance, capital comfort, and owner-role fit.",
+-    "Opportunity Review": "Pressure test the concept, market, franchisor claims, and operational realities.",
+-    "Financial Reality": "Validate assumptions, margins, runway, buildout, and what has to be true.",
+-    "Commitment Review": "Turn Discovery Day answers into conditions, gaps, and no-go risks.",
++    "Start Here": "Use the cockpit and brand context to orient the diligence file.",
++    "Operator Fit": "Start with ownership role, downside tolerance, capital comfort, and time reality.",
++    "Opportunity Review": "Pressure-test demand, franchisor claims, market fit, and operating complexity.",
++    "Financial Reality": "Validate startup cost, ramp, margins, working capital, and what has to be true.",
++    "Commitment Review": "Convert Discovery Day answers into conditions, gaps, and no-go risks.",
+     "Final Decision": "Decide whether to proceed, pause, renegotiate, or walk away.",
+-    "Decision Outputs": "Package the evidence into a clear report and recommendation.",
+-    "Support Options": "Review optional advisory support and next-step help.",
+-    "Execution Tools": "Deal workspace, buildout, lender, vendor, and launch tools available later.",
++    "Decision Outputs": "Package the evidence into a concise report and open-risk summary.",
++    "Support Options": "Review optional support without interrupting the assessment flow.",
++    "Execution Tools": "Post-commitment workspaces for buildout, lender, vendor, and launch execution.",
+ }
+ 
+ 
+Only in pt/pressuretest_phase1_6_blunt_pressuretest_review: paywall_logic.py
+Only in pt/pressuretest_phase1_6_blunt_pressuretest_review: paywall_ui
+Only in pt/pressuretest_phase1_6_blunt_pressuretest_review: paywall_ui.py
+Only in pt/pressuretest_phase1_6_blunt_pressuretest_review: phase0_logic.py
+Only in pt/pressuretest_phase1_6_blunt_pressuretest_review: phase0_questions.py
+Only in pt/pressuretest_phase1_6_blunt_pressuretest_review: phase0_ui.py
+Only in pt/pressuretest_phase1_6_blunt_pressuretest_review: phase1_logic.py
+Only in pt/pressuretest_phase1_6_blunt_pressuretest_review: phase1_questions.py
+Only in pt/pressuretest_phase1_6_blunt_pressuretest_review: phase1_ui.py
+Only in pt/pressuretest_phase1_6_blunt_pressuretest_review: phase_gate.py
+Only in pt/pressuretest_phase1_6_blunt_pressuretest_review: plans_support_content.py
+Only in pt/pressuretest_phase1_6_blunt_pressuretest_review: plans_support_ui.py
+Only in pt/pressuretest_phase1_6_blunt_pressuretest_review: post_discovery_logic.py
+Only in pt/pressuretest_phase1_6_blunt_pressuretest_review: post_discovery_questions.py
+Only in pt/pressuretest_phase1_6_blunt_pressuretest_review: post_discovery_ui.py
+Only in pt/pressuretest_phase1_6_blunt_pressuretest_review: premium_components.py
+Only in pt/pressuretest_phase1_6_blunt_pressuretest_review: premium_home_ui.py
+Only in pt/pressuretest_phase1_6_blunt_pressuretest_review: pressure_test_engine.py
+diff -ru pt/pressuretest_phase1_6_blunt_pressuretest_review/profile_ui.py pressuretest_task1_replacements/profile_ui.py
+--- pt/pressuretest_phase1_6_blunt_pressuretest_review/profile_ui.py	2026-05-08 18:50:40.000000000 +0000
++++ pressuretest_task1_replacements/profile_ui.py	2026-05-09 23:56:47.009500945 +0000
+@@ -3,12 +3,7 @@
+ import streamlit as st
+ 
+ from shared_ui import render_brand_header
+-from ui_styles import (
+-    close_shell,
+-    open_shell,
+-    render_card,
+-    render_section_intro,
+-)
++from ui_styles import close_shell, open_shell, render_action_banner, render_card, render_section_intro
+ 
+ UNITS_OPTIONS = ["1", "2-3", "4+"]
+ OWNERSHIP_OPTIONS = [
+@@ -16,6 +11,20 @@
+     "Manager-Led",
+     "Investor / Semi-Absentee",
+ ]
++TIMELINE_OPTIONS = [
++    "Exploring",
++    "In conversations",
++    "Discovery scheduled",
++    "Near decision",
++    "Already committed",
++]
++CAPITAL_OPTIONS = [
++    "Under $100k",
++    "$100k-$250k",
++    "$250k-$500k",
++    "$500k+",
++    "Not sure yet",
++]
+ 
+ 
+ def _get_index(options: list[str], value: str, default: str) -> int:
+@@ -25,6 +34,7 @@
+ 
+ def _complete_profile() -> None:
+     st.session_state["profile_complete"] = True
++    st.session_state["assessment_started"] = True
+     st.session_state["current_page"] = "Overview"
+     st.rerun()
+ 
+@@ -33,101 +43,85 @@
+     open_shell()
+ 
+     render_brand_header(
+-        "PressureTest: Franchise",
+-        "Stress-test a franchise before you invest.",
++        "PressureTest",
++        "A structured diligence workspace for prospective operators.",
+     )
+ 
+     render_section_intro(
+-        title="Set up your profile before starting the evaluation.",
++        title="Set up the opportunity in two minutes.",
+         body=(
+-            "Provide a few basics so the assessment can guide your decision flow "
+-            "with better context."
++            "This is not account onboarding. It is the operating context needed to make the first assessment pages useful. "
++            "Keep it approximate and update it later as diligence improves."
+         ),
+     )
+ 
++    render_action_banner(
++        eyebrow="First-run setup",
++        title="The goal is a quick pressure snapshot, not a perfect file.",
++        body="Add enough context to route the workflow. The deeper validation happens in the assessment pages.",
++        chips=["2 minutes", "Editable later", "Diligence context"],
++    )
++
+     st.markdown('<div class="rc-gap-md"></div>', unsafe_allow_html=True)
+ 
+     info_col_1, info_col_2 = st.columns(2, gap="large")
+ 
+     with info_col_1:
+-        st.text_input(
+-            "Full Name",
+-            value=st.session_state.get("full_name", ""),
+-            key="full_name",
+-            placeholder="Enter your full name",
+-        )
+-        st.text_input(
+-            "Email",
+-            value=st.session_state.get("email", ""),
+-            key="email",
+-            placeholder="Enter your email",
+-        )
+-        st.text_input(
+-            "City / State",
+-            value=st.session_state.get("city_state", ""),
+-            key="city_state",
+-            placeholder="City, State",
++        st.text_input("Full name", key="full_name", placeholder="Your name")
++        st.text_input("Email", key="email", placeholder="you@example.com")
++        st.text_input("City / state", key="city_state", placeholder="City, State")
++        st.selectbox(
++            "Current stage",
++            TIMELINE_OPTIONS,
++            index=_get_index(TIMELINE_OPTIONS, st.session_state.get("diligence_stage", "Exploring"), "Exploring"),
++            key="diligence_stage",
+         )
+ 
+     with info_col_2:
+-        st.text_input(
+-            "Franchise or Concept Name",
+-            value=st.session_state.get("franchise_name", ""),
+-            key="franchise_name",
+-            placeholder="Enter franchise or concept name",
+-        )
++        st.text_input("Franchise or concept name", key="franchise_name", placeholder="Concept being evaluated")
+         st.selectbox(
+-            "Units Considered",
++            "Units considered",
+             UNITS_OPTIONS,
+-            index=_get_index(
+-                UNITS_OPTIONS,
+-                st.session_state.get("units_considered", "1"),
+-                "1",
+-            ),
++            index=_get_index(UNITS_OPTIONS, st.session_state.get("units_considered", "1"), "1"),
+             key="units_considered",
+         )
+         st.selectbox(
+-            "Ownership Style",
++            "Ownership style",
+             OWNERSHIP_OPTIONS,
+-            index=_get_index(
+-                OWNERSHIP_OPTIONS,
+-                st.session_state.get("ownership_style", "Owner-Operator"),
+-                "Owner-Operator",
+-            ),
++            index=_get_index(OWNERSHIP_OPTIONS, st.session_state.get("ownership_style", "Owner-Operator"), "Owner-Operator"),
+             key="ownership_style",
+         )
++        st.selectbox(
++            "Estimated available capital",
++            CAPITAL_OPTIONS,
++            index=_get_index(CAPITAL_OPTIONS, st.session_state.get("capital_range", "Not sure yet"), "Not sure yet"),
++            key="capital_range",
++        )
+ 
+     st.markdown('<div class="rc-gap-md"></div>', unsafe_allow_html=True)
+ 
+     render_card(
+-        label="Commitment Check",
+-        title="Current process status",
++        label="Commitment check",
++        title="Do not treat momentum as diligence.",
+         body=(
+-            "Indicate whether you have already signed documents or made a material "
+-            "commitment in the process."
++            "Mark this if you have signed documents, paid deposits, accepted financing terms, or otherwise materially committed. "
++            "The app will keep this visible because post-commitment pressure is different from pre-commitment diligence."
+         ),
++        soft=True,
+     )
+ 
+     st.checkbox(
+         "I have already signed something or materially committed in the process",
+-        value=bool(st.session_state.get("signed_anything", False)),
+         key="signed_anything",
+     )
+ 
+     st.markdown('<div class="rc-gap-md"></div>', unsafe_allow_html=True)
+ 
+     action_col_1, action_col_2 = st.columns([1, 1], gap="large")
+-
+     with action_col_1:
+-        if st.button(
+-            "Continue",
+-            key="profile_setup_continue",
+-            use_container_width=True,
+-            type="primary",
+-        ):
++        if st.button("Continue to decision cockpit", key="profile_setup_continue", use_container_width=True, type="primary"):
+             _complete_profile()
+-
+     with action_col_2:
+-        st.caption("You can update these details later.")
++        st.caption("Next: PressureTest will point you to the first assessment step and show what is still unresolved.")
+ 
+     close_shell()
+Only in pt/pressuretest_phase1_6_blunt_pressuretest_review: recommendation_engine.py
+Only in pt/pressuretest_phase1_6_blunt_pressuretest_review: report_templates.py
+Only in pt/pressuretest_phase1_6_blunt_pressuretest_review: report_ui.py
+Only in pt/pressuretest_phase1_6_blunt_pressuretest_review: requirements.txt
+Only in pt/pressuretest_phase1_6_blunt_pressuretest_review: runtime.txt
+Only in pt/pressuretest_phase1_6_blunt_pressuretest_review: shared_ui.py
+Only in pt/pressuretest_phase1_6_blunt_pressuretest_review: theme.py
+Only in pt/pressuretest_phase1_6_blunt_pressuretest_review: ui_styles.py
+diff -ru pt/pressuretest_phase1_6_blunt_pressuretest_review/welcome_ui.py pressuretest_task1_replacements/welcome_ui.py
+--- pt/pressuretest_phase1_6_blunt_pressuretest_review/welcome_ui.py	2026-05-08 18:50:40.000000000 +0000
++++ pressuretest_task1_replacements/welcome_ui.py	2026-05-09 23:56:47.000131096 +0000
+@@ -3,129 +3,80 @@
+ import streamlit as st
+ 
+ from branding import APP_PRODUCT, APP_TAGLINE
+-from shared_ui import render_brand_header
++from shared_ui import render_brand_header, render_pressuretest_boundary_notice
+ 
+ 
+-def _card(label: str, title: str, body: str) -> None:
++def _info_card(label: str, title: str, body: str) -> None:
+     st.markdown(
+         f"""
+-        <div style="
+-            background: white;
+-            border: 1px solid #E5E7EB;
+-            border-radius: 18px;
+-            padding: 1.1rem 1.2rem;
+-            margin-bottom: 0.75rem;
+-        ">
+-            <div style="
+-                font-size: 0.74rem;
+-                font-weight: 700;
+-                letter-spacing: 0.08em;
+-                text-transform: uppercase;
+-                color: #6B7280;
+-                margin-bottom: 0.45rem;
+-            ">{label}</div>
+-            <div style="
+-                font-size: 1.02rem;
+-                font-weight: 800;
+-                color: #0F172A;
+-                margin-bottom: 0.35rem;
+-                line-height: 1.2;
+-            ">{title}</div>
+-            <div style="
+-                font-size: 0.95rem;
+-                line-height: 1.6;
+-                color: #4B5563;
+-            ">{body}</div>
++        <div class="pt-card" style="height:100%;">
++            <div class="pt-eyebrow">{label}</div>
++            <h3 style="margin:.2rem 0 .4rem 0;">{title}</h3>
++            <p style="margin:0; line-height:1.55; color:#475569;">{body}</p>
+         </div>
+         """,
+         unsafe_allow_html=True,
+     )
+ 
+ 
++def _start_assessment() -> None:
++    st.session_state["auth_complete"] = True
++    st.session_state["profile_complete"] = False
++    st.session_state["assessment_started"] = True
++    st.session_state["current_page"] = "Overview"
++    st.rerun()
++
++
+ def render_welcome() -> None:
+     render_brand_header(APP_PRODUCT, APP_TAGLINE)
++    render_pressuretest_boundary_notice(compact=True)
+ 
+     st.markdown(
+         """
+-        <div style="
+-            background: #0B1730;
+-            color: white;
+-            border-radius: 18px;
+-            padding: 1rem 1.15rem;
+-            margin: 0.25rem 0 1rem 0;
+-        ">
+-            <div style="
+-                font-size: 0.74rem;
+-                font-weight: 700;
+-                letter-spacing: 0.08em;
+-                text-transform: uppercase;
+-                margin-bottom: 0.4rem;
+-                opacity: 0.9;
+-            ">Focus</div>
+-            <div style="
+-                font-size: 1.2rem;
+-                font-weight: 800;
+-                margin-bottom: 0.3rem;
+-                line-height: 1.2;
+-            ">What this is for</div>
+-            <div style="
+-                font-size: 0.96rem;
+-                line-height: 1.6;
+-                opacity: 0.95;
+-            ">
+-                Use this to pressure-test the deal before you commit real money, time, and reputation.
+-            </div>
++        <div class="pt-card" style="background:#0B1730; color:#F8FAFC; padding:1.35rem 1.45rem; margin:.4rem 0 1rem 0;">
++            <div class="pt-eyebrow" style="color:#CBD5E1;">Franchise diligence workspace</div>
++            <h1 style="margin:.2rem 0 .55rem 0; color:#F8FAFC; line-height:1.1;">Pressure-test the opportunity before you commit.</h1>
++            <p style="max-width:820px; margin:0; color:#E2E8F0; line-height:1.6; font-size:1rem;">
++                Build a quick operating profile, identify the next diligence step, and start a structured review of fit,
++                concept risk, economics, and execution pressure.
++            </p>
+         </div>
+         """,
+         unsafe_allow_html=True,
+     )
+ 
+-    c1, c2, c3 = st.columns(3)
++    c1, c2, c3 = st.columns(3, gap="large")
+     with c1:
+-        _card(
+-            "Clarity",
+-            "Structured evaluation",
+-            "Move from initial review to decision with a clear, consistent process.",
++        _info_card(
++            "Step 1",
++            "Create a quick profile",
++            "Capture the concept, market, ownership role, and commitment status so the workflow starts with context.",
+         )
+     with c2:
+-        _card(
+-            "Rigor",
+-            "Financial perspective",
+-            "Review exposure, assumptions, and readiness with greater discipline.",
++        _info_card(
++            "Step 2",
++            "Run the pressure snapshot",
++            "Start with operator fit and early assumptions before going deeper into concept validation and economics.",
+         )
+     with c3:
+-        _card(
+-            "Action",
+-            "Useful outputs",
+-            "Get practical next-step guidance to support better decisions.",
++        _info_card(
++            "Step 3",
++            "Build a usable report",
++            "Turn answers into a decision summary, open questions, and next steps you can review with advisors.",
+         )
+ 
+-    st.markdown("<div style='height: 0.35rem;'></div>", unsafe_allow_html=True)
+-
+-    left, right = st.columns(2, gap="large")
++    st.markdown("<div style='height:.5rem;'></div>", unsafe_allow_html=True)
+ 
++    left, right = st.columns([1.2, .8], gap="large")
+     with left:
+-        _card(
+-            "New User",
+-            "Create your account",
+-            "Start a new assessment, set up your profile, and save your progress.",
+-        )
+-        if st.button("Create Account", type="primary", use_container_width=True):
+-            st.session_state["auth_complete"] = True
+-            st.session_state["profile_complete"] = False
+-            st.session_state["current_page"] = "Profile Setup"
+-            st.rerun()
++        if st.button("Start assessment", type="primary", use_container_width=True, key="welcome_start_assessment"):
++            _start_assessment()
++        st.caption("No recommendation, guarantee, or legal/financial advice. This is a structured diligence workflow.")
+ 
+     with right:
+-        _card(
+-            "Returning User",
+-            "Sign in to continue",
+-            "Resume your progress and continue your assessment.",
+-        )
+-        if st.button("Sign In", use_container_width=True):
++        if st.button("Continue saved session", use_container_width=True, key="welcome_continue_saved"):
+             st.session_state["auth_complete"] = True
+             st.session_state["profile_complete"] = True
+-            st.session_state["current_page"] = "Overview"
++            st.session_state.setdefault("current_page", "Overview")
+             st.rerun()
+-
+-    st.caption("Designed to support disciplined opportunity review without unnecessary complexity.")
++        st.caption("Use this only after importing or resuming saved local progress.")

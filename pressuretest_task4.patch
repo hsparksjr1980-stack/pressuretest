@@ -1,0 +1,1151 @@
+Only in /mnt/data/pt_task4/pressuretest_phase1_6_blunt_pressuretest_review/__pycache__: app.cpython-313.pyc
+Only in /mnt/data/pt_task4/pressuretest_phase1_6_blunt_pressuretest_review/__pycache__: paywall_logic.cpython-313.pyc
+Binary files /mnt/data/pt_task3/pressuretest_phase1_6_blunt_pressuretest_review/__pycache__/paywall_ui.cpython-313.pyc and /mnt/data/pt_task4/pressuretest_phase1_6_blunt_pressuretest_review/__pycache__/paywall_ui.cpython-313.pyc differ
+Binary files /mnt/data/pt_task3/pressuretest_phase1_6_blunt_pressuretest_review/__pycache__/phase_gate.cpython-313.pyc and /mnt/data/pt_task4/pressuretest_phase1_6_blunt_pressuretest_review/__pycache__/phase_gate.cpython-313.pyc differ
+Binary files /mnt/data/pt_task3/pressuretest_phase1_6_blunt_pressuretest_review/__pycache__/plans_support_ui.cpython-313.pyc and /mnt/data/pt_task4/pressuretest_phase1_6_blunt_pressuretest_review/__pycache__/plans_support_ui.cpython-313.pyc differ
+Binary files /mnt/data/pt_task3/pressuretest_phase1_6_blunt_pressuretest_review/__pycache__/premium_components.cpython-313.pyc and /mnt/data/pt_task4/pressuretest_phase1_6_blunt_pressuretest_review/__pycache__/premium_components.cpython-313.pyc differ
+diff -ru /mnt/data/pt_task3/pressuretest_phase1_6_blunt_pressuretest_review/app.py /mnt/data/pt_task4/pressuretest_phase1_6_blunt_pressuretest_review/app.py
+--- /mnt/data/pt_task3/pressuretest_phase1_6_blunt_pressuretest_review/app.py	2026-05-10 00:06:08.421639072 +0000
++++ /mnt/data/pt_task4/pressuretest_phase1_6_blunt_pressuretest_review/app.py	2026-05-10 00:11:36.448207145 +0000
+@@ -203,7 +203,9 @@
+                 if st.button(label, key=f"nav_{page_name}", use_container_width=True, disabled=locked):
+                     _go_to(page_name)
+             if section_name == "Execution Tools" and not pro_enabled:
+-                st.caption("Coming later: unlocked only after a commitment decision and paid access are connected.")
++                st.caption("Pro unlocks execution-side tools after the user is ready to manage the actual deal.")
++                if st.button("Compare Free vs Pro", key="nav_compare_free_pro", use_container_width=True):
++                    _go_to("Plans & Support")
+ 
+     st.sidebar.markdown("---")
+     with st.sidebar.expander("Local save / load", expanded=False):
+@@ -261,12 +263,12 @@
+         f"""
+         <div class="pt-lock-card">
+           <div class="pt-eyebrow">Execution tools</div>
+-          <h1 style="margin:.1rem 0 .45rem 0;">{esc(page)} is part of the execution workspace.</h1>
++          <h1 style="margin:.1rem 0 .45rem 0;">{esc(page)} is part of PressureTest Pro.</h1>
+           <p style="max-width:760px; line-height:1.55; color:#475569;">
+-            This section is designed for users who have decided to move forward and need help managing the real deal: lender coordination, lease items, vendor quotes, buildout tracking, launch readiness, and post-commitment financial modeling.
++            Free helps you decide whether the opportunity deserves deeper diligence. Pro is for the post-decision work: lender coordination, lease items, vendor quotes, buildout tracking, launch readiness, working-capital scenarios, and execution reporting.
+           </p>
+           <div class="pt-divider"></div>
+-          <p><strong>Prototype behavior:</strong> this public version keeps free users in the guided assessment workflow instead of sending them into future paid execution tools.</p>
++          <p><strong>Access boundary:</strong> this section stays locked for free users so the assessment path remains focused on decision quality instead of execution planning.</p>
+         </div>
+         """,
+         unsafe_allow_html=True,
+@@ -278,8 +280,13 @@
+         st.markdown('<div class="pt-card"><span class="pt-pill">Included later</span><h3>Buildout & Launch</h3><p>Organize permits, quotes, payments, timelines, pre-opening tasks, and readiness risks.</p></div>', unsafe_allow_html=True)
+     with c3:
+         st.markdown('<div class="pt-card"><span class="pt-pill">Included later</span><h3>Execution Report</h3><p>Package the post-commitment plan, key risks, and next actions into a clean operating memo.</p></div>', unsafe_allow_html=True)
+-    if st.button("Return to Decision Cockpit", type="primary"):
+-        _go_to("Home")
++    cta1, cta2 = st.columns([1, 1])
++    with cta1:
++        if st.button("Compare Free vs Pro", type="primary", use_container_width=True):
++            _go_to("Plans & Support")
++    with cta2:
++        if st.button("Return to Decision Cockpit", use_container_width=True):
++            _go_to("Home")
+ 
+ 
+ def render_current_page(page: str) -> None:
+diff -ru /mnt/data/pt_task3/pressuretest_phase1_6_blunt_pressuretest_review/paywall_logic.py /mnt/data/pt_task4/pressuretest_phase1_6_blunt_pressuretest_review/paywall_logic.py
+--- /mnt/data/pt_task3/pressuretest_phase1_6_blunt_pressuretest_review/paywall_logic.py	2026-05-08 18:50:40.000000000 +0000
++++ /mnt/data/pt_task4/pressuretest_phase1_6_blunt_pressuretest_review/paywall_logic.py	2026-05-10 00:10:47.015605622 +0000
+@@ -1,19 +1,83 @@
++from __future__ import annotations
++
++from dataclasses import dataclass
++from typing import Final
++
+ import streamlit as st
+ 
+ 
++FREE_PLAN_ID: Final[str] = "free"
++PRO_PLAN_ID: Final[str] = "pro"
++
++PRO_PRICE_DEFAULT: Final[int] = 99
++
++
++@dataclass(frozen=True)
++class PlanDefinition:
++    plan_id: str
++    name: str
++    price: int
++    positioning: str
++    includes: tuple[str, ...]
++    best_for: str
++
++
++PLAN_DEFINITIONS: Final[dict[str, PlanDefinition]] = {
++    FREE_PLAN_ID: PlanDefinition(
++        plan_id=FREE_PLAN_ID,
++        name="Free Assessment",
++        price=0,
++        positioning="Decide whether the opportunity deserves deeper diligence.",
++        includes=(
++            "Guided diligence workflow",
++            "Operator fit and concept validation",
++            "Baseline financial reality check",
++            "Free report and decision summary",
++        ),
++        best_for="Early evaluation before signing, funding, leasing, or committing capital.",
++    ),
++    PRO_PLAN_ID: PlanDefinition(
++        plan_id=PRO_PLAN_ID,
++        name="PressureTest Pro",
++        price=PRO_PRICE_DEFAULT,
++        positioning="Manage execution risk once the deal becomes real.",
++        includes=(
++            "Deal workspace and assumption tracking",
++            "Scenario planning and working-capital review",
++            "Buildout and launch readiness tracking",
++            "Execution report for partners, lenders, and internal review",
++        ),
++        best_for="Users moving forward who need a structured operating plan, not just an assessment.",
++    ),
++}
++
++
++SERVICE_PRICES: Final[dict[str, int]] = {
++    "Opportunity Review": 350,
++    "Execution Game Plan": 550,
++    "Business Plan & Funding Prep": 1000,
++}
++
++
++def format_money(value: int | float) -> str:
++    return f"${float(value):,.0f}"
++
++
+ def has_premium_access() -> bool:
+-    return bool(st.session_state.get("premium_access", False))
++    return bool(st.session_state.get("premium_access", False)) or bool(st.session_state.get("dev_pro_access", False))
+ 
+ 
++def has_forward_decision() -> bool:
++    return bool(st.session_state.get("move_forward", False)) or bool(st.session_state.get("dev_pro_access", False))
+ 
+-def can_access_pro() -> bool:
+-    return bool(st.session_state.get("move_forward", False) and has_premium_access())
+ 
++def can_access_pro() -> bool:
++    return bool(has_forward_decision() and has_premium_access())
+ 
+ 
+ def dev_unlock_pro() -> None:
+     st.session_state["premium_access"] = True
+-
++    st.session_state["subscription_status"] = "active"
+ 
+ 
+ def lock_decision(action: str) -> None:
+@@ -21,3 +85,71 @@
+     st.session_state["final_decision_action"] = action
+     st.session_state["move_forward"] = action == "Move Forward"
+     st.session_state["walk_away"] = action == "Walk Away"
++
++
++def reset_checkout_selection() -> None:
++    st.session_state["selected_plan_id"] = FREE_PLAN_ID
++    st.session_state["selected_service_ids"] = []
++    st.session_state["cart_items"] = []
++    st.session_state["cart_subtotal"] = 0.0
++    st.session_state["checkout_ready"] = False
++
++
++def build_cart(selected_plan_id: str, selected_service_ids: list[str] | tuple[str, ...]) -> tuple[list[dict[str, object]], float]:
++    items: list[dict[str, object]] = []
++
++    plan = PLAN_DEFINITIONS.get(selected_plan_id, PLAN_DEFINITIONS[FREE_PLAN_ID])
++    if plan.plan_id == PRO_PLAN_ID:
++        items.append(
++            {
++                "id": plan.plan_id,
++                "name": plan.name,
++                "type": "plan",
++                "price": plan.price,
++                "description": plan.positioning,
++            }
++        )
++
++    for service_id in selected_service_ids:
++        price = SERVICE_PRICES.get(service_id)
++        if price is None:
++            continue
++        items.append(
++            {
++                "id": service_id,
++                "name": service_id,
++                "type": "service",
++                "price": price,
++                "description": "Optional support service selected from Plans & Support.",
++            }
++        )
++
++    subtotal = float(sum(float(item["price"]) for item in items))
++    return items, subtotal
++
++
++def set_checkout_selection(selected_plan_id: str, selected_service_ids: list[str] | tuple[str, ...] | None = None) -> None:
++    services = list(selected_service_ids or [])
++    cart_items, subtotal = build_cart(selected_plan_id, services)
++
++    st.session_state["selected_plan_id"] = selected_plan_id
++    st.session_state["selected_service_ids"] = services
++    st.session_state["cart_items"] = cart_items
++    st.session_state["cart_subtotal"] = subtotal
++    st.session_state["checkout_ready"] = bool(cart_items)
++
++
++def activate_selected_plan() -> None:
++    selected_plan_id = str(st.session_state.get("selected_plan_id", FREE_PLAN_ID))
++    selected_service_ids = list(st.session_state.get("selected_service_ids", []))
++
++    st.session_state["subscription_status"] = "active" if selected_plan_id == PRO_PLAN_ID else "free"
++    st.session_state["premium_access"] = selected_plan_id == PRO_PLAN_ID
++    st.session_state["purchased_services"] = selected_service_ids
++    st.session_state["checkout_complete"] = True
++
++    if selected_plan_id == PRO_PLAN_ID:
++        st.session_state["move_forward"] = True
++        st.session_state["current_page"] = "Deal Workspace"
++    else:
++        st.session_state["current_page"] = "Overview"
+diff -ru /mnt/data/pt_task3/pressuretest_phase1_6_blunt_pressuretest_review/paywall_ui.py /mnt/data/pt_task4/pressuretest_phase1_6_blunt_pressuretest_review/paywall_ui.py
+--- /mnt/data/pt_task3/pressuretest_phase1_6_blunt_pressuretest_review/paywall_ui.py	2026-05-08 18:50:40.000000000 +0000
++++ /mnt/data/pt_task4/pressuretest_phase1_6_blunt_pressuretest_review/paywall_ui.py	2026-05-10 00:11:25.674775940 +0000
+@@ -3,69 +3,34 @@
+ from __future__ import annotations
+ 
+ import html
+-from typing import Final
+ 
+ import streamlit as st
+ 
++from paywall_logic import (
++    FREE_PLAN_ID,
++    PLAN_DEFINITIONS,
++    PRO_PLAN_ID,
++    activate_selected_plan,
++    format_money,
++    has_forward_decision,
++    reset_checkout_selection,
++)
++from premium_components import esc, upgrade_strip
+ from ui_styles import close_shell, open_shell, render_card, render_page_header, render_section_intro
+ 
+ 
+-PLAN_UNLOCKS: Final[dict[str, list[str]]] = {
+-    "free": [
+-        "Core assessment workflow",
+-        "Free report access",
+-    ],
+-    "pro": [
+-        "Deal Workspace",
+-        "Deal Model",
+-        "Buildout & Launch Tracker",
+-        "Execution Report",
+-    ],
+-}
+-
+-
+-def _money(value: int | float) -> str:
+-    return f"${float(value):,.0f}"
+-
+-
+ def _inject_local_styles() -> None:
+     st.markdown(
+         """
+         <style>
+-            .pw-box {
+-                background: #ffffff;
+-                border: 1px solid #e5e7eb;
+-                border-radius: 20px;
+-                box-shadow: 0 8px 24px rgba(17, 24, 39, 0.06);
+-                padding: 1.2rem;
+-            }
+-
+-            .pw-row {
+-                display: flex;
+-                justify-content: space-between;
+-                gap: 1rem;
+-                padding: 0.55rem 0;
+-                border-bottom: 1px solid #f3f4f6;
+-                color: #374151;
+-                font-size: 0.95rem;
+-            }
+-
+-            .pw-row:last-child {
+-                border-bottom: none;
+-            }
+-
+-            .pw-total {
+-                font-size: 1.28rem;
+-                font-weight: 800;
+-                color: #111827;
+-                padding-top: 0.8rem;
+-            }
+-
+-            .pw-note {
+-                font-size: 0.92rem;
+-                line-height: 1.6;
+-                color: #4b5563;
+-            }
++            .pw-box { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 20px; box-shadow: 0 8px 24px rgba(17, 24, 39, 0.06); padding: 1.2rem; }
++            .pw-row { display: flex; justify-content: space-between; gap: 1rem; padding: 0.55rem 0; border-bottom: 1px solid #f3f4f6; color: #374151; font-size: 0.95rem; }
++            .pw-row:last-child { border-bottom: none; }
++            .pw-total { font-size: 1.28rem; font-weight: 800; color: #111827; padding-top: 0.8rem; }
++            .pw-note { font-size: 0.92rem; line-height: 1.6; color: #4b5563; }
++            .pw-risk-boundary { border:1px solid rgba(15,23,42,.10); border-radius:20px; background:#fff; padding:1rem; margin:.75rem 0; }
++            .pw-risk-boundary h4 { margin:.1rem 0 .35rem 0; color:#0B1220; font-size:1rem; }
++            .pw-risk-boundary p { margin:0; color:#475569; line-height:1.45; font-size:.92rem; }
+         </style>
+         """,
+         unsafe_allow_html=True,
+@@ -73,7 +38,7 @@
+ 
+ 
+ def _ensure_checkout_state() -> None:
+-    st.session_state.setdefault("selected_plan_id", "free")
++    st.session_state.setdefault("selected_plan_id", FREE_PLAN_ID)
+     st.session_state.setdefault("selected_service_ids", [])
+     st.session_state.setdefault("cart_items", [])
+     st.session_state.setdefault("cart_subtotal", 0.0)
+@@ -84,20 +49,7 @@
+ 
+ 
+ def _complete_checkout() -> None:
+-    selected_plan_id = str(st.session_state.get("selected_plan_id", "free"))
+-    selected_service_ids = list(st.session_state.get("selected_service_ids", []))
+-
+-    st.session_state["subscription_status"] = "active" if selected_plan_id == "pro" else "free"
+-    st.session_state["premium_access"] = selected_plan_id == "pro"
+-    st.session_state["purchased_services"] = selected_service_ids
+-    st.session_state["checkout_complete"] = True
+-
+-    if selected_plan_id == "pro":
+-        st.session_state["move_forward"] = True
+-        st.session_state["current_page"] = "Deal Workspace"
+-    else:
+-        st.session_state["current_page"] = "Overview"
+-
++    activate_selected_plan()
+     st.rerun()
+ 
+ 
+@@ -116,24 +68,61 @@
+         st.write("Your basket is currently empty.")
+     else:
+         for item in cart_items:
++            description = html.escape(str(item.get("description", "")))
+             st.markdown(
+                 f"""
+                 <div class="pw-row">
+-                    <div>{html.escape(str(item["name"]))}</div>
+-                    <div>{_money(float(item["price"]))}</div>
++                    <div>
++                        <strong>{html.escape(str(item["name"]))}</strong><br>
++                        <span style="color:#64748B;font-size:.86rem;">{description}</span>
++                    </div>
++                    <div>{format_money(float(item["price"]))}</div>
+                 </div>
+                 """,
+                 unsafe_allow_html=True,
+             )
+ 
+-        st.markdown(
+-            f'<div class="pw-total">Total: {_money(subtotal)}</div>',
+-            unsafe_allow_html=True,
+-        )
++        st.markdown(f'<div class="pw-total">Total: {format_money(subtotal)}</div>', unsafe_allow_html=True)
+ 
+     st.markdown("</div>", unsafe_allow_html=True)
+ 
+ 
++def _render_unlock_summary(selected_plan_id: str) -> None:
++    plan = PLAN_DEFINITIONS.get(selected_plan_id, PLAN_DEFINITIONS[FREE_PLAN_ID])
++    includes = list(plan.includes)
++    render_card(
++        label="Selected access",
++        title=plan.name,
++        body=plan.positioning,
++    )
++    st.markdown('<div class="rc-gap-sm"></div>', unsafe_allow_html=True)
++    for item in includes:
++        st.markdown(f"- {item}")
++
++
++def _render_commercial_boundary(selected_plan_id: str) -> None:
++    if selected_plan_id == PRO_PLAN_ID:
++        if has_forward_decision():
++            title = "Pro is being used at the right stage."
++            body = "You have a forward decision on file, so this upgrade is positioned around execution planning, assumption tracking, lender prep, buildout readiness, and launch risk."
++        else:
++            title = "Pro is best after a forward decision."
++            body = "You can still preview checkout, but the intended workflow is to finish the free assessment first and upgrade once execution planning becomes the problem."
++    else:
++        title = "Free remains the assessment path."
++        body = "Free should help the user decide whether deeper diligence is warranted. It should not try to solve post-commitment execution work."
++
++    st.markdown(
++        f"""
++        <div class="pw-risk-boundary">
++          <h4>{esc(title)}</h4>
++          <p>{esc(body)}</p>
++        </div>
++        """,
++        unsafe_allow_html=True,
++    )
++
++
+ def render_paywall() -> None:
+     _ensure_checkout_state()
+     _inject_local_styles()
+@@ -141,18 +130,14 @@
+     cart_items = list(st.session_state.get("cart_items", []))
+     subtotal = float(st.session_state.get("cart_subtotal", 0.0))
+     checkout_ready = bool(st.session_state.get("checkout_ready", False))
+-    selected_plan_id = str(st.session_state.get("selected_plan_id", "free"))
+-    unlocks = PLAN_UNLOCKS.get(selected_plan_id, [])
++    selected_plan_id = str(st.session_state.get("selected_plan_id", FREE_PLAN_ID))
+ 
+     open_shell()
+ 
+     render_page_header(
+         eyebrow="Checkout",
+-        title="Review your basket before payment.",
+-        subtitle=(
+-            "This paywall is ready for a future payment provider. For now, it acts as a "
+-            "clean checkout summary and temporary entitlement handoff."
+-        ),
++        title="Review the upgrade or support selection.",
++        subtitle="This checkout screen keeps the commercial boundary clear: assessment is free; execution planning and optional support are separate paid steps.",
+         wide=True,
+     )
+ 
+@@ -162,18 +147,14 @@
+         st.info("Developer override is enabled. Pro pages are currently accessible without checkout.")
+ 
+     if not cart_items:
+-        st.warning("Your basket is empty. Go back to Plans & Support to choose a plan or services.")
+-
++        upgrade_strip(
++            "No plan or support item selected.",
++            "Return to Plans & Support to choose Pro access or an optional support package.",
++        )
+         st.markdown('<div class="rc-gap-md"></div>', unsafe_allow_html=True)
+-
+-        if st.button(
+-            "Back to Plans & Support",
+-            key="paywall_back_empty",
+-            use_container_width=True,
+-            type="primary",
+-        ):
++        if st.button("Back to Plans & Support", key="paywall_back_empty", use_container_width=True, type="primary"):
++            reset_checkout_selection()
+             _back_to_plans()
+-
+         close_shell()
+         return
+ 
+@@ -182,61 +163,53 @@
+     with col1:
+         render_section_intro(
+             title="Basket summary",
+-            body="Review everything selected in Plans & Support before continuing.",
++            body="Review what the user is buying. Pro unlocks app access; optional support items represent separate service follow-up.",
+         )
+         st.markdown('<div class="rc-gap-md"></div>', unsafe_allow_html=True)
+-
+         _render_basket_summary()
+ 
+         st.markdown('<div class="rc-gap-lg"></div>', unsafe_allow_html=True)
+-
+         render_section_intro(
+-            title="What happens after checkout",
+-            body="Platform access and advisory support are handled differently.",
++            title="Access boundary",
++            body="The product should make it obvious why the user is upgrading and what operational problem the upgrade solves.",
+         )
+-        st.markdown('<div class="rc-gap-md"></div>', unsafe_allow_html=True)
++        _render_commercial_boundary(selected_plan_id)
+ 
+         c1, c2 = st.columns(2, gap="medium")
+         with c1:
+             render_card(
+-                label="Plan unlocks",
+-                title="Included platform access",
+-                body=", ".join(unlocks) if unlocks else "No additional app unlocks.",
++                label="Free",
++                title="Assessment and decision summary",
++                body="Use free to evaluate whether the opportunity deserves more diligence before committing capital.",
+             )
+         with c2:
+             render_card(
+-                label="Service fulfillment",
+-                title="Support is recorded separately",
+-                body="Consulting and one-off services are saved as purchased support items.",
++                label="Pro",
++                title="Execution workspace",
++                body="Use Pro to organize assumptions, scenarios, lender prep, buildout steps, and launch-readiness work.",
+             )
+ 
+     with col2:
+         render_section_intro(
+             title="Order summary",
+-            body="Use this to confirm the current basket before payment.",
++            body="Temporary checkout state for future Stripe or billing-provider integration.",
+         )
+         st.markdown('<div class="rc-gap-md"></div>', unsafe_allow_html=True)
+ 
+-        render_card(
+-            label="Selected plan",
+-            title=selected_plan_id.title(),
+-            body="Only Pro unlocks the execution-side working tools.",
+-        )
++        _render_unlock_summary(selected_plan_id)
+ 
+         st.markdown('<div class="rc-gap-md"></div>', unsafe_allow_html=True)
+-
+         render_card(
+             label="Subtotal",
+-            title=_money(subtotal),
+-            body="Current basket total before provider integration.",
++            title=format_money(subtotal),
++            body="Current basket total before payment-provider integration.",
+         )
+ 
+         st.markdown('<div class="rc-gap-md"></div>', unsafe_allow_html=True)
+-
+         st.markdown(
+             """
+             <div class="pw-note">
+-                This is a temporary checkout flow. Later, this button can connect to Stripe or another billing provider.
++                This is a temporary checkout flow. Later, this button can create a Stripe checkout session and activate access after payment confirmation.
+             </div>
+             """,
+             unsafe_allow_html=True,
+@@ -244,20 +217,10 @@
+ 
+         st.markdown('<div class="rc-gap-md"></div>', unsafe_allow_html=True)
+ 
+-        if st.button(
+-            "Proceed to Payment",
+-            key="paywall_proceed",
+-            use_container_width=True,
+-            type="primary",
+-            disabled=not checkout_ready,
+-        ):
++        if st.button("Proceed to Payment", key="paywall_proceed", use_container_width=True, type="primary", disabled=not checkout_ready):
+             _complete_checkout()
+ 
+-        if st.button(
+-            "Back to Plans & Support",
+-            key="paywall_back",
+-            use_container_width=True,
+-        ):
++        if st.button("Back to Plans & Support", key="paywall_back", use_container_width=True):
+             _back_to_plans()
+ 
+     close_shell()
+diff -ru /mnt/data/pt_task3/pressuretest_phase1_6_blunt_pressuretest_review/phase_gate.py /mnt/data/pt_task4/pressuretest_phase1_6_blunt_pressuretest_review/phase_gate.py
+--- /mnt/data/pt_task3/pressuretest_phase1_6_blunt_pressuretest_review/phase_gate.py	2026-05-08 18:50:40.000000000 +0000
++++ /mnt/data/pt_task4/pressuretest_phase1_6_blunt_pressuretest_review/phase_gate.py	2026-05-10 00:10:47.007071020 +0000
+@@ -14,11 +14,43 @@
+ DEV_OVERRIDE_KEY: Final[str] = "dev_pro_access"
+ 
+ PRO_UNLOCK_DECISION_MESSAGE: Final[str] = (
+-    "Pro pages unlock only after you choose Move Forward in Final Decision."
++    "Execution tools are designed for users who have decided to move forward. "
++    "Finish Final Decision first, then upgrade when you are ready to manage the actual deal."
++)
++PRO_PREMIUM_REQUIRED_MESSAGE: Final[str] = (
++    "This section is part of PressureTest Pro. Free gives you the assessment and decision summary; "
++    "Pro unlocks the execution workspace, scenario planning, and lender-ready outputs."
+ )
+-PRO_PREMIUM_REQUIRED_MESSAGE: Final[str] = "This page requires Pro access."
+ UNKNOWN_PAGE_MESSAGE: Final[str] = "This section is not available."
+ 
++FREE_POSITIONING: Final[dict[str, object]] = {
++    "headline": "Free helps you decide whether the opportunity deserves more diligence.",
++    "summary": (
++        "Use the free workflow to organize the opportunity, test operator fit, review concept assumptions, "
++        "run a baseline financial model, and generate a decision summary."
++    ),
++    "includes": [
++        "Guided diligence assessment",
++        "Operator fit and concept validation",
++        "Baseline financial reality check",
++        "Free report and decision summary",
++    ],
++}
++
++PRO_POSITIONING: Final[dict[str, object]] = {
++    "headline": "Pro helps you manage execution risk after the deal becomes real.",
++    "summary": (
++        "Upgrade when you need to turn the diligence file into a working execution plan: scenarios, lender prep, "
++        "lease and buildout tracking, launch sequencing, and exportable operating packets."
++    ),
++    "includes": [
++        "Deal workspace and assumption tracking",
++        "Scenario planning and working-capital review",
++        "Buildout and launch readiness tracking",
++        "Execution report for partners, lenders, and internal review",
++    ],
++}
++
+ 
+ def _has_dev_override() -> bool:
+     return bool(st.session_state.get(DEV_OVERRIDE_KEY, False))
+@@ -32,6 +64,16 @@
+     return bool(st.session_state.get(PRO_UNLOCK_DECISION_KEY, False)) or _has_dev_override()
+ 
+ 
++def has_execution_access() -> bool:
++    """Paid access check for post-decision execution tools."""
++    return _has_premium_access()
++
++
++def has_completed_forward_decision() -> bool:
++    """Workflow readiness check for Pro positioning and CTA language."""
++    return _has_pro_unlock_decision()
++
++
+ def is_free_page(page_name: str) -> bool:
+     return page_name in FREE_PAGES
+ 
+diff -ru /mnt/data/pt_task3/pressuretest_phase1_6_blunt_pressuretest_review/plans_support_ui.py /mnt/data/pt_task4/pressuretest_phase1_6_blunt_pressuretest_review/plans_support_ui.py
+--- /mnt/data/pt_task3/pressuretest_phase1_6_blunt_pressuretest_review/plans_support_ui.py	2026-05-08 18:50:40.000000000 +0000
++++ /mnt/data/pt_task4/pressuretest_phase1_6_blunt_pressuretest_review/plans_support_ui.py	2026-05-10 00:11:25.667636685 +0000
+@@ -5,190 +5,93 @@
+ import streamlit as st
+ 
+ from branding import APP_PRODUCT
++from paywall_logic import (
++    FREE_PLAN_ID,
++    PLAN_DEFINITIONS,
++    PRO_PLAN_ID,
++    SERVICE_PRICES,
++    format_money,
++    has_forward_decision,
++    set_checkout_selection,
++)
++from premium_components import esc, tier_card, upgrade_strip
+ from ui_styles import close_shell, open_shell, render_page_header, render_section_intro
+ 
+ 
+ @dataclass(frozen=True)
+-class OfferCard:
++class AdvisoryOffer:
+     title: str
+-    price: str
++    price: int
+     subtitle: str
+-    bullets: list[str]
++    bullets: tuple[str, ...]
+     cta_label: str
+-    kind: str
++    best_for: str
+     badge: str = ""
+-    best_for: str = ""
+ 
+ 
+-PRO_PRICE_DEFAULT = "$99 one-time"
+-OPPORTUNITY_REVIEW_PRICE_DEFAULT = "$350"
+-EXECUTION_GAME_PLAN_PRICE_DEFAULT = "$550"
+-BUSINESS_PLAN_FUNDING_PREP_PRICE_DEFAULT = "$1,000 flat"
+-
+-APP_TIER_OFFERS: list[OfferCard] = [
+-    OfferCard(
+-        title="Free",
+-        price="$0",
+-        subtitle="Evaluate the opportunity before you commit.",
+-        bullets=[
+-            "Overview",
+-            "Reality Check",
+-            "Concept Validation",
+-            "Opportunity Fit & Recommendations",
+-            "Financial Model (Pre-Discovery)",
+-            "Post-Discovery Review",
+-            "Final Decision",
+-        ],
+-        cta_label="Start Free",
+-        kind="tier",
+-    ),
+-    OfferCard(
+-        title="Pro",
+-        price=PRO_PRICE_DEFAULT,
+-        subtitle="Build, validate, and execute the actual deal.",
+-        bullets=[
+-            "Deal Workspace",
+-            "Deal Model",
+-            "Buildout & Launch Tracker",
+-            "For users who choose to move forward",
+-        ],
+-        cta_label="Upgrade to Pro",
+-        kind="tier",
+-        badge="For active deals",
+-    ),
+-]
+-
+-ADVISORY_OFFERS: list[OfferCard] = [
+-    OfferCard(
++ADVISORY_OFFERS: tuple[AdvisoryOffer, ...] = (
++    AdvisoryOffer(
+         title="Opportunity Review",
+-        price=OPPORTUNITY_REVIEW_PRICE_DEFAULT,
++        price=SERVICE_PRICES["Opportunity Review"],
+         subtitle="Pressure test the deal before you commit.",
+-        bullets=[
++        bullets=(
+             "Focused review of the opportunity",
+             "Financial and assumption pressure test",
+-            "Key risks and what may be missing",
++            "Key risks and missing diligence items",
+             "Clear next-step guidance",
+-        ],
+-        cta_label="Book Review",
+-        kind="service",
+-        best_for="Best for: I’m looking at this and want help evaluating it.",
++        ),
++        cta_label="Add Opportunity Review",
++        best_for="Best for users who are still evaluating whether the deal deserves more work.",
+     ),
+-    OfferCard(
++    AdvisoryOffer(
+         title="Execution Game Plan",
+-        price=EXECUTION_GAME_PLAN_PRICE_DEFAULT,
++        price=SERVICE_PRICES["Execution Game Plan"],
+         subtitle="Know what to do next and in what order.",
+-        bullets=[
+-            "Prioritized next steps",
+-            "Site / lease / lender / bid / buildout sequencing",
+-            "What to focus on first",
++        bullets=(
++            "Prioritized post-decision actions",
++            "Site, lease, lender, bid, and buildout sequencing",
++            "Launch-readiness pressure points",
+             "Common early mistakes to avoid",
+-        ],
+-        cta_label="Get the Plan",
+-        kind="service",
+-        best_for="Best for: I’ve decided to move forward and need to know what to do next.",
++        ),
++        cta_label="Add Execution Game Plan",
++        best_for="Best for users who have decided to move forward and need sequencing discipline.",
++        badge="Post-decision",
+     ),
+-    OfferCard(
++    AdvisoryOffer(
+         title="Business Plan & Funding Prep",
+-        price=BUSINESS_PLAN_FUNDING_PREP_PRICE_DEFAULT,
+-        subtitle="Turn your deal into a clear, structured plan.",
+-        bullets=[
++        price=SERVICE_PRICES["Business Plan & Funding Prep"],
++        subtitle="Turn the deal into a structured plan for lender or partner review.",
++        bullets=(
+             "Financial model refinement",
+             "Business plan structure",
+-            "Sources & Uses alignment",
+-            "Funding readiness support",
+-            "Risk / assumptions summary",
+-        ],
+-        cta_label="Start Plan",
+-        kind="service",
++            "Sources and uses alignment",
++            "Risk and assumptions summary",
++        ),
++        cta_label="Add Funding Prep",
++        best_for="Best for users preparing a more formal funding or partner package.",
+         badge="Structured deliverable",
+-        best_for="Best for: I need to turn this into a structured plan for lenders or partners.",
+     ),
+-]
++)
+ 
+ 
+ def _inject_page_styles() -> None:
+     st.markdown(
+         """
+         <style>
+-            .ps-section-wrap {
+-                margin-top: 0.35rem;
+-                margin-bottom: 1.05rem;
+-            }
+-
+-            .ps-section-title {
+-                font-size: 1.55rem;
+-                font-weight: 800;
+-                line-height: 1.15;
+-                color: #0B1730;
+-                margin-bottom: 0.25rem;
+-            }
+-
+-            .ps-section-copy {
+-                font-size: 0.98rem;
+-                line-height: 1.55;
+-                color: #5B6577;
+-                max-width: 780px;
+-            }
+-
+-            .ps-badge {
+-                display: inline-block;
+-                padding: 0.30rem 0.60rem;
+-                border-radius: 999px;
+-                background: rgba(249, 115, 22, 0.10);
+-                border: 1px solid rgba(249, 115, 22, 0.18);
+-                color: #C2410C;
+-                font-size: 0.72rem;
+-                font-weight: 800;
+-                margin-bottom: 0.7rem;
+-            }
+-
+-            .ps-kicker {
+-                font-size: 0.72rem;
+-                font-weight: 700;
+-                letter-spacing: 0.08em;
+-                text-transform: uppercase;
+-                color: #6B7280;
+-                margin-bottom: 0.45rem;
+-            }
+-
+-            .ps-title {
+-                font-size: 1.25rem;
+-                font-weight: 800;
+-                line-height: 1.15;
+-                color: #0F172A;
+-                margin-bottom: 0.18rem;
+-            }
+-
+-            .ps-price {
+-                font-size: 1.4rem;
+-                font-weight: 800;
+-                line-height: 1.1;
+-                color: #0B1730;
+-                margin-bottom: 0.4rem;
+-            }
+-
+-            .ps-subtitle {
+-                font-size: 0.96rem;
+-                line-height: 1.5;
+-                color: #5B6577;
+-                margin-bottom: 0.75rem;
+-            }
+-
+-            .ps-best-for {
+-                margin-top: 0.8rem;
+-                padding-top: 0.75rem;
+-                border-top: 1px solid #EEF2F7;
+-                font-size: 0.9rem;
+-                line-height: 1.45;
+-                color: #475569;
+-            }
+-
+-            .ps-note {
+-                margin-top: 0.55rem;
+-                font-size: 0.84rem;
+-                line-height: 1.45;
+-                color: #64748B;
+-            }
++            .ps-section-wrap { margin-top: 0.35rem; margin-bottom: 1.05rem; }
++            .ps-section-title { font-size: 1.55rem; font-weight: 800; line-height: 1.15; color: #0B1730; margin-bottom: 0.25rem; }
++            .ps-section-copy { font-size: 0.98rem; line-height: 1.55; color: #5B6577; max-width: 820px; }
++            .ps-badge { display: inline-block; padding: 0.30rem 0.60rem; border-radius: 999px; background: rgba(249, 115, 22, 0.10); border: 1px solid rgba(249, 115, 22, 0.18); color: #C2410C; font-size: 0.72rem; font-weight: 800; margin-bottom: 0.7rem; }
++            .ps-kicker { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #6B7280; margin-bottom: 0.45rem; }
++            .ps-title { font-size: 1.25rem; font-weight: 800; line-height: 1.15; color: #0F172A; margin-bottom: 0.18rem; }
++            .ps-price { font-size: 1.4rem; font-weight: 800; line-height: 1.1; color: #0B1730; margin-bottom: 0.4rem; }
++            .ps-subtitle { font-size: 0.96rem; line-height: 1.5; color: #5B6577; margin-bottom: 0.75rem; }
++            .ps-best-for { margin-top: 0.8rem; padding-top: 0.75rem; border-top: 1px solid #EEF2F7; font-size: 0.9rem; line-height: 1.45; color: #475569; }
++            .ps-note { margin-top: 0.55rem; font-size: 0.84rem; line-height: 1.45; color: #64748B; }
++            .ps-compare { border:1px solid rgba(15,23,42,.10); border-radius:24px; background:#fff; padding:1rem; box-shadow:0 14px 36px rgba(15,23,42,.05); }
++            .ps-compare-row { display:grid; grid-template-columns:1.15fr 1fr 1fr; gap:1rem; padding:.72rem 0; border-bottom:1px solid #EEF2F7; font-size:.92rem; color:#334155; }
++            .ps-compare-row:last-child { border-bottom:0; }
++            .ps-compare-head { font-weight:850; color:#0B1220; }
+         </style>
+         """,
+         unsafe_allow_html=True,
+@@ -199,25 +102,112 @@
+     st.markdown(
+         f"""
+         <div class="ps-section-wrap">
+-            <div class="ps-section-title">{title}</div>
+-            <div class="ps-section-copy">{body}</div>
++            <div class="ps-section-title">{esc(title)}</div>
++            <div class="ps-section-copy">{esc(body)}</div>
+         </div>
+         """,
+         unsafe_allow_html=True,
+     )
+ 
+ 
+-def _render_offer_card(offer: OfferCard, button_key: str, primary: bool = False) -> None:
++def _go_to_checkout(plan_id: str, services: list[str] | None = None) -> None:
++    set_checkout_selection(plan_id, services or [])
++    st.session_state["current_page"] = "Paywall"
++    st.rerun()
++
++
++def _render_positioning_strip() -> None:
++    if has_forward_decision():
++        upgrade_strip(
++            "You have a forward decision on file.",
++            "This is where Pro starts to make sense: managing assumptions, lender items, buildout steps, launch readiness, and execution risk after the opportunity moves from evaluation to action.",
++        )
++    else:
++        upgrade_strip(
++            "Start free. Upgrade only when execution risk becomes the problem.",
++            "PressureTest keeps the free path focused on evaluating the opportunity. Pro is intentionally positioned for post-decision execution planning, not for casual browsing.",
++        )
++
++
++def _render_tier_comparison() -> None:
++    free = PLAN_DEFINITIONS[FREE_PLAN_ID]
++    pro = PLAN_DEFINITIONS[PRO_PLAN_ID]
++
++    _render_section_heading(
++        "Free vs Pro",
++        "The boundary is simple: Free helps you decide whether the opportunity deserves more diligence. Pro helps you manage the work after you decide to move forward.",
++    )
++
++    st.markdown('<div class="pt-tier-grid">', unsafe_allow_html=True)
++    col1, col2 = st.columns(2, gap="large")
++    with col1:
++        tier_card(
++            title=free.name,
++            price="$0",
++            body=free.positioning,
++            features=free.includes,
++            badge="Assessment",
++        )
++        if st.button("Continue Free Assessment", key="plans_continue_free", use_container_width=True, type="primary"):
++            st.session_state["current_page"] = "Overview"
++            st.rerun()
++    with col2:
++        tier_card(
++            title=pro.name,
++            price=format_money(pro.price),
++            body=pro.positioning,
++            features=pro.includes,
++            badge="Execution Workspace",
++            pro=True,
++        )
++        pro_cta = "Upgrade to Pro" if has_forward_decision() else "Preview Pro Checkout"
++        if st.button(pro_cta, key="plans_upgrade_pro", use_container_width=True):
++            _go_to_checkout(PRO_PLAN_ID)
++    st.markdown('</div>', unsafe_allow_html=True)
++
++
++def _render_comparison_table() -> None:
++    rows = [
++        ("Primary question", "Should I keep investigating?", "How do I avoid execution mistakes?"),
++        ("Best stage", "Early diligence", "Post-decision planning"),
++        ("Financial view", "Baseline model", "Scenario planning and capital pressure"),
++        ("Output", "Free report", "Execution packet and workspace outputs"),
++        ("Workflow", "Assessment", "Ongoing deal management"),
++    ]
++    html_rows = "".join(
++        f"""
++        <div class="ps-compare-row">
++          <div>{esc(label)}</div>
++          <div>{esc(free)}</div>
++          <div>{esc(pro)}</div>
++        </div>
++        """
++        for label, free, pro in rows
++    )
++    st.markdown(
++        f"""
++        <div class="ps-compare">
++          <div class="ps-compare-row ps-compare-head">
++            <div>Boundary</div><div>Free</div><div>Pro</div>
++          </div>
++          {html_rows}
++        </div>
++        """,
++        unsafe_allow_html=True,
++    )
++
++
++def _render_advisory_offer(offer: AdvisoryOffer, button_key: str) -> None:
+     with st.container(border=True):
+         if offer.badge:
+-            st.markdown(f'<div class="ps-badge">{offer.badge}</div>', unsafe_allow_html=True)
++            st.markdown(f'<div class="ps-badge">{esc(offer.badge)}</div>', unsafe_allow_html=True)
+ 
+         st.markdown(
+             f"""
+-            <div class="ps-kicker">{"App Tier" if offer.kind == "tier" else "Advisory Offer"}</div>
+-            <div class="ps-title">{offer.title}</div>
+-            <div class="ps-price">{offer.price}</div>
+-            <div class="ps-subtitle">{offer.subtitle}</div>
++            <div class="ps-kicker">Optional support</div>
++            <div class="ps-title">{esc(offer.title)}</div>
++            <div class="ps-price">{esc(format_money(offer.price))}</div>
++            <div class="ps-subtitle">{esc(offer.subtitle)}</div>
+             """,
+             unsafe_allow_html=True,
+         )
+@@ -225,62 +215,28 @@
+         for bullet in offer.bullets:
+             st.markdown(f"- {bullet}")
+ 
+-        if offer.best_for:
+-            st.markdown(f'<div class="ps-best-for">{offer.best_for}</div>', unsafe_allow_html=True)
+-
+-        if st.button(
+-            offer.cta_label,
+-            key=button_key,
+-            use_container_width=True,
+-            type="primary" if primary else "secondary",
+-        ):
+-            if offer.title == "Free":
+-                st.session_state["current_page"] = "Overview"
+-                st.rerun()
+-            elif offer.title == "Pro":
+-                st.session_state["current_page"] = "Plans & Support"
+-                st.rerun()
+-            else:
+-                st.session_state["selected_support_offer"] = offer.title
+-                st.success(f"{offer.title} selected. Connect this button to booking or checkout next.")
++        st.markdown(f'<div class="ps-best-for">{esc(offer.best_for)}</div>', unsafe_allow_html=True)
+ 
+-
+-def _render_app_tiers() -> None:
+-    _render_section_heading(
+-        "App Tiers",
+-        "Choose the workflow that fits your stage. Start with evaluation. Upgrade when you are actively moving the deal forward.",
+-    )
+-
+-    col1, col2 = st.columns(2, gap="large")
+-
+-    with col1:
+-        _render_offer_card(APP_TIER_OFFERS[0], "plans_free_cta", primary=True)
+-
+-    with col2:
+-        _render_offer_card(APP_TIER_OFFERS[1], "plans_pro_cta")
++        if st.button(offer.cta_label, key=button_key, use_container_width=True):
++            _go_to_checkout(FREE_PLAN_ID, [offer.title])
+ 
+ 
+ def _render_advisory_support() -> None:
+     _render_section_heading(
+-        "Advisory & Support",
+-        "Optional focused support for the moment you are in: evaluating the opportunity, moving forward, or preparing for lenders or partners.",
++        "Optional support",
++        "Support is separate from Pro access. Use it when you need a sharper review, a sequenced execution plan, or a more structured funding package.",
+     )
+ 
+     col1, col2, col3 = st.columns(3, gap="large")
+-
+-    with col1:
+-        _render_offer_card(ADVISORY_OFFERS[0], "service_opportunity_review")
+-
+-    with col2:
+-        _render_offer_card(ADVISORY_OFFERS[1], "service_execution_game_plan")
+-
+-    with col3:
+-        _render_offer_card(ADVISORY_OFFERS[2], "service_business_plan_funding_prep")
++    columns = (col1, col2, col3)
++    for index, offer in enumerate(ADVISORY_OFFERS):
++        with columns[index]:
++            _render_advisory_offer(offer, f"service_{index}_{offer.title}")
+ 
+     st.markdown(
+         """
+         <div class="ps-note">
+-            Business Plan & Funding Prep is a structured business plan and funding prep package. It is not full SBA packaging, guaranteed approval, legal advice, or financial advice.
++            Business Plan & Funding Prep is a structured planning package. It is not SBA packaging, guaranteed approval, legal advice, financial advice, tax advice, accounting advice, or an investment recommendation.
+         </div>
+         """,
+         unsafe_allow_html=True,
+@@ -294,21 +250,22 @@
+     render_page_header(
+         eyebrow=APP_PRODUCT,
+         title="Plans & Support",
+-        subtitle="Use the app to evaluate the deal. Add support only when you need a clearer review, a forward plan, or a structured lender-ready package.",
++        subtitle="Free helps you evaluate the opportunity. Pro helps you manage execution risk after the deal becomes real.",
+         wide=True,
+     )
+ 
+     render_section_intro(
+-        title="Simple structure, clear progression",
+-        body="Free helps you evaluate. Pro helps you execute. Advisory support is there when you want a sharper review, a practical next-step plan, or a structured lender-ready package.",
++        title="A sharper commercial boundary",
++        body="PressureTest should not push users into Pro before they understand the opportunity. The upgrade makes sense when the user needs a workspace for scenarios, lender prep, buildout tracking, and launch execution.",
+     )
+ 
+     st.markdown('<div class="rc-gap-sm"></div>', unsafe_allow_html=True)
+-
+-    _render_app_tiers()
+-
++    _render_positioning_strip()
+     st.markdown('<div class="rc-gap-md"></div>', unsafe_allow_html=True)
+-
++    _render_tier_comparison()
++    st.markdown('<div class="rc-gap-md"></div>', unsafe_allow_html=True)
++    _render_comparison_table()
++    st.markdown('<div class="rc-gap-lg"></div>', unsafe_allow_html=True)
+     _render_advisory_support()
+ 
+     close_shell()
+diff -ru /mnt/data/pt_task3/pressuretest_phase1_6_blunt_pressuretest_review/premium_components.py /mnt/data/pt_task4/pressuretest_phase1_6_blunt_pressuretest_review/premium_components.py
+--- /mnt/data/pt_task3/pressuretest_phase1_6_blunt_pressuretest_review/premium_components.py	2026-05-09 18:32:08.000000000 +0000
++++ /mnt/data/pt_task4/pressuretest_phase1_6_blunt_pressuretest_review/premium_components.py	2026-05-10 00:10:47.024926328 +0000
+@@ -47,8 +47,18 @@
+         .pt-path {display:flex; gap:.6rem; flex-wrap:wrap; margin:.6rem 0 1rem 0;}
+         .pt-path-step {border:1px solid rgba(15,23,42,.08); background:#fff; border-radius:999px; padding:.45rem .72rem; font-size:.82rem; font-weight:800; color:#334155;}
+         .pt-path-step-active {background:#0B1220; color:#fff; border-color:#0B1220;}
++        .pt-tier-grid {display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1rem; margin:1rem 0;}
++        .pt-tier-card {border:1px solid var(--pt-line); border-radius:26px; background:#fff; padding:1.2rem; box-shadow:0 16px 42px rgba(15,23,42,.06); height:100%;}
++        .pt-tier-card-pro {border-color:rgba(249,115,22,.30); box-shadow:0 18px 52px rgba(249,115,22,.10);}
++        .pt-tier-price {font-size:1.55rem; font-weight:850; color:var(--pt-navy); margin:.25rem 0 .45rem 0;}
++        .pt-feature-list {margin:.8rem 0 0 0; padding-left:1.05rem;}
++        .pt-feature-list li {margin:.28rem 0; font-size:.92rem; color:#334155;}
++        .pt-upgrade-strip {border:1px solid rgba(249,115,22,.20); border-radius:22px; background:linear-gradient(135deg,rgba(249,115,22,.10),rgba(255,255,255,.98)); padding:1rem 1.05rem; margin:1rem 0;}
++        .pt-upgrade-strip h3 {margin:0 0 .3rem 0; font-size:1.08rem;}
++        .pt-upgrade-strip p {margin:0; color:#475569; line-height:1.45;}
+         div.stButton > button[kind="primary"] {background: linear-gradient(135deg,#F97316,#EA580C); border:0; border-radius:14px; font-weight:800;}
+         div.stButton > button {border-radius:14px; font-weight:700;}
++        @media (max-width: 900px) {.pt-tier-grid {grid-template-columns:1fr;}}
+         </style>
+         """,
+         unsafe_allow_html=True,
+@@ -90,6 +100,36 @@
+           <h3>{esc(title)}</h3>
+           <p>{esc(body)}</p>
+         </div>
++        """,
++        unsafe_allow_html=True,
++    )
++
++
++def tier_card(title: str, price: str, body: str, features: Iterable[str], badge: str | None = None, pro: bool = False) -> None:
++    badge_html = f'<span class="pt-pill">{esc(badge)}</span>' if badge else ""
++    feature_html = "".join(f"<li>{esc(feature)}</li>" for feature in features)
++    pro_class = " pt-tier-card-pro" if pro else ""
++    st.markdown(
++        f"""
++        <div class="pt-tier-card{pro_class}">
++          {badge_html}
++          <h3>{esc(title)}</h3>
++          <div class="pt-tier-price">{esc(price)}</div>
++          <p>{esc(body)}</p>
++          <ul class="pt-feature-list">{feature_html}</ul>
++        </div>
++        """,
++        unsafe_allow_html=True,
++    )
++
++
++def upgrade_strip(title: str, body: str) -> None:
++    st.markdown(
++        f"""
++        <div class="pt-upgrade-strip">
++          <h3>{esc(title)}</h3>
++          <p>{esc(body)}</p>
++        </div>
+         """,
+         unsafe_allow_html=True,
+     )

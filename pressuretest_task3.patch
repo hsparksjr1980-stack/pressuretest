@@ -1,0 +1,395 @@
+Binary files /mnt/data/pt_task3_baseline/pressuretest_phase1_6_blunt_pressuretest_review/__pycache__/app_state.cpython-313.pyc and /mnt/data/pt_task3/pressuretest_phase1_6_blunt_pressuretest_review/__pycache__/app_state.cpython-313.pyc differ
+Binary files /mnt/data/pt_task3_baseline/pressuretest_phase1_6_blunt_pressuretest_review/__pycache__/free_report_ui.cpython-313.pyc and /mnt/data/pt_task3/pressuretest_phase1_6_blunt_pressuretest_review/__pycache__/free_report_ui.cpython-313.pyc differ
+Binary files /mnt/data/pt_task3_baseline/pressuretest_phase1_6_blunt_pressuretest_review/__pycache__/lead_capture_store.cpython-313.pyc and /mnt/data/pt_task3/pressuretest_phase1_6_blunt_pressuretest_review/__pycache__/lead_capture_store.cpython-313.pyc differ
+Binary files /mnt/data/pt_task3_baseline/pressuretest_phase1_6_blunt_pressuretest_review/__pycache__/lead_capture_ui.cpython-313.pyc and /mnt/data/pt_task3/pressuretest_phase1_6_blunt_pressuretest_review/__pycache__/lead_capture_ui.cpython-313.pyc differ
+Binary files /mnt/data/pt_task3_baseline/pressuretest_phase1_6_blunt_pressuretest_review/__pycache__/report_ui.cpython-313.pyc and /mnt/data/pt_task3/pressuretest_phase1_6_blunt_pressuretest_review/__pycache__/report_ui.cpython-313.pyc differ
+diff -ruN /mnt/data/pt_task3_baseline/pressuretest_phase1_6_blunt_pressuretest_review/app_state.py /mnt/data/pt_task3/pressuretest_phase1_6_blunt_pressuretest_review/app_state.py
+--- /mnt/data/pt_task3_baseline/pressuretest_phase1_6_blunt_pressuretest_review/app_state.py	2026-05-10 00:07:03.560707943 +0000
++++ /mnt/data/pt_task3/pressuretest_phase1_6_blunt_pressuretest_review/app_state.py	2026-05-10 00:06:42.711149271 +0000
+@@ -51,11 +51,18 @@
+     "toast_type": "info",
+ }
+ 
++LEAD_CAPTURE_DEFAULTS: Final[dict[str, Any]] = {
++    "lead_captured": False,
++    "lead_captured_assets": {},
++    "lead_capture_last_source": "",
++}
++
+ SESSION_DEFAULTS: Final[dict[str, Any]] = {
+     **CORE_DEFAULTS,
+     **PROFILE_DEFAULTS,
+     **ASSESSMENT_DEFAULTS,
+     **UI_DEFAULTS,
++    **LEAD_CAPTURE_DEFAULTS,
+ }
+ 
+ 
+@@ -98,9 +105,13 @@
+         "move_forward",
+         "walk_away",
+         "signed_anything",
++        "lead_captured",
+     ):
+         st.session_state[key] = bool(st.session_state.get(key, False))
+ 
++    if not isinstance(st.session_state.get("lead_captured_assets"), dict):
++        st.session_state["lead_captured_assets"] = {}
++
+ 
+ def get_state(key: str, default: Any = None) -> Any:
+     return st.session_state.get(key, default)
+diff -ruN /mnt/data/pt_task3_baseline/pressuretest_phase1_6_blunt_pressuretest_review/free_report_ui.py /mnt/data/pt_task3/pressuretest_phase1_6_blunt_pressuretest_review/free_report_ui.py
+--- /mnt/data/pt_task3_baseline/pressuretest_phase1_6_blunt_pressuretest_review/free_report_ui.py	2026-05-10 00:07:03.586308518 +0000
++++ /mnt/data/pt_task3/pressuretest_phase1_6_blunt_pressuretest_review/free_report_ui.py	2026-05-10 00:06:43.891475548 +0000
+@@ -4,6 +4,7 @@
+ 
+ import streamlit as st
+ 
++from lead_capture_ui import render_lead_capture_gate, render_inline_lead_prompt
+ from pdf_report_engine import build_free_snapshot_pdf
+ from report_templates import (
+     build_executive_summary_text,
+@@ -150,14 +151,27 @@
+             title="Download your snapshot",
+             body="Use the PDF as an early diligence memo and checklist starter.",
+         )
+-        st.download_button(
+-            "Download Free Pressure Snapshot PDF",
+-            pdf,
+-            file_name="pressuretest_free_pressure_snapshot.pdf",
+-            mime="application/pdf",
+-            use_container_width=True,
+-            type="primary",
+-        )
++        render_inline_lead_prompt(
++            asset_name="Free Pressure Snapshot PDF",
++            context="This is the first natural lead-capture moment: the user has received value and is asking to keep the output.",
++        )
++        unlocked = render_lead_capture_gate(
++            asset_key="free_pressure_snapshot_pdf",
++            asset_name="Free Pressure Snapshot PDF",
++            lead_source="free_report_download",
++            title="Unlock the downloadable snapshot",
++            body="Enter your email to save this early diligence snapshot and download the PDF.",
++            button_label="Unlock Free Snapshot PDF",
++        )
++        if unlocked:
++            st.download_button(
++                "Download Free Pressure Snapshot PDF",
++                pdf,
++                file_name="pressuretest_free_pressure_snapshot.pdf",
++                mime="application/pdf",
++                use_container_width=True,
++                type="primary",
++            )
+         st.caption("The free snapshot is intentionally concise. Deeper scenario planning and execution workflows belong in Pro.")
+ 
+     st.markdown('<div class="rc-gap-lg"></div>', unsafe_allow_html=True)
+diff -ruN /mnt/data/pt_task3_baseline/pressuretest_phase1_6_blunt_pressuretest_review/lead_capture_store.py /mnt/data/pt_task3/pressuretest_phase1_6_blunt_pressuretest_review/lead_capture_store.py
+--- /mnt/data/pt_task3_baseline/pressuretest_phase1_6_blunt_pressuretest_review/lead_capture_store.py	1970-01-01 00:00:00.000000000 +0000
++++ /mnt/data/pt_task3/pressuretest_phase1_6_blunt_pressuretest_review/lead_capture_store.py	2026-05-10 00:06:30.653468528 +0000
+@@ -0,0 +1,77 @@
++# lead_capture_store.py
++
++from __future__ import annotations
++
++import csv
++import json
++from datetime import datetime, timezone
++from pathlib import Path
++from typing import Any
++
++LEADS_DIR = Path("data")
++LEADS_JSONL = LEADS_DIR / "leads.jsonl"
++LEADS_CSV = LEADS_DIR / "leads.csv"
++
++CSV_FIELDS = [
++    "captured_at",
++    "email",
++    "full_name",
++    "city_state",
++    "franchise_name",
++    "lead_source",
++    "asset_name",
++    "diligence_stage",
++    "capital_range",
++    "ownership_style",
++    "units_considered",
++    "consent",
++]
++
++
++def _safe_text(value: Any) -> str:
++    if value is None:
++        return ""
++    return str(value).strip()
++
++
++def _ensure_store() -> None:
++    LEADS_DIR.mkdir(parents=True, exist_ok=True)
++    if not LEADS_CSV.exists():
++        with LEADS_CSV.open("w", newline="", encoding="utf-8") as f:
++            writer = csv.DictWriter(f, fieldnames=CSV_FIELDS)
++            writer.writeheader()
++
++
++def normalize_email(email: str) -> str:
++    return _safe_text(email).lower()
++
++
++def build_lead_record(*, session_state: Any, lead_source: str, asset_name: str, consent: bool) -> dict[str, str]:
++    return {
++        "captured_at": datetime.now(timezone.utc).isoformat(),
++        "email": normalize_email(session_state.get("email", "")),
++        "full_name": _safe_text(session_state.get("full_name", "")),
++        "city_state": _safe_text(session_state.get("city_state", "")),
++        "franchise_name": _safe_text(session_state.get("franchise_name", "")),
++        "lead_source": _safe_text(lead_source),
++        "asset_name": _safe_text(asset_name),
++        "diligence_stage": _safe_text(session_state.get("diligence_stage", "")),
++        "capital_range": _safe_text(session_state.get("capital_range", "")),
++        "ownership_style": _safe_text(session_state.get("ownership_style", "")),
++        "units_considered": _safe_text(session_state.get("units_considered", "")),
++        "consent": "yes" if consent else "no",
++    }
++
++
++def save_lead_record(record: dict[str, str]) -> None:
++    """Append a lead record to local JSONL and CSV stores.
++
++    This is intentionally simple for the prototype. In production, replace this
++    with HubSpot, Customer.io, ConvertKit, Postgres, or another CRM endpoint.
++    """
++    _ensure_store()
++    with LEADS_JSONL.open("a", encoding="utf-8") as f:
++        f.write(json.dumps(record, ensure_ascii=False) + "\n")
++    with LEADS_CSV.open("a", newline="", encoding="utf-8") as f:
++        writer = csv.DictWriter(f, fieldnames=CSV_FIELDS)
++        writer.writerow({field: record.get(field, "") for field in CSV_FIELDS})
+diff -ruN /mnt/data/pt_task3_baseline/pressuretest_phase1_6_blunt_pressuretest_review/lead_capture_ui.py /mnt/data/pt_task3/pressuretest_phase1_6_blunt_pressuretest_review/lead_capture_ui.py
+--- /mnt/data/pt_task3_baseline/pressuretest_phase1_6_blunt_pressuretest_review/lead_capture_ui.py	1970-01-01 00:00:00.000000000 +0000
++++ /mnt/data/pt_task3/pressuretest_phase1_6_blunt_pressuretest_review/lead_capture_ui.py	2026-05-10 00:06:30.660575005 +0000
+@@ -0,0 +1,175 @@
++# lead_capture_ui.py
++
++from __future__ import annotations
++
++import re
++from typing import Any
++
++import streamlit as st
++
++from lead_capture_store import build_lead_record, normalize_email, save_lead_record
++
++EMAIL_RE = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
++
++
++def _inject_lead_styles() -> None:
++    st.markdown(
++        """
++        <style>
++            .lc-box {
++                border: 1px solid #E2E8F0;
++                border-radius: 18px;
++                background: #FFFFFF;
++                padding: 1.1rem 1.2rem;
++                box-shadow: 0 16px 40px rgba(15, 23, 42, 0.06);
++                margin-bottom: .85rem;
++            }
++            .lc-box-muted {
++                border: 1px solid #E2E8F0;
++                border-radius: 18px;
++                background: #F8FAFC;
++                padding: 1.1rem 1.2rem;
++                margin-bottom: .85rem;
++            }
++            .lc-label {
++                font-size: .72rem;
++                font-weight: 800;
++                letter-spacing: .08em;
++                text-transform: uppercase;
++                color: #9A3412;
++                margin-bottom: .3rem;
++            }
++            .lc-title {
++                font-size: 1.12rem;
++                font-weight: 800;
++                line-height: 1.25;
++                color: #0B1730;
++                margin-bottom: .35rem;
++            }
++            .lc-copy {
++                font-size: .94rem;
++                color: #5B6577;
++                line-height: 1.55;
++                margin-bottom: .45rem;
++            }
++            .lc-list {
++                margin: .4rem 0 0 1.1rem;
++                color: #334155;
++                font-size: .92rem;
++                line-height: 1.5;
++            }
++        </style>
++        """,
++        unsafe_allow_html=True,
++    )
++
++
++def is_valid_email(email: str) -> bool:
++    return bool(EMAIL_RE.match(normalize_email(email)))
++
++
++def has_lead_capture(asset_key: str) -> bool:
++    captured_assets = st.session_state.get("lead_captured_assets", {})
++    if isinstance(captured_assets, dict) and captured_assets.get(asset_key):
++        return True
++    # Preserve backward compatibility: profile email counts as captured only
++    # after an explicit capture action for this asset.
++    return False
++
++
++def mark_lead_capture(asset_key: str) -> None:
++    captured_assets = st.session_state.get("lead_captured_assets", {})
++    if not isinstance(captured_assets, dict):
++        captured_assets = {}
++    captured_assets[asset_key] = True
++    st.session_state["lead_captured_assets"] = captured_assets
++    st.session_state["lead_captured"] = True
++
++
++def render_lead_capture_gate(
++    *,
++    asset_key: str,
++    asset_name: str,
++    lead_source: str,
++    title: str = "Send this to yourself before downloading",
++    body: str = "Enter your email to unlock the download and keep a copy of this diligence output tied to your workspace.",
++    button_label: str = "Unlock download",
++) -> bool:
++    """Render a lightweight lead capture gate.
++
++    Returns True when the asset is unlocked for this session.
++    """
++    _inject_lead_styles()
++
++    if has_lead_capture(asset_key):
++        st.success(f"{asset_name} unlocked for this session.")
++        return True
++
++    st.markdown(
++        f"""
++        <div class="lc-box">
++            <div class="lc-label">Lead capture</div>
++            <div class="lc-title">{title}</div>
++            <div class="lc-copy">{body}</div>
++            <ul class="lc-list">
++                <li>No investment, legal, tax, or financing advice.</li>
++                <li>Use the output as a diligence organizer and discussion packet.</li>
++                <li>You can replace this local capture with a CRM integration later.</li>
++            </ul>
++        </div>
++        """,
++        unsafe_allow_html=True,
++    )
++
++    default_email = normalize_email(st.session_state.get("email", ""))
++    default_name = st.session_state.get("full_name", "")
++
++    with st.form(f"lead_capture_{asset_key}"):
++        full_name = st.text_input("Name", value=default_name, placeholder="Jane Operator")
++        email = st.text_input("Email", value=default_email, placeholder="jane@example.com")
++        consent = st.checkbox(
++            "I understand this is an educational diligence tool and not legal, financial, tax, accounting, or investment advice.",
++            value=True,
++        )
++        submitted = st.form_submit_button(button_label, type="primary", use_container_width=True)
++
++    if submitted:
++        normalized = normalize_email(email)
++        if not full_name.strip():
++            st.error("Enter a name before unlocking the download.")
++            return False
++        if not is_valid_email(normalized):
++            st.error("Enter a valid email address before unlocking the download.")
++            return False
++        if not consent:
++            st.error("Confirm the educational-use notice before unlocking the download.")
++            return False
++
++        st.session_state["full_name"] = full_name.strip()
++        st.session_state["email"] = normalized
++        record = build_lead_record(
++            session_state=st.session_state,
++            lead_source=lead_source,
++            asset_name=asset_name,
++            consent=consent,
++        )
++        save_lead_record(record)
++        mark_lead_capture(asset_key)
++        st.success("Download unlocked.")
++        st.rerun()
++
++    return False
++
++
++def render_inline_lead_prompt(*, asset_name: str, context: str) -> None:
++    _inject_lead_styles()
++    st.markdown(
++        f"""
++        <div class="lc-box-muted">
++            <div class="lc-label">Save point</div>
++            <div class="lc-title">{asset_name}</div>
++            <div class="lc-copy">{context}</div>
++        </div>
++        """,
++        unsafe_allow_html=True,
++    )
+diff -ruN /mnt/data/pt_task3_baseline/pressuretest_phase1_6_blunt_pressuretest_review/report_ui.py /mnt/data/pt_task3/pressuretest_phase1_6_blunt_pressuretest_review/report_ui.py
+--- /mnt/data/pt_task3_baseline/pressuretest_phase1_6_blunt_pressuretest_review/report_ui.py	2026-05-10 00:07:03.587232436 +0000
++++ /mnt/data/pt_task3/pressuretest_phase1_6_blunt_pressuretest_review/report_ui.py	2026-05-10 00:06:45.102483224 +0000
+@@ -5,6 +5,7 @@
+ import streamlit as st
+ 
+ from branding import APP_PRODUCT
++from lead_capture_ui import render_lead_capture_gate, render_inline_lead_prompt
+ from pdf_report_engine import build_executive_report_pdf
+ from report_templates import (
+     build_condition_lines,
+@@ -126,14 +127,27 @@
+             title="Download",
+             body="Use this as a discussion packet for personal review, partner conversations, lender preparation, or advisor review.",
+         )
+-        st.download_button(
+-            label="Download Executive Report PDF",
+-            data=pdf_bytes,
+-            file_name="pressuretest_executive_diligence_report.pdf",
+-            mime="application/pdf",
+-            type="primary",
+-            use_container_width=True,
+-        )
++        render_inline_lead_prompt(
++            asset_name="Executive Diligence Report PDF",
++            context="This capture point preserves the report workflow and creates a CRM-ready handoff for serious users.",
++        )
++        unlocked = render_lead_capture_gate(
++            asset_key="executive_diligence_report_pdf",
++            asset_name="Executive Diligence Report PDF",
++            lead_source="executive_report_download",
++            title="Unlock the executive report download",
++            body="Enter your email to save the operator packet and download the PDF.",
++            button_label="Unlock Executive Report PDF",
++        )
++        if unlocked:
++            st.download_button(
++                label="Download Executive Report PDF",
++                data=pdf_bytes,
++                file_name="pressuretest_executive_diligence_report.pdf",
++                mime="application/pdf",
++                type="primary",
++                use_container_width=True,
++            )
+         st.caption("PressureTest outputs are educational and should be independently validated.")
+ 
+     st.markdown('<div class="rc-gap-lg"></div>', unsafe_allow_html=True)

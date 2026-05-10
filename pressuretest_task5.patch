@@ -1,0 +1,519 @@
+Binary files task5_baseline/pressuretest_phase1_6_blunt_pressuretest_review/__pycache__/app.cpython-313.pyc and task5_work/pressuretest_phase1_6_blunt_pressuretest_review/__pycache__/app.cpython-313.pyc differ
+Binary files task5_baseline/pressuretest_phase1_6_blunt_pressuretest_review/__pycache__/calculators_logic.cpython-313.pyc and task5_work/pressuretest_phase1_6_blunt_pressuretest_review/__pycache__/calculators_logic.cpython-313.pyc differ
+Binary files task5_baseline/pressuretest_phase1_6_blunt_pressuretest_review/__pycache__/calculators_ui.cpython-313.pyc and task5_work/pressuretest_phase1_6_blunt_pressuretest_review/__pycache__/calculators_ui.cpython-313.pyc differ
+Binary files task5_baseline/pressuretest_phase1_6_blunt_pressuretest_review/__pycache__/page_config.cpython-313.pyc and task5_work/pressuretest_phase1_6_blunt_pressuretest_review/__pycache__/page_config.cpython-313.pyc differ
+Binary files task5_baseline/pressuretest_phase1_6_blunt_pressuretest_review/__pycache__/seo_resources_ui.cpython-313.pyc and task5_work/pressuretest_phase1_6_blunt_pressuretest_review/__pycache__/seo_resources_ui.cpython-313.pyc differ
+diff -ruN task5_baseline/pressuretest_phase1_6_blunt_pressuretest_review/app.py task5_work/pressuretest_phase1_6_blunt_pressuretest_review/app.py
+--- task5_baseline/pressuretest_phase1_6_blunt_pressuretest_review/app.py	2026-05-10 00:11:36.000000000 +0000
++++ task5_work/pressuretest_phase1_6_blunt_pressuretest_review/app.py	2026-05-10 00:15:22.832382094 +0000
+@@ -12,6 +12,7 @@
+ from app_state import initialize_app_state, reset_assessment_state
+ from branding import APP_PRODUCT, FIT_PAGE_LABEL
+ from buildout_tracker_ui import render_buildout_tracker
++from calculators_ui import render_calculators
+ from brand_territory_ui import render_brand_territory
+ from decision_engine import build_decision_packet
+ from deal_model_ui import render_deal_model
+@@ -34,6 +35,7 @@
+ from premium_home_ui import render_premium_home
+ from profile_ui import render_profile_setup
+ from report_ui import render_report_screen
++from seo_resources_ui import render_seo_resources
+ from shared_ui import render_compact_brand_bar, render_sidebar_branding, render_pressuretest_boundary_notice
+ from theme import apply_theme
+ from ui_styles import inject_global_styles
+@@ -64,11 +66,13 @@
+     "Concept Validation": render_phase_1,
+     "Opportunity Fit & Recommendations": render_opportunity_fit,
+     "Financial Model": render_financial_model,
++    "Calculators": render_calculators,
+     "Free Report": render_free_report,
+     "Post-Discovery": render_post_discovery,
+     "Final Decision": render_final_decision,
+     "Report": render_report_screen,
+     "Plans & Support": render_plans_support,
++    "SEO Resources": render_seo_resources,
+     "Deal Workspace": render_deal_workspace,
+     "Deal Model": render_deal_model,
+     "Buildout & Launch Tracker": render_buildout_tracker,
+@@ -121,7 +125,7 @@
+     if not st.session_state.get("financial_model_done"):
+         return "Financial Model", "Run economics, ramp, and working-capital pressure before treating the deal as viable."
+     if not st.session_state.get("free_report_generated"):
+-        return "Free Report", "Package the current signal into a first diligence summary."
++        return "Calculators", "Test working capital, ramp, and staffing pressure before packaging the report."
+     if not st.session_state.get("phase_2_complete"):
+         return "Post-Discovery", "Convert Discovery Day answers into conditions and gaps."
+     if not st.session_state.get("phase_3_complete"):
+diff -ruN task5_baseline/pressuretest_phase1_6_blunt_pressuretest_review/calculators_logic.py task5_work/pressuretest_phase1_6_blunt_pressuretest_review/calculators_logic.py
+--- task5_baseline/pressuretest_phase1_6_blunt_pressuretest_review/calculators_logic.py	1970-01-01 00:00:00.000000000 +0000
++++ task5_work/pressuretest_phase1_6_blunt_pressuretest_review/calculators_logic.py	2026-05-10 00:15:10.784719576 +0000
+@@ -0,0 +1,159 @@
++"""PressureTest calculator logic.
++
++These calculators are intentionally conservative planning tools. They do not
++provide legal, tax, financial, accounting, or investment advice.
++"""
++
++from __future__ import annotations
++
++from dataclasses import dataclass
++
++
++@dataclass(frozen=True)
++class WorkingCapitalInputs:
++    starting_cash: float
++    monthly_fixed_costs: float
++    monthly_payroll: float
++    owner_draw: float
++    expected_monthly_revenue: float
++    gross_margin_pct: float
++    ramp_months: int
++
++
++@dataclass(frozen=True)
++class WorkingCapitalResult:
++    monthly_cash_burn: float
++    runway_months: float
++    minimum_buffer: float
++    pressure_level: str
++    interpretation: str
++
++
++@dataclass(frozen=True)
++class RampInputs:
++    target_monthly_revenue: float
++    starting_monthly_revenue: float
++    monthly_growth_rate_pct: float
++    fixed_monthly_costs: float
++    gross_margin_pct: float
++    starting_cash: float
++
++
++@dataclass(frozen=True)
++class RampResult:
++    months_to_target: int
++    projected_cash_low_point: float
++    cumulative_cash_needed: float
++    pressure_level: str
++    interpretation: str
++
++
++@dataclass(frozen=True)
++class StaffingInputs:
++    hourly_rate: float
++    weekly_hours: float
++    employee_count: int
++    payroll_tax_benefit_load_pct: float
++    manager_salary_monthly: float
++    monthly_revenue: float
++    labor_target_pct: float
++
++
++@dataclass(frozen=True)
++class StaffingResult:
++    monthly_staff_cost: float
++    labor_pct_of_revenue: float
++    target_labor_cost: float
++    monthly_gap: float
++    pressure_level: str
++    interpretation: str
++
++
++def _level_from_ratio(value: float, moderate: float, high: float) -> str:
++    if value >= high:
++        return "High pressure"
++    if value >= moderate:
++        return "Moderate pressure"
++    return "Lower pressure"
++
++
++def calculate_working_capital(inputs: WorkingCapitalInputs) -> WorkingCapitalResult:
++    gross_profit = inputs.expected_monthly_revenue * (inputs.gross_margin_pct / 100)
++    monthly_cash_burn = max(0.0, inputs.monthly_fixed_costs + inputs.monthly_payroll + inputs.owner_draw - gross_profit)
++    runway_months = 99.0 if monthly_cash_burn <= 0 else inputs.starting_cash / monthly_cash_burn
++    minimum_buffer = max(0.0, monthly_cash_burn * max(3, min(inputs.ramp_months, 12)))
++
++    if runway_months < 6:
++        level = "High pressure"
++        interpretation = "Cash runway is thin for a ramp period. Delay, slower revenue, or staffing pressure could force outside capital or owner concessions."
++    elif runway_months < 12:
++        level = "Moderate pressure"
++        interpretation = "Runway may be workable, but the plan depends on disciplined spend control and realistic ramp assumptions."
++    else:
++        level = "Lower pressure"
++        interpretation = "Runway appears more durable, assuming the revenue and margin assumptions hold up under validation."
++
++    return WorkingCapitalResult(monthly_cash_burn, runway_months, minimum_buffer, level, interpretation)
++
++
++def calculate_ramp(inputs: RampInputs) -> RampResult:
++    revenue = max(0.0, inputs.starting_monthly_revenue)
++    target = max(revenue, inputs.target_monthly_revenue)
++    monthly_growth = max(0.0, inputs.monthly_growth_rate_pct) / 100
++    cash = inputs.starting_cash
++    low_point = cash
++    cumulative_need = 0.0
++    months = 0
++
++    while revenue < target and months < 60:
++        gross_profit = revenue * (inputs.gross_margin_pct / 100)
++        monthly_gap = inputs.fixed_monthly_costs - gross_profit
++        cash -= monthly_gap
++        low_point = min(low_point, cash)
++        cumulative_need += max(0.0, monthly_gap)
++        revenue = revenue * (1 + monthly_growth) if monthly_growth > 0 else revenue
++        months += 1
++        if monthly_growth <= 0 and revenue < target:
++            months = 60
++            break
++
++    pressure_ratio = cumulative_need / max(inputs.starting_cash, 1.0)
++    level = _level_from_ratio(pressure_ratio, 0.45, 0.75)
++    if months >= 60:
++        interpretation = "The ramp does not reach the target within five years under the current assumptions. Revisit growth rate, pricing, demand, and fixed costs."
++    elif level == "High pressure":
++        interpretation = "The ramp consumes a large share of available cash before reaching the target revenue level. Validate timing and contingency capital."
++    elif level == "Moderate pressure":
++        interpretation = "The ramp is plausible but sensitive to slower sales growth, payroll timing, and delayed break-even."
++    else:
++        interpretation = "The ramp has more breathing room, provided local demand and gross margin assumptions are independently validated."
++
++    return RampResult(months, low_point, cumulative_need, level, interpretation)
++
++
++def calculate_staffing_pressure(inputs: StaffingInputs) -> StaffingResult:
++    hourly_monthly = inputs.hourly_rate * inputs.weekly_hours * 4.333 * inputs.employee_count
++    load = 1 + max(0.0, inputs.payroll_tax_benefit_load_pct) / 100
++    monthly_staff_cost = hourly_monthly * load + inputs.manager_salary_monthly
++    labor_pct = (monthly_staff_cost / inputs.monthly_revenue * 100) if inputs.monthly_revenue > 0 else 0.0
++    target_labor_cost = inputs.monthly_revenue * (inputs.labor_target_pct / 100)
++    gap = monthly_staff_cost - target_labor_cost
++
++    ratio = labor_pct / max(inputs.labor_target_pct, 1.0)
++    level = _level_from_ratio(ratio, 1.1, 1.3)
++    if level == "High pressure":
++        interpretation = "Labor appears materially above the target level. The model may require higher sales, leaner scheduling, or revised owner-role assumptions."
++    elif level == "Moderate pressure":
++        interpretation = "Labor is close enough to require active scheduling discipline and validation against real operating hours."
++    else:
++        interpretation = "Labor appears within target range, subject to local wage conditions, absenteeism, manager coverage, and training time."
++
++    return StaffingResult(monthly_staff_cost, labor_pct, target_labor_cost, gap, level, interpretation)
++
++
++def money(value: float) -> str:
++    return f"${value:,.0f}"
++
++
++def pct(value: float) -> str:
++    return f"{value:.1f}%"
+diff -ruN task5_baseline/pressuretest_phase1_6_blunt_pressuretest_review/calculators_ui.py task5_work/pressuretest_phase1_6_blunt_pressuretest_review/calculators_ui.py
+--- task5_baseline/pressuretest_phase1_6_blunt_pressuretest_review/calculators_ui.py	1970-01-01 00:00:00.000000000 +0000
++++ task5_work/pressuretest_phase1_6_blunt_pressuretest_review/calculators_ui.py	2026-05-10 00:15:10.794023007 +0000
+@@ -0,0 +1,171 @@
++from __future__ import annotations
++
++import streamlit as st
++
++from calculators_logic import (
++    RampInputs,
++    StaffingInputs,
++    WorkingCapitalInputs,
++    calculate_ramp,
++    calculate_staffing_pressure,
++    calculate_working_capital,
++    money,
++    pct,
++)
++from premium_components import esc, hero, metric_card, upgrade_strip
++
++
++def _download_markdown(filename: str, title: str, lines: list[str]) -> None:
++    body = "\n".join([f"# {title}", "", *lines, "", "---", "PressureTest is an educational diligence-support platform. This export is not legal, tax, accounting, financial, or investment advice."])
++    st.download_button(
++        "Download calculator summary",
++        data=body.encode("utf-8"),
++        file_name=filename,
++        mime="text/markdown",
++        use_container_width=True,
++    )
++
++
++def _render_context_note() -> None:
++    st.markdown(
++        """
++        <div class="pt-note">
++        These calculators are designed for early diligence. Use them to identify pressure points and questions to validate with qualified professionals, franchisors, lenders, landlords, accountants, and operators.
++        </div>
++        """,
++        unsafe_allow_html=True,
++    )
++
++
++def render_working_capital_calculator() -> None:
++    st.markdown("### Working Capital Runway Calculator")
++    st.caption("Estimate how long available cash can absorb early operating pressure before the unit stabilizes.")
++    c1, c2 = st.columns(2)
++    with c1:
++        starting_cash = st.number_input("Available working capital", min_value=0.0, value=100000.0, step=5000.0)
++        monthly_fixed = st.number_input("Monthly fixed costs", min_value=0.0, value=35000.0, step=1000.0)
++        monthly_payroll = st.number_input("Monthly payroll", min_value=0.0, value=30000.0, step=1000.0)
++        owner_draw = st.number_input("Monthly owner draw", min_value=0.0, value=6000.0, step=500.0)
++    with c2:
++        revenue = st.number_input("Expected monthly revenue during ramp", min_value=0.0, value=60000.0, step=2500.0)
++        margin = st.slider("Gross margin %", min_value=5, max_value=95, value=55, step=1)
++        ramp_months = st.slider("Ramp period to test", min_value=3, max_value=24, value=9, step=1)
++
++    result = calculate_working_capital(WorkingCapitalInputs(starting_cash, monthly_fixed, monthly_payroll, owner_draw, revenue, margin, ramp_months))
++    m1, m2, m3 = st.columns(3)
++    with m1:
++        metric_card("Monthly cash burn", money(result.monthly_cash_burn), "Estimated operating cash gap during ramp.")
++    with m2:
++        runway = "No burn" if result.runway_months >= 99 else f"{result.runway_months:.1f} months"
++        metric_card("Runway", runway, "Approximate months before working capital is depleted.")
++    with m3:
++        metric_card("Suggested buffer", money(result.minimum_buffer), "Conservative buffer based on tested ramp period.")
++    st.markdown(f"**Pressure level:** {result.pressure_level}")
++    st.write(result.interpretation)
++    _download_markdown(
++        "pressuretest-working-capital-summary.md",
++        "PressureTest Working Capital Summary",
++        [
++            f"- Monthly cash burn: {money(result.monthly_cash_burn)}",
++            f"- Runway: {runway}",
++            f"- Suggested buffer: {money(result.minimum_buffer)}",
++            f"- Pressure level: {result.pressure_level}",
++            f"- Interpretation: {result.interpretation}",
++        ],
++    )
++
++
++def render_ramp_timeline_calculator() -> None:
++    st.markdown("### Franchise Ramp Timeline Calculator")
++    st.caption("Estimate how long it may take to reach a target monthly revenue level and how much cash the ramp may consume.")
++    c1, c2 = st.columns(2)
++    with c1:
++        starting_revenue = st.number_input("Starting monthly revenue", min_value=0.0, value=25000.0, step=2500.0, key="ramp_start_rev")
++        target_revenue = st.number_input("Target monthly revenue", min_value=0.0, value=100000.0, step=5000.0, key="ramp_target_rev")
++        growth = st.slider("Monthly revenue growth %", min_value=0, max_value=50, value=12, step=1)
++    with c2:
++        fixed_costs = st.number_input("Fixed monthly costs", min_value=0.0, value=50000.0, step=2500.0, key="ramp_fixed")
++        margin = st.slider("Gross margin %", min_value=5, max_value=95, value=55, step=1, key="ramp_margin")
++        starting_cash = st.number_input("Available cash", min_value=0.0, value=125000.0, step=5000.0, key="ramp_cash")
++
++    result = calculate_ramp(RampInputs(target_revenue, starting_revenue, growth, fixed_costs, margin, starting_cash))
++    m1, m2, m3 = st.columns(3)
++    with m1:
++        metric_card("Months to target", f"{result.months_to_target}", "Capped at 60 months for sanity checking.")
++    with m2:
++        metric_card("Cash low point", money(result.projected_cash_low_point), "Lowest projected cash position before target is reached.")
++    with m3:
++        metric_card("Cash consumed", money(result.cumulative_cash_needed), "Cumulative projected operating gap during ramp.")
++    st.markdown(f"**Pressure level:** {result.pressure_level}")
++    st.write(result.interpretation)
++    _download_markdown(
++        "pressuretest-ramp-timeline-summary.md",
++        "PressureTest Ramp Timeline Summary",
++        [
++            f"- Months to target: {result.months_to_target}",
++            f"- Cash low point: {money(result.projected_cash_low_point)}",
++            f"- Cash consumed: {money(result.cumulative_cash_needed)}",
++            f"- Pressure level: {result.pressure_level}",
++            f"- Interpretation: {result.interpretation}",
++        ],
++    )
++
++
++def render_staffing_pressure_calculator() -> None:
++    st.markdown("### Staffing Cost Pressure Calculator")
++    st.caption("Estimate whether staffing assumptions are likely to create margin pressure at a given revenue level.")
++    c1, c2 = st.columns(2)
++    with c1:
++        hourly_rate = st.number_input("Average hourly wage", min_value=0.0, value=17.0, step=0.5)
++        weekly_hours = st.number_input("Weekly hours per employee", min_value=0.0, value=32.0, step=1.0)
++        employees = st.number_input("Hourly employee count", min_value=0, value=8, step=1)
++        load = st.slider("Payroll tax / benefits load %", min_value=0, max_value=50, value=14, step=1)
++    with c2:
++        manager_salary = st.number_input("Monthly manager salary", min_value=0.0, value=5500.0, step=250.0)
++        revenue = st.number_input("Expected monthly revenue", min_value=0.0, value=90000.0, step=2500.0, key="staff_rev")
++        labor_target = st.slider("Target labor cost % of revenue", min_value=5, max_value=60, value=30, step=1)
++
++    result = calculate_staffing_pressure(StaffingInputs(hourly_rate, weekly_hours, int(employees), load, manager_salary, revenue, labor_target))
++    m1, m2, m3 = st.columns(3)
++    with m1:
++        metric_card("Monthly staff cost", money(result.monthly_staff_cost), "Hourly labor, payroll load, and manager salary.")
++    with m2:
++        metric_card("Labor % of revenue", pct(result.labor_pct_of_revenue), "Compared against target labor percentage.")
++    with m3:
++        gap_label = money(result.monthly_gap) if result.monthly_gap >= 0 else f"({money(abs(result.monthly_gap))})"
++        metric_card("Monthly target gap", gap_label, "Positive means labor is above target.")
++    st.markdown(f"**Pressure level:** {result.pressure_level}")
++    st.write(result.interpretation)
++    _download_markdown(
++        "pressuretest-staffing-pressure-summary.md",
++        "PressureTest Staffing Pressure Summary",
++        [
++            f"- Monthly staff cost: {money(result.monthly_staff_cost)}",
++            f"- Labor percent of revenue: {pct(result.labor_pct_of_revenue)}",
++            f"- Target labor cost: {money(result.target_labor_cost)}",
++            f"- Monthly target gap: {money(result.monthly_gap)}",
++            f"- Pressure level: {result.pressure_level}",
++            f"- Interpretation: {result.interpretation}",
++        ],
++    )
++
++
++def render_calculators() -> None:
++    hero(
++        "Franchise Diligence Calculators",
++        "Use the first calculator cluster to test working capital, ramp timing, and staffing pressure before treating the opportunity as financeable or operationally ready.",
++        "Free diligence tools",
++    )
++    _render_context_note()
++    tab1, tab2, tab3 = st.tabs(["Working capital", "Ramp timeline", "Staffing pressure"])
++    with tab1:
++        render_working_capital_calculator()
++    with tab2:
++        render_ramp_timeline_calculator()
++    with tab3:
++        render_staffing_pressure_calculator()
++
++    upgrade_strip(
++        "Pro turns calculator results into an execution workspace.",
++        "Free calculators surface pressure points. Pro is positioned for scenario comparison, saved assumptions, lender-ready exports, and execution tracking once the user is ready to manage the actual deal.",
++    )
+diff -ruN task5_baseline/pressuretest_phase1_6_blunt_pressuretest_review/page_config.py task5_work/pressuretest_phase1_6_blunt_pressuretest_review/page_config.py
+--- task5_baseline/pressuretest_phase1_6_blunt_pressuretest_review/page_config.py	2026-05-09 18:53:24.000000000 +0000
++++ task5_work/pressuretest_phase1_6_blunt_pressuretest_review/page_config.py	2026-05-10 00:15:22.832690726 +0000
+@@ -21,11 +21,13 @@
+     PageConfig("Concept Validation", "Opportunity Review"),
+     PageConfig("Opportunity Fit & Recommendations", "Opportunity Review"),
+     PageConfig("Financial Model", "Financial Reality"),
++    PageConfig("Calculators", "Financial Reality"),
+     PageConfig("Free Report", "Decision Outputs"),
+     PageConfig("Post-Discovery", "Commitment Review"),
+     PageConfig("Final Decision", "Final Decision"),
+     PageConfig("Report", "Decision Outputs"),
+     PageConfig("Plans & Support", "Support Options"),
++    PageConfig("SEO Resources", "Support Options"),
+     PageConfig("Paywall", "Support Options", "standard", False),
+     PageConfig("Deal Workspace", "Execution Tools", "pro"),
+     PageConfig("Deal Model", "Execution Tools", "pro"),
+@@ -55,11 +57,11 @@
+     "Start Here": "Orient the assessment, add brand context, and localize the diligence workflow.",
+     "Operator Fit": "Assess lifestyle, risk tolerance, capital comfort, and owner-role fit.",
+     "Opportunity Review": "Pressure test the concept, market, franchisor claims, and operational realities.",
+-    "Financial Reality": "Validate assumptions, margins, runway, buildout, and what has to be true.",
++    "Financial Reality": "Validate assumptions, margins, runway, buildout, working capital, staffing, and what has to be true.",
+     "Commitment Review": "Turn Discovery Day answers into conditions, gaps, and no-go risks.",
+     "Final Decision": "Decide whether to proceed, pause, renegotiate, or walk away.",
+     "Decision Outputs": "Package the evidence into a clear report and recommendation.",
+-    "Support Options": "Review optional advisory support and next-step help.",
++    "Support Options": "Review optional advisory support, acquisition pages, and next-step help.",
+     "Execution Tools": "Deal workspace, buildout, lender, vendor, and launch tools available later.",
+ }
+ 
+diff -ruN task5_baseline/pressuretest_phase1_6_blunt_pressuretest_review/seo_resources_ui.py task5_work/pressuretest_phase1_6_blunt_pressuretest_review/seo_resources_ui.py
+--- task5_baseline/pressuretest_phase1_6_blunt_pressuretest_review/seo_resources_ui.py	1970-01-01 00:00:00.000000000 +0000
++++ task5_work/pressuretest_phase1_6_blunt_pressuretest_review/seo_resources_ui.py	2026-05-10 00:15:10.808099787 +0000
+@@ -0,0 +1,99 @@
++from __future__ import annotations
++
++import streamlit as st
++
++from premium_components import esc, hero, info_card
++
++LANDING_PAGES = [
++    {
++        "title": "Franchise Working Capital Calculator",
++        "slug": "franchise-working-capital-calculator",
++        "intent": "Estimate early cash runway and working-capital pressure before signing or financing.",
++        "primary_cta": "Open calculator",
++        "calculator": "Working capital",
++    },
++    {
++        "title": "Franchise Ramp Timeline Calculator",
++        "slug": "franchise-ramp-timeline-calculator",
++        "intent": "Test how long it may take to reach a target monthly revenue level and how much cash the ramp may consume.",
++        "primary_cta": "Open calculator",
++        "calculator": "Ramp timeline",
++    },
++    {
++        "title": "Staffing Cost Pressure Calculator",
++        "slug": "staffing-cost-pressure-calculator",
++        "intent": "Estimate whether wage, coverage, and management assumptions are likely to strain margins.",
++        "primary_cta": "Open calculator",
++        "calculator": "Staffing pressure",
++    },
++]
++
++EDUCATIONAL_PAGES = [
++    "How much working capital should a franchise buyer pressure test?",
++    "What to validate before relying on franchisor ramp assumptions",
++    "Why staffing assumptions often break early franchise models",
++    "How to use a break-even estimate without treating it as a guarantee",
++    "Questions to ask operators before signing a franchise agreement",
++]
++
++
++def _seo_brief(page: dict[str, str]) -> str:
++    return f"""# {page['title']}
++
++## Search intent
++{page['intent']}
++
++## Recommended URL
++/resources/{page['slug']}
++
++## Page structure
++- Plain-English explanation of the pressure point
++- Calculator module
++- Inputs users should validate independently
++- Common diligence questions
++- Downloadable summary
++- Lead capture prompt: save this calculator output
++
++## Compliance framing
++PressureTest is an educational diligence-support platform. This page should not recommend investments, predict success, guarantee outcomes, or provide legal, tax, accounting, financial, or investment advice.
++"""
++
++
++def render_seo_resources() -> None:
++    hero(
++        "SEO Resource & Calculator Landing Pages",
++        "This page defines the first organic acquisition cluster: practical calculators, diligence education, downloadable outputs, and non-advisory framing.",
++        "Acquisition infrastructure",
++    )
++
++    st.markdown("### First calculator landing pages")
++    cols = st.columns(3)
++    for index, page in enumerate(LANDING_PAGES):
++        with cols[index % 3]:
++            info_card(page["title"], page["intent"], page["calculator"])
++
++    st.markdown("### Educational support pages")
++    for title in EDUCATIONAL_PAGES:
++        st.markdown(f"- {esc(title)}")
++
++    st.markdown("### Export SEO briefs")
++    selected = st.selectbox("Select page brief", [p["title"] for p in LANDING_PAGES])
++    page = next(p for p in LANDING_PAGES if p["title"] == selected)
++    brief = _seo_brief(page)
++    st.code(brief, language="markdown")
++    st.download_button(
++        "Download SEO brief",
++        data=brief.encode("utf-8"),
++        file_name=f"{page['slug']}-brief.md",
++        mime="text/markdown",
++        use_container_width=True,
++    )
++
++    st.markdown(
++        """
++        <div class="pt-note">
++        Build recommendation: these pages can start inside the Streamlit app for prototype validation, but should eventually move into a static or server-rendered marketing site for stronger indexing, faster page speed, and cleaner analytics.
++        </div>
++        """,
++        unsafe_allow_html=True,
++    )

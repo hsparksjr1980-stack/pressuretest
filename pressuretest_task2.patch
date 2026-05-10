@@ -1,0 +1,1814 @@
+diff -ruN '--exclude=__pycache__' '--exclude=.venv' '--exclude=logo.png' /mnt/data/pt_task2_baseline/pressuretest_phase1_6_blunt_pressuretest_review/free_report_ui.py /mnt/data/pt_task2/pressuretest_phase1_6_blunt_pressuretest_review/free_report_ui.py
+--- /mnt/data/pt_task2_baseline/pressuretest_phase1_6_blunt_pressuretest_review/free_report_ui.py	2026-05-08 18:50:40.000000000 +0000
++++ /mnt/data/pt_task2/pressuretest_phase1_6_blunt_pressuretest_review/free_report_ui.py	2026-05-10 00:01:43.530974788 +0000
+@@ -2,299 +2,58 @@
+ 
+ from __future__ import annotations
+ 
+-import io
+-import os
+-from datetime import datetime
+-
+ import streamlit as st
+-from reportlab.lib.colors import HexColor
+-from reportlab.lib.pagesizes import LETTER
+-from reportlab.pdfgen import canvas
+-
+-from ui_styles import close_shell, open_shell, render_page_header, render_section_intro
+-
+-
+-def _safe_score(val):
+-    return "—" if val is None else f"{float(val):.1f}"
+-
+-
+-def _score_band(score):
+-    if score is None:
+-        return "neutral"
+-    if score >= 78:
+-        return "good"
+-    if score >= 58:
+-        return "caution"
+-    return "bad"
+-
+-
+-def _money(x):
+-    return f"${x:,.0f}"
+-
+-
+-def _get_logo_path():
+-    base = os.path.dirname(os.path.abspath(__file__))
+-    return os.path.join(base, "logo.png")
+-
+-
+-def _get_data():
+-    days = st.session_state.get("days_custom", 365)
+-
+-    avg_ticket = st.session_state.get("avg_ticket", 0.0)
+-    tx_per_day = st.session_state.get("tx_per_day", 0.0)
+-
+-    annual_revenue = avg_ticket * tx_per_day * days
+-    monthly_revenue = annual_revenue / 12 if annual_revenue else 0.0
+-
+-    wage = st.session_state.get("wage", 0.0)
+-    staff_per_hour = st.session_state.get("staff_per_hour", 0.0)
+-    hours_open_daily = st.session_state.get("hours_open_daily", 0.0)
+-    payroll_tax_pct = st.session_state.get("payroll_tax_pct", 0.0) / 100
+-
+-    labor_hours_per_day = staff_per_hour * hours_open_daily
+-    monthly_labor = wage * labor_hours_per_day * (days / 12)
+-    monthly_payroll_tax = monthly_labor * payroll_tax_pct
+-
+-    base_rent = st.session_state.get("base_rent", 0.0)
+-    cam = st.session_state.get("cam", 0.0)
+-    monthly_occupancy = base_rent + cam
+-
+-    electric = st.session_state.get("electric", 0.0)
+-    gas = st.session_state.get("gas", 0.0)
+-    water = st.session_state.get("water", 0.0)
+-    sewer = st.session_state.get("sewer", 0.0)
+-    trash = st.session_state.get("trash", 0.0)
+-    internet = st.session_state.get("internet", 0.0)
+-    phone = st.session_state.get("phone", 0.0)
+-    workers_comp = st.session_state.get("workers_comp", 0.0)
+-    property_ins = st.session_state.get("property_ins", 0.0)
+-    tech = st.session_state.get("tech", 0.0)
+-    repairs = st.session_state.get("repairs", 0.0)
+-    admin_misc = st.session_state.get("admin_misc", 0.0)
+-    owner_comp = st.session_state.get("owner_comp", 0.0)
+-
+-    monthly_other = (
+-        electric
+-        + gas
+-        + water
+-        + sewer
+-        + trash
+-        + internet
+-        + phone
+-        + workers_comp
+-        + property_ins
+-        + tech
+-        + repairs
+-        + admin_misc
+-        + owner_comp
+-    )
+-
+-    actual_cogs_pct = st.session_state.get("actual_cogs_pct", 0.0) / 100
+-    actual_royalty_pct = st.session_state.get("actual_royalty_pct", 0.0) / 100
+-    actual_marketing_pct = st.session_state.get("actual_marketing_pct", 0.0) / 100
+-    merchant_pct = st.session_state.get("merchant_pct", 0.0) / 100
+-    leakage_pct = st.session_state.get("leakage_pct", 0.0) / 100
+-
+-    your_year1 = {
+-        "Revenue": annual_revenue,
+-        "COGS": monthly_revenue * actual_cogs_pct * 12,
+-        "Labor": (monthly_labor + monthly_payroll_tax) * 12,
+-        "Occupancy": monthly_occupancy * 12,
+-        "Royalty": monthly_revenue * actual_royalty_pct * 12,
+-        "Marketing": monthly_revenue * actual_marketing_pct * 12,
+-        "Other": (
+-            monthly_other
+-            + (monthly_revenue * merchant_pct)
+-            + (monthly_revenue * leakage_pct)
+-        )
+-        * 12,
+-    }
+-    your_year1["EBITDA"] = (
+-        your_year1["Revenue"]
+-        - your_year1["COGS"]
+-        - your_year1["Labor"]
+-        - your_year1["Occupancy"]
+-        - your_year1["Royalty"]
+-        - your_year1["Marketing"]
+-        - your_year1["Other"]
+-    )
+ 
+-    fdd_revenue = st.session_state.get("fdd_revenue", 0.0)
+-    fdd_cogs_pct = st.session_state.get("fdd_cogs_pct", 0.0) / 100
+-    fdd_labor_pct = st.session_state.get("fdd_labor_pct", 0.0) / 100
+-    fdd_occupancy_pct = st.session_state.get("fdd_occupancy_pct", 0.0) / 100
+-    fdd_royalty_pct = st.session_state.get("fdd_royalty_pct", 0.0) / 100
+-    fdd_marketing_pct = st.session_state.get("fdd_marketing_pct", 0.0) / 100
+-    fdd_other_pct = st.session_state.get("fdd_other_pct", 0.0) / 100
+-
+-    fdd_year1 = {
+-        "Revenue": fdd_revenue,
+-        "COGS": fdd_revenue * fdd_cogs_pct,
+-        "Labor": fdd_revenue * fdd_labor_pct,
+-        "Occupancy": fdd_revenue * fdd_occupancy_pct,
+-        "Royalty": fdd_revenue * fdd_royalty_pct,
+-        "Marketing": fdd_revenue * fdd_marketing_pct,
+-        "Other": fdd_revenue * fdd_other_pct,
+-    }
+-    fdd_year1["EBITDA"] = (
+-        fdd_year1["Revenue"]
+-        - fdd_year1["COGS"]
+-        - fdd_year1["Labor"]
+-        - fdd_year1["Occupancy"]
+-        - fdd_year1["Royalty"]
+-        - fdd_year1["Marketing"]
+-        - fdd_year1["Other"]
+-    )
+-
+-    return {
+-        "name": st.session_state.get("full_name", ""),
+-        "franchise": st.session_state.get("franchise_name", ""),
+-        "date": datetime.now().strftime("%Y-%m-%d"),
+-        "scores": {
+-            "Franchise Fit": st.session_state.get("readiness_score"),
+-            "Concept Validation": st.session_state.get("concept_score") or st.session_state.get("concept_validation_score"),
+-            "Financial Model": st.session_state.get("financial_score"),
+-        },
+-        "fdd_year1": fdd_year1,
+-        "your_year1": your_year1,
+-    }
+-
+-
+-def _create_pdf(data):
+-    buffer = io.BytesIO()
+-    c = canvas.Canvas(buffer, pagesize=LETTER)
+-
+-    width, height = LETTER
+-    y = height - 50
+-
+-    c.setFillColor(HexColor("#DDDDDD"))
+-    c.setFont("Helvetica-Bold", 40)
+-    c.saveState()
+-    c.translate(width / 2, height / 2)
+-    c.rotate(30)
+-    c.drawCentredString(0, 0, "FREE REPORT")
+-    c.restoreState()
+-
+-    logo_path = _get_logo_path()
+-    if os.path.exists(logo_path):
+-        try:
+-            c.drawImage(
+-                logo_path,
+-                50,
+-                y - 5,
+-                width=140,
+-                height=40,
+-                preserveAspectRatio=True,
+-                mask="auto",
+-            )
+-        except Exception:
+-            pass
++from pdf_report_engine import build_free_snapshot_pdf
++from report_templates import (
++    build_executive_summary_text,
++    build_risk_lines,
++    collect_report_data,
++    money,
++    safe_text,
++)
++from ui_styles import close_shell, open_shell, render_card, render_page_header, render_section_intro
+ 
+-    c.setFillColor(HexColor("#2E6BE6"))
+-    c.setFont("Helvetica-Bold", 18)
+-    c.drawRightString(width - 50, y, "Free Report")
+-
+-    y -= 30
+-    c.setFillColor(HexColor("#444444"))
+-    c.setFont("Helvetica", 10)
+-    c.drawString(50, y, f"Prepared for: {data['name'] or '—'}")
+-    y -= 15
+-    c.drawString(50, y, f"Concept: {data['franchise'] or '—'}")
+-    y -= 15
+-    c.drawString(50, y, f"Date: {data['date']}")
+-    y -= 25
+-
+-    c.setFillColor(HexColor("#000000"))
+-    c.setFont("Helvetica-Bold", 12)
+-    c.drawString(50, y, "Score Summary")
+-    y -= 20
+-
+-    for k, v in data["scores"].items():
+-        c.setFont("Helvetica", 10)
+-        c.drawString(50, y, f"{k}: {_safe_score(v)}")
+-        y -= 15
+-
+-    y -= 15
+-    c.setFont("Helvetica-Bold", 12)
+-    c.drawString(50, y, "Basic P&L vs FDD")
+-    y -= 18
+-
+-    c.setFont("Helvetica-Bold", 9)
+-    c.drawString(50, y, "Line Item")
+-    c.drawString(180, y, "FDD P&L")
+-    c.drawString(300, y, "Your Assumptions")
+-    c.drawString(460, y, "Difference")
+-    y -= 14
+-
+-    c.setFont("Helvetica", 9)
+-    for line in [
+-        "Revenue",
+-        "COGS",
+-        "Labor",
+-        "Occupancy",
+-        "Royalty",
+-        "Marketing",
+-        "Other",
+-        "EBITDA",
+-    ]:
+-        fdd_val = data["fdd_year1"].get(line, 0.0)
+-        your_val = data["your_year1"].get(line, 0.0)
+-        diff = your_val - fdd_val
+-
+-        c.drawString(50, y, line)
+-        c.drawRightString(270, y, _money(fdd_val))
+-        c.drawRightString(430, y, _money(your_val))
+-        c.drawRightString(560, y, _money(diff))
+-        y -= 14
+-
+-    c.save()
+-    pdf = buffer.getvalue()
+-    buffer.close()
+-    return pdf
+ 
+-
+-def _inject_styles():
++def _inject_styles() -> None:
+     st.markdown(
+         """
+         <style>
+         .fr-card {
+-            border: 1px solid #e5e7eb;
+-            border-radius: 20px;
++            border: 1px solid #E2E8F0;
++            border-radius: 18px;
+             padding: 1rem;
+-            background: #ffffff;
+-            box-shadow: 0 8px 24px rgba(17, 24, 39, 0.06);
++            background: #FFFFFF;
++            box-shadow: 0 14px 34px rgba(15, 23, 42, 0.05);
++            min-height: 132px;
+         }
+         .fr-label {
+-            font-size: 0.72rem;
+-            font-weight: 700;
+-            letter-spacing: 0.08em;
+             text-transform: uppercase;
+-            color: #6b7280;
+-            margin-bottom: 0.35rem;
++            letter-spacing: .08em;
++            font-size: .72rem;
++            color: #64748B;
++            font-weight: 700;
++            margin-bottom: .35rem;
+         }
+         .fr-score {
+-            font-size: 1.5rem;
+-            font-weight: 800;
++            font-size: 1.7rem;
+             line-height: 1.1;
+-            color: #111827;
+-            margin-bottom: 0.2rem;
++            font-weight: 800;
++            color: #0B1730;
+         }
+         .fr-note {
+-            font-size: 0.92rem;
++            margin-top: .45rem;
++            color: #5B6577;
++            font-size: .9rem;
++            line-height: 1.45;
++        }
++        .fr-summary {
++            border: 1px solid #E2E8F0;
++            border-radius: 18px;
++            padding: 1rem 1.1rem;
++            background: #F8FAFC;
++            color: #334155;
+             line-height: 1.55;
+-            color: #4b5563;
+-        }
+-        .fr-good {
+-            border-color: rgba(22, 163, 74, 0.22);
+-            background: linear-gradient(180deg, rgba(22, 163, 74, 0.06), #ffffff);
+-        }
+-        .fr-caution {
+-            border-color: rgba(217, 119, 6, 0.22);
+-            background: linear-gradient(180deg, rgba(217, 119, 6, 0.06), #ffffff);
+-        }
+-        .fr-bad {
+-            border-color: rgba(220, 38, 38, 0.22);
+-            background: linear-gradient(180deg, rgba(220, 38, 38, 0.06), #ffffff);
+         }
+         </style>
+         """,
+@@ -302,51 +61,71 @@
+     )
+ 
+ 
+-def render_free_report():
++def _format_score(item: dict | object) -> str:
++    if isinstance(item, dict):
++        return safe_text(item.get("display"))
++    return safe_text(item)
++
++
++def render_free_report() -> None:
+     _inject_styles()
+-    data = _get_data()
++    report_data = collect_report_data(report_type="free_snapshot")
++    pdf = build_free_snapshot_pdf(report_data)
++    st.session_state["free_report_generated"] = True
+ 
+     open_shell()
+ 
+     render_page_header(
+-        eyebrow="Output — Free Report",
+-        title="Review an early summary of your assessment so far.",
+-        subtitle=(
+-            "This report gives you a preliminary view of current scoring and a basic "
+-            "comparison between your model assumptions and the FDD-style unit economics."
+-        ),
++        eyebrow="Free Pressure Snapshot",
++        title="Your early diligence signal",
++        subtitle="A concise PDF snapshot of current fit, concept, financial signals, primary pressure points, and next-step diligence actions.",
+         wide=True,
+     )
+ 
+-    st.markdown('<div class="rc-gap-lg"></div>', unsafe_allow_html=True)
++    col1, col2, col3 = st.columns(3, gap="large")
++    with col1:
++        render_card(
++            label="Current posture",
++            title=report_data["recommendation"],
++            body="A directional read from the work completed so far.",
++            navy=True,
++        )
++    with col2:
++        render_card(
++            label="Top pressure point",
++            title=report_data["top_risk"],
++            body="The first issue to validate before relying on the current assumptions.",
++            soft=True,
++        )
++    with col3:
++        render_card(
++            label="Opportunity",
++            title=safe_text(report_data.get("franchise_name"), "Not recorded"),
++            body="The concept currently being reviewed.",
++        )
+ 
+-    logo_path = _get_logo_path()
+-    if os.path.exists(logo_path):
+-        st.image(logo_path, width=180)
+-        st.markdown('<div class="rc-gap-md"></div>', unsafe_allow_html=True)
++    st.markdown('<div class="rc-gap-lg"></div>', unsafe_allow_html=True)
+ 
+     render_section_intro(
+-        title="Score summary",
+-        body="These scores reflect your current inputs and should be treated as directional, not final.",
++        title="Score snapshot",
++        body="These are directional signals for organizing diligence, not predictions or recommendations to buy, invest, or proceed.",
+     )
+ 
+-    st.markdown('<div class="rc-gap-md"></div>', unsafe_allow_html=True)
+-
+-    cols = st.columns(3, gap="medium")
+-    for col, (label, score) in zip(cols, data["scores"].items()):
+-        band = _score_band(score)
+-        band_class = {
+-            "good": "fr-good",
+-            "caution": "fr-caution",
+-            "bad": "fr-bad",
+-        }.get(band, "")
++    visible_scores = [
++        ("Franchise Fit", report_data["scores"].get("Franchise Fit")),
++        ("Brand & Territory", report_data["scores"].get("Brand & Territory")),
++        ("Concept Validation", report_data["scores"].get("Concept Validation")),
++        ("Financial Model", report_data["scores"].get("Financial Model")),
++    ]
+ 
++    cols = st.columns(4, gap="large")
++    for col, (label, item) in zip(cols, visible_scores):
+         with col:
+             st.markdown(
+                 f"""
+-                <div class="fr-card {band_class}">
++                <div class="fr-card">
+                     <div class="fr-label">{label}</div>
+-                    <div class="fr-score">{_safe_score(score)}</div>
++                    <div class="fr-score">{_format_score(item)}</div>
+                     <div class="fr-note">Current directional signal based on available inputs.</div>
+                 </div>
+                 """,
+@@ -355,67 +134,52 @@
+ 
+     st.markdown('<div class="rc-gap-lg"></div>', unsafe_allow_html=True)
+ 
+-    render_section_intro(
+-        title="What this means",
+-        body=(
+-            "This report reflects your current alignment across personal readiness, "
+-            "concept quality, and whether the economics may work under your present assumptions."
+-        ),
+-    )
+-
+-    st.markdown('<div class="rc-gap-md"></div>', unsafe_allow_html=True)
++    left, right = st.columns([1.05, 1], gap="large")
++    with left:
++        render_section_intro(
++            title="Plain-English summary",
++            body="This is the same core message included in the downloadable snapshot.",
++        )
++        st.markdown(
++            f"<div class='fr-summary'>{build_executive_summary_text(report_data)}</div>",
++            unsafe_allow_html=True,
++        )
+ 
+-    st.info("This is not a final decision. It is an early signal based on the work completed so far.")
++    with right:
++        render_section_intro(
++            title="Download your snapshot",
++            body="Use the PDF as an early diligence memo and checklist starter.",
++        )
++        st.download_button(
++            "Download Free Pressure Snapshot PDF",
++            pdf,
++            file_name="pressuretest_free_pressure_snapshot.pdf",
++            mime="application/pdf",
++            use_container_width=True,
++            type="primary",
++        )
++        st.caption("The free snapshot is intentionally concise. Deeper scenario planning and execution workflows belong in Pro.")
+ 
+     st.markdown('<div class="rc-gap-lg"></div>', unsafe_allow_html=True)
+ 
+     render_section_intro(
+-        title="Basic P&L vs. FDD",
+-        body="This is a simple comparison between the FDD-style unit economics and the assumptions in your current model.",
++        title="Main pressure points to resolve",
++        body="Treat these as diligence prompts to validate, not final conclusions.",
+     )
+-
+-    st.markdown('<div class="rc-gap-md"></div>', unsafe_allow_html=True)
+-
+-    rows = []
+-    for line in [
+-        "Revenue",
+-        "COGS",
+-        "Labor",
+-        "Occupancy",
+-        "Royalty",
+-        "Marketing",
+-        "Other",
+-        "EBITDA",
+-    ]:
+-        fdd_val = data["fdd_year1"].get(line, 0.0)
+-        your_val = data["your_year1"].get(line, 0.0)
+-        rows.append(
+-            {
+-                "Line Item": line,
+-                "FDD P&L": _money(fdd_val),
+-                "Your Assumptions": _money(your_val),
+-                "Difference": _money(your_val - fdd_val),
+-            }
+-        )
+-
+-    st.table(rows)
++    for item in build_risk_lines(report_data)[:5]:
++        st.markdown(f"- {item}")
+ 
+     st.markdown('<div class="rc-gap-lg"></div>', unsafe_allow_html=True)
+ 
+-    pdf = _create_pdf(data)
+-
+-    st.download_button(
+-        "Download Free Report (PDF)",
+-        pdf,
+-        file_name="free_report.pdf",
+-        mime="application/pdf",
+-        use_container_width=True,
+-        type="primary",
+-    )
+-
+-    st.markdown('<div class="rc-gap-md"></div>', unsafe_allow_html=True)
++    snapshot = report_data.get("financial_snapshot", {})
++    with st.expander("Financial snapshot included in the executive report", expanded=False):
++        rows = [
++            {"Metric": key, "Current value": value if value != "-" else money(0) if key in {"Selected loan amount", "Monthly rent + NNN"} else "-"}
++            for key, value in snapshot.items()
++        ]
++        st.table(rows)
+ 
+-    if st.button("Continue", use_container_width=True, type="primary"):
++    if st.button("Continue to Plans & Support", use_container_width=True, type="primary"):
+         st.session_state["current_page"] = "Plans & Support"
+         st.rerun()
+ 
+diff -ruN '--exclude=__pycache__' '--exclude=.venv' '--exclude=logo.png' /mnt/data/pt_task2_baseline/pressuretest_phase1_6_blunt_pressuretest_review/pdf_report_engine.py /mnt/data/pt_task2/pressuretest_phase1_6_blunt_pressuretest_review/pdf_report_engine.py
+--- /mnt/data/pt_task2_baseline/pressuretest_phase1_6_blunt_pressuretest_review/pdf_report_engine.py	1970-01-01 00:00:00.000000000 +0000
++++ /mnt/data/pt_task2/pressuretest_phase1_6_blunt_pressuretest_review/pdf_report_engine.py	2026-05-10 00:01:43.512357869 +0000
+@@ -0,0 +1,335 @@
++# pdf_report_engine.py
++
++from __future__ import annotations
++
++import io
++import os
++from typing import Any
++
++from reportlab.lib.colors import HexColor, black
++from reportlab.lib.pagesizes import LETTER
++from reportlab.lib.utils import ImageReader
++from reportlab.pdfbase.pdfmetrics import stringWidth
++from reportlab.pdfgen import canvas
++
++from report_templates import (
++    build_condition_lines,
++    build_decision_headline,
++    build_executive_summary_text,
++    build_profile_lines,
++    build_risk_lines,
++    build_strength_lines,
++    money,
++    safe_text,
++)
++
++NAVY = HexColor("#0B1730")
++BLUE = HexColor("#2563EB")
++ORANGE = HexColor("#F97316")
++GREEN = HexColor("#16A34A")
++RED = HexColor("#DC2626")
++AMBER = HexColor("#D97706")
++SLATE = HexColor("#5B6577")
++LIGHT_SLATE = HexColor("#94A3B8")
++BORDER = HexColor("#E2E8F0")
++SOFT = HexColor("#F8FAFC")
++WHITE = HexColor("#FFFFFF")
++
++
++def _get_logo_path() -> str:
++    base = os.path.dirname(os.path.abspath(__file__))
++    for name in ("logo.png", "logo.jpeg", "logo.jpg"):
++        path = os.path.join(base, name)
++        if os.path.exists(path):
++            return path
++    return os.path.join(base, "logo.png")
++
++
++def _score_band(score: float | None) -> str:
++    if score is None:
++        return "neutral"
++    if score >= 78:
++        return "strong"
++    if score >= 58:
++        return "mixed"
++    return "weak"
++
++
++def _band_color(score: float | None) -> HexColor:
++    band = _score_band(score)
++    if band == "strong":
++        return GREEN
++    if band == "mixed":
++        return AMBER
++    if band == "weak":
++        return RED
++    return LIGHT_SLATE
++
++
++def _wrap_lines(text: str, max_width: float, font_name: str, font_size: int) -> list[str]:
++    text = safe_text(text, "")
++    words = text.split()
++    if not words:
++        return [""]
++    lines: list[str] = []
++    current = words[0]
++    for word in words[1:]:
++        candidate = f"{current} {word}"
++        if stringWidth(candidate, font_name, font_size) <= max_width:
++            current = candidate
++        else:
++            lines.append(current)
++            current = word
++    lines.append(current)
++    return lines
++
++
++class ExecutivePdf:
++    def __init__(self, title: str, subtitle: str = "") -> None:
++        self.buffer = io.BytesIO()
++        self.c = canvas.Canvas(self.buffer, pagesize=LETTER)
++        self.width, self.height = LETTER
++        self.left = 50
++        self.right = 50
++        self.usable_width = self.width - self.left - self.right
++        self.y = self.height - 52
++        self.page_no = 1
++        self.title = title
++        self.subtitle = subtitle
++
++    def finish(self) -> bytes:
++        self._footer()
++        self.c.save()
++        pdf = self.buffer.getvalue()
++        self.buffer.close()
++        return pdf
++
++    def _footer(self) -> None:
++        self.c.setStrokeColor(BORDER)
++        self.c.line(self.left, 34, self.width - self.right, 34)
++        self.c.setFont("Helvetica", 8)
++        self.c.setFillColor(SLATE)
++        self.c.drawString(self.left, 22, "PressureTest - educational diligence report")
++        self.c.drawRightString(self.width - self.right, 22, f"Page {self.page_no}")
++
++    def new_page(self) -> None:
++        self._footer()
++        self.c.showPage()
++        self.page_no += 1
++        self.y = self.height - 56
++
++    def ensure(self, needed: float) -> None:
++        if self.y - needed < 58:
++            self.new_page()
++
++    def cover_header(self, report_data: dict[str, Any]) -> None:
++        logo_path = _get_logo_path()
++        if os.path.exists(logo_path):
++            try:
++                logo = ImageReader(logo_path)
++                self.c.drawImage(
++                    logo,
++                    self.left,
++                    self.y - 14,
++                    width=228,
++                    height=58,
++                    preserveAspectRatio=True,
++                    mask="auto",
++                )
++            except Exception:
++                pass
++
++        self.c.setFont("Helvetica-Bold", 21)
++        self.c.setFillColor(NAVY)
++        self.c.drawRightString(self.width - self.right, self.y + 4, self.title)
++        self.y -= 24
++        self.c.setFont("Helvetica", 9)
++        self.c.setFillColor(SLATE)
++        self.c.drawRightString(self.width - self.right, self.y, f"Prepared on {report_data.get('report_date', '-')}")
++        if self.subtitle:
++            self.y -= 13
++            self.c.drawRightString(self.width - self.right, self.y, self.subtitle)
++        self.y -= 22
++        self.c.setStrokeColor(ORANGE)
++        self.c.setLineWidth(2)
++        self.c.line(self.left, self.y, self.width - self.right, self.y)
++        self.y -= 24
++
++    def title_card(self, report_data: dict[str, Any]) -> None:
++        self.c.setFillColor(SOFT)
++        self.c.setStrokeColor(BORDER)
++        self.c.roundRect(self.left, self.y - 92, self.usable_width, 88, 12, fill=1, stroke=1)
++
++        self.c.setFillColor(NAVY)
++        self.c.setFont("Helvetica-Bold", 15)
++        self.c.drawString(self.left + 14, self.y - 22, safe_text(report_data.get("franchise_name"), "Opportunity"))
++        self.c.setFont("Helvetica", 9)
++        self.c.setFillColor(SLATE)
++        self.c.drawString(self.left + 14, self.y - 41, build_decision_headline(report_data)[:105])
++        self.c.drawString(self.left + 14, self.y - 61, f"Client: {safe_text(report_data.get('full_name'))}")
++        self.c.drawString(self.left + 14, self.y - 77, f"Location: {safe_text(report_data.get('city_state'))}")
++        self.c.drawRightString(self.width - self.right - 14, self.y - 77, f"Ownership: {safe_text(report_data.get('ownership_style'))}")
++        self.y -= 116
++
++    def section(self, title: str) -> None:
++        self.ensure(38)
++        self.c.setStrokeColor(BORDER)
++        self.c.line(self.left, self.y + 5, self.width - self.right, self.y + 5)
++        self.c.setFont("Helvetica-Bold", 12)
++        self.c.setFillColor(NAVY)
++        self.c.drawString(self.left, self.y - 10, title)
++        self.y -= 30
++
++    def paragraph(self, text: str, font_size: int = 10, leading: int = 14) -> None:
++        self.c.setFont("Helvetica", font_size)
++        self.c.setFillColor(black)
++        for line in _wrap_lines(text, self.usable_width, "Helvetica", font_size):
++            self.ensure(leading + 4)
++            self.c.drawString(self.left, self.y, line)
++            self.y -= leading
++        self.y -= 6
++
++    def bullets(self, items: list[str], width: float | None = None, font_size: int = 10) -> None:
++        line_width = width or self.usable_width
++        for item in items:
++            for idx, line in enumerate(_wrap_lines(f"- {item}", line_width, "Helvetica", font_size)):
++                self.ensure(18)
++                self.c.setFont("Helvetica", font_size)
++                self.c.setFillColor(black)
++                self.c.drawString(self.left + (0 if idx == 0 else 10), self.y, line)
++                self.y -= 14
++        self.y -= 6
++
++    def metric_box(self, x: float, y: float, w: float, h: float, label: str, value: str, score: float | None = None) -> None:
++        accent = _band_color(score)
++        self.c.setFillColor(WHITE)
++        self.c.setStrokeColor(BORDER)
++        self.c.roundRect(x, y - h, w, h, 10, fill=1, stroke=1)
++        self.c.setFillColor(accent)
++        self.c.roundRect(x + 10, y - 16, 42, 6, 3, fill=1, stroke=0)
++        self.c.setFillColor(SLATE)
++        self.c.setFont("Helvetica", 7.5)
++        self.c.drawString(x + 10, y - 30, label.upper()[:28])
++        self.c.setFillColor(NAVY)
++        self.c.setFont("Helvetica-Bold", 13)
++        value_lines = _wrap_lines(value, w - 20, "Helvetica-Bold", 13)
++        self.c.drawString(x + 10, y - 49, value_lines[0][:34])
++
++    def metric_grid(self, items: list[tuple[str, str, float | None]], columns: int = 3) -> None:
++        if not items:
++            return
++        gap = 12
++        box_w = (self.usable_width - gap * (columns - 1)) / columns
++        box_h = 60
++        for i, (label, value, score) in enumerate(items):
++            if i % columns == 0:
++                self.ensure(box_h + 18)
++                row_y = self.y
++            x = self.left + (i % columns) * (box_w + gap)
++            self.metric_box(x, row_y, box_w, box_h, label, value, score)
++            if i % columns == columns - 1 or i == len(items) - 1:
++                self.y -= box_h + 16
++
++    def key_value_table(self, rows: dict[str, str]) -> None:
++        for label, value in rows.items():
++            self.ensure(20)
++            self.c.setFillColor(SLATE)
++            self.c.setFont("Helvetica", 9)
++            self.c.drawString(self.left, self.y, label)
++            self.c.setFillColor(NAVY)
++            self.c.setFont("Helvetica-Bold", 9)
++            self.c.drawRightString(self.width - self.right, self.y, safe_text(value))
++            self.y -= 17
++        self.y -= 6
++
++    def disclaimer_box(self) -> None:
++        text = (
++            "Boundary: PressureTest is an educational diligence and planning tool. It does not provide legal, financial, "
++            "tax, accounting, or investment advice, does not recommend investments, and does not guarantee outcomes. "
++            "Users should independently validate assumptions and consult qualified professionals before making commitments."
++        )
++        self.ensure(78)
++        self.c.setFillColor(SOFT)
++        self.c.setStrokeColor(BORDER)
++        self.c.roundRect(self.left, self.y - 72, self.usable_width, 68, 10, fill=1, stroke=1)
++        self.c.setFillColor(SLATE)
++        self.c.setFont("Helvetica", 8.5)
++        y = self.y - 20
++        for line in _wrap_lines(text, self.usable_width - 24, "Helvetica", 8.5):
++            self.c.drawString(self.left + 12, y, line)
++            y -= 12
++        self.y -= 86
++
++
++def build_executive_report_pdf(report_data: dict[str, Any]) -> bytes:
++    pdf = ExecutivePdf("Executive Diligence Report", "Decision summary and next-step operating risks")
++    pdf.cover_header(report_data)
++    pdf.title_card(report_data)
++
++    pdf.section("Executive Summary")
++    pdf.paragraph(build_executive_summary_text(report_data))
++
++    pdf.section("Decision Snapshot")
++    pdf.metric_grid(
++        [
++            ("Recommendation", safe_text(report_data.get("recommendation")), report_data.get("overall_score_value")),
++            ("Final Call", safe_text(report_data.get("final_choice")), report_data.get("overall_score_value")),
++            ("Overall Score", safe_text(report_data.get("overall_score_display")), report_data.get("overall_score_value")),
++        ]
++    )
++
++    pdf.section("Section Scores")
++    score_items = []
++    for label, item in report_data.get("scores", {}).items():
++        score_items.append((label, safe_text(item.get("display") if isinstance(item, dict) else item), item.get("value") if isinstance(item, dict) else None))
++    pdf.metric_grid(score_items)
++
++    pdf.section("Main Pressure Points")
++    pdf.bullets(build_risk_lines(report_data))
++
++    pdf.section("What Looks Stronger")
++    pdf.bullets(build_strength_lines(report_data))
++
++    pdf.section("Required Conditions Before Proceeding")
++    pdf.bullets(build_condition_lines(report_data))
++
++    pdf.section("Financial Snapshot")
++    pdf.key_value_table(report_data.get("financial_snapshot", {}))
++
++    pdf.section("Next-Step Checklist")
++    pdf.bullets(report_data.get("next_steps", []))
++
++    if report_data.get("final_rationale"):
++        pdf.section("Recorded Decision Rationale")
++        pdf.paragraph(report_data["final_rationale"])
++
++    pdf.section("Profile Snapshot")
++    pdf.bullets(build_profile_lines(report_data))
++
++    pdf.disclaimer_box()
++    return pdf.finish()
++
++
++def build_free_snapshot_pdf(report_data: dict[str, Any]) -> bytes:
++    pdf = ExecutivePdf("Free Pressure Snapshot", "Early signal for franchise and small-business diligence")
++    pdf.cover_header(report_data)
++    pdf.title_card(report_data)
++
++    pdf.section("Early Executive Summary")
++    pdf.paragraph(build_executive_summary_text(report_data))
++
++    pdf.section("Current Signals")
++    score_items = []
++    for label, item in report_data.get("scores", {}).items():
++        if label in {"Franchise Fit", "Concept Validation", "Financial Model", "Brand & Territory"}:
++            score_items.append((label, safe_text(item.get("display") if isinstance(item, dict) else item), item.get("value") if isinstance(item, dict) else None))
++    pdf.metric_grid(score_items)
++
++    pdf.section("Primary Pressure Points")
++    pdf.bullets(build_risk_lines(report_data)[:5])
++
++    pdf.section("Recommended Next Moves")
++    pdf.bullets(report_data.get("next_steps", [])[:5])
++
++    pdf.disclaimer_box()
++    return pdf.finish()
+diff -ruN '--exclude=__pycache__' '--exclude=.venv' '--exclude=logo.png' /mnt/data/pt_task2_baseline/pressuretest_phase1_6_blunt_pressuretest_review/report_templates.py /mnt/data/pt_task2/pressuretest_phase1_6_blunt_pressuretest_review/report_templates.py
+--- /mnt/data/pt_task2_baseline/pressuretest_phase1_6_blunt_pressuretest_review/report_templates.py	2026-05-08 18:50:40.000000000 +0000
++++ /mnt/data/pt_task2/pressuretest_phase1_6_blunt_pressuretest_review/report_templates.py	2026-05-10 00:02:13.043716898 +0000
+@@ -1,73 +1,278 @@
+-# /Users/howardsparks/Desktop/pressuretest/report_templates.py
++# report_templates.py
+ 
+ from __future__ import annotations
+ 
+-from decision_engine import build_decision_packet
++from datetime import datetime
++from typing import Any
++
++
++
++def safe_text(value: Any, fallback: str = "-") -> str:
++    if value is None:
++        return fallback
++    text = str(value).strip()
++    return text if text else fallback
++
++
++def safe_score(value: Any) -> str:
++    if value is None:
++        return "-"
++    try:
++        return f"{float(value):.1f}"
++    except Exception:
++        return safe_text(value)
++
++
++def score_value(value: Any) -> float | None:
++    if value is None:
++        return None
++    try:
++        return float(value)
++    except Exception:
++        return None
++
++
++def money(value: Any) -> str:
++    try:
++        return f"${float(value):,.0f}"
++    except Exception:
++        return "-"
++
++
++def pct(value: Any) -> str:
++    try:
++        return f"{float(value):,.1f}%"
++    except Exception:
++        return "-"
++
++
++def parse_conditions(raw: str | None) -> list[str]:
++    if not raw:
++        return []
++    return [line.strip("-• ").strip() for line in str(raw).splitlines() if line.strip()]
++
++
++def derive_final_choice() -> str:
++    import streamlit as st
++
++    explicit = st.session_state.get("final_decision_choice")
++    if explicit:
++        return safe_text(explicit)
++    if st.session_state.get("move_forward", False):
++        return "Proceed"
++    if st.session_state.get("walk_away", False):
++        return "Do Not Proceed"
++    return "Not recorded"
+ 
+ 
+ def build_decision_headline(report_data: dict) -> str:
+     choice = report_data.get("final_choice", "Not recorded")
+     recommendation = report_data.get("recommendation", "No recommendation yet")
+-    score = report_data.get("overall_score_display", "—")
+-    return f"{recommendation} · Final call: {choice} · Overall score: {score}"
++    score = report_data.get("overall_score_display", "-")
++    return f"{recommendation} | Final call: {choice} | Overall score: {score}"
+ 
+ 
+ def build_executive_summary_text(report_data: dict) -> str:
+-    recommendation = report_data.get("recommendation", "No recommendation yet")
+-    final_choice = report_data.get("final_choice", "Not recorded")
+-    top_risk = report_data.get("top_risk", "Not enough evidence yet")
+-    top_strength = report_data.get("top_strength", "No clear strength identified yet")
+-    concept = report_data.get("franchise_name") or "the opportunity"
++    recommendation = safe_text(report_data.get("recommendation"), "No recommendation yet")
++    final_choice = safe_text(report_data.get("final_choice"), "Not recorded")
++    top_risk = safe_text(report_data.get("top_risk"), "not enough evidence yet")
++    top_strength = safe_text(report_data.get("top_strength"), "no clear strength identified yet")
++    concept = safe_text(report_data.get("franchise_name"), "the opportunity")
+ 
+     return (
+-        f"PressureTest currently reads {concept} as {recommendation.lower()}. "
+-        f"The recorded final call is {final_choice.lower()}. "
+-        f"The main reason to keep leaning in is {top_strength.lower()}. "
+-        f"The main reason to stay cautious is {top_risk.lower()}. "
+-        f"This report should be used as a structured decision memo, not as a guarantee of outcome. "
+-        f"The goal is to make the next move clearer, identify the conditions that still matter, "
+-        f"and reduce the odds of committing on weak assumptions."
++        f"PressureTest currently reads {concept} as: {recommendation}. "
++        f"The recorded decision posture is: {final_choice}. "
++        f"The strongest current support is: {top_strength}. "
++        f"The most important unresolved pressure point is: {top_risk}. "
++        "This document is an educational diligence summary, not legal, financial, tax, accounting, or investment advice. "
++        "Use it to organize questions, validate assumptions independently, and prepare next-step discussions with qualified professionals."
+     )
+ 
+ 
+ def build_profile_lines(report_data: dict) -> list[str]:
+     return [
+-        f"Client: {report_data.get('full_name') or '—'}",
+-        f"Email: {report_data.get('email') or '—'}",
+-        f"Location: {report_data.get('city_state') or '—'}",
+-        f"Concept: {report_data.get('franchise_name') or '—'}",
+-        f"Units considered: {report_data.get('units_considered') or '—'}",
+-        f"Ownership style: {report_data.get('ownership_style') or '—'}",
++        f"Client: {safe_text(report_data.get('full_name'))}",
++        f"Email: {safe_text(report_data.get('email'))}",
++        f"Location: {safe_text(report_data.get('city_state'))}",
++        f"Concept: {safe_text(report_data.get('franchise_name'))}",
++        f"Units considered: {safe_text(report_data.get('units_considered'))}",
++        f"Ownership style: {safe_text(report_data.get('ownership_style'))}",
+     ]
+ 
+ 
+ def build_strength_lines(report_data: dict) -> list[str]:
+-    strengths = list(report_data.get("strengths", []))
++    strengths = [safe_text(x) for x in report_data.get("strengths", []) if safe_text(x) != "-"]
+     return strengths or ["No clear strengths have been captured yet."]
+ 
+ 
+ def build_risk_lines(report_data: dict) -> list[str]:
+-    risks = list(report_data.get("risks", []))
++    risks = [safe_text(x) for x in report_data.get("risks", []) if safe_text(x) != "-"]
+     return risks or ["No major risks have been captured yet."]
+ 
+ 
+ def build_condition_lines(report_data: dict) -> list[str]:
+-    conditions = list(report_data.get("conditions", []))
++    conditions = [safe_text(x) for x in report_data.get("conditions", []) if safe_text(x) != "-"]
+     return conditions or ["No explicit proceed conditions have been recorded yet."]
+ 
+ 
+ def build_score_lines(report_data: dict) -> list[str]:
+     lines: list[str] = []
+     for label, item in report_data.get("scores", {}).items():
+-        lines.append(f"{label}: {item.get('display', '—')}")
+-    lines.append(f"Overall: {report_data.get('overall_score_display', '—')}")
++        if isinstance(item, dict):
++            lines.append(f"{label}: {item.get('display', '-')}")
++        else:
++            lines.append(f"{label}: {safe_score(item)}")
++    lines.append(f"Overall: {report_data.get('overall_score_display', '-')}")
+     return lines
+ 
+ 
++def _add_unique(target: list[str], item: Any) -> None:
++    text = safe_text(item, "")
++    if text and text not in target:
++        target.append(text)
++
++
++def _derive_strengths(packet: dict, scores: dict[str, Any]) -> list[str]:
++    strengths: list[str] = []
++    for item in packet.get("strengths", []) or []:
++        _add_unique(strengths, item)
++
++    score_rules = [
++        ("Franchise Fit", "Personal fit and ownership readiness look directionally workable."),
++        ("Brand & Territory", "Brand and territory review has enough structure to support deeper diligence."),
++        ("Concept Validation", "The concept has enough evidence to remain under consideration."),
++        ("Financial Model", "The current economics appear more grounded than purely aspirational."),
++        ("Post-Discovery", "Discovery work has converted some unknowns into specific follow-up items."),
++        ("Pressure Test", "The opportunity appears less fragile under stress than an unsupported deal."),
++    ]
++    for label, sentence in score_rules:
++        value = score_value(scores.get(label))
++        if value is not None and value >= 58:
++            _add_unique(strengths, sentence)
++    return strengths[:8]
++
++
++def _derive_risks(packet: dict, scores: dict[str, Any]) -> list[str]:
++    risks: list[str] = []
++    for key in ("risk_flags", "key_risks", "risks", "conditions"):
++        for item in packet.get(key, []) or []:
++            _add_unique(risks, item)
++
++    score_rules = [
++        ("Franchise Fit", "Fit, time demand, downside tolerance, or operator readiness may not align with the opportunity."),
++        ("Brand & Territory", "Brand or territory assumptions may still be too thin to support a confident decision."),
++        ("Concept Validation", "The concept may be less durable or less differentiated than it first appears."),
++        ("Financial Model", "The economics may be too thin under current assumptions or may need a larger working-capital cushion."),
++        ("Post-Discovery", "Important diligence questions may remain unresolved after discovery."),
++        ("Pressure Test", "The opportunity may break down when revenue, margin, buildout, or ramp assumptions are stressed."),
++    ]
++    for label, sentence in score_rules:
++        value = score_value(scores.get(label))
++        if value is not None and value < 58:
++            _add_unique(risks, sentence)
++    return risks[:10]
++
++
++def _derive_next_steps(report_data: dict) -> list[str]:
++    steps = [
++        "Validate revenue, ramp, labor, occupancy, and working-capital assumptions with independent sources.",
++        "Ask the franchisor or seller for evidence behind the assumptions that most affect break-even timing.",
++        "Review lease, debt, buildout, and staffing obligations with qualified professionals before signing.",
++        "Convert unresolved risks into specific questions, owners, due dates, and decision conditions.",
++    ]
++    if report_data.get("top_risk"):
++        steps.insert(0, f"Resolve the top pressure point before proceeding: {report_data['top_risk']}")
++    return steps[:6]
++
++
++def _build_financial_snapshot() -> dict[str, str]:
++    revenue = st.session_state.get("fdd_revenue") or st.session_state.get("annual_revenue") or 0
++    selected_loan = st.session_state.get("selected_loan", 0)
++    selected_rent = st.session_state.get("selected_rent", 0)
++    selected_nnn = st.session_state.get("selected_nnn", 0)
++    su_gap = st.session_state.get("su_gap", 0)
++    lowest_cash = st.session_state.get("deal_model_lowest_cash")
++    break_even = st.session_state.get("deal_model_break_even_month")
++    payback = st.session_state.get("deal_model_payback")
++    dscr = st.session_state.get("deal_model_dscr")
++
++    return {
++        "Estimated revenue input": money(revenue),
++        "Selected loan amount": money(selected_loan),
++        "Monthly rent + NNN": money(float(selected_rent or 0) + float(selected_nnn or 0)),
++        "Sources / uses gap": money(su_gap),
++        "Lowest modeled cash": money(lowest_cash),
++        "Break-even month": safe_text(break_even),
++        "Estimated payback": safe_text(payback),
++        "Modeled DSCR": safe_text(dscr),
++    }
++
++
++def collect_report_data(report_type: str = "executive") -> dict[str, Any]:
++    import streamlit as st
++    from decision_engine import build_decision_packet
++
++    packet = build_decision_packet()
++
++    raw_scores = {
++        "Franchise Fit": st.session_state.get("readiness_score"),
++        "Brand & Territory": st.session_state.get("brand_territory_score"),
++        "Concept Validation": st.session_state.get("concept_score") or st.session_state.get("concept_validation_score"),
++        "Financial Model": st.session_state.get("financial_score"),
++        "Post-Discovery": st.session_state.get("post_discovery_score"),
++        "Pressure Test": st.session_state.get("pressure_test_score"),
++    }
++
++    overall_raw = packet.get("final_score", packet.get("weighted_score"))
++    recommendation = packet.get("master_verdict", packet.get("recommendation", "Decision Summary"))
++
++    base: dict[str, Any] = {
++        "report_type": report_type,
++        "report_date": datetime.now().strftime("%Y-%m-%d"),
++        "full_name": st.session_state.get("full_name", ""),
++        "email": st.session_state.get("email", ""),
++        "city_state": st.session_state.get("city_state", ""),
++        "franchise_name": st.session_state.get("franchise_name", ""),
++        "units_considered": st.session_state.get("units_considered", ""),
++        "ownership_style": st.session_state.get("ownership_style", ""),
++        "recommendation": safe_text(recommendation, "Decision Summary"),
++        "decision_action": safe_text(packet.get("decision_action"), "Not locked"),
++        "final_choice": derive_final_choice(),
++        "overall_score_display": safe_score(overall_raw),
++        "overall_score_value": score_value(overall_raw),
++        "scores": {
++            label: {"display": safe_score(value), "value": score_value(value)}
++            for label, value in raw_scores.items()
++        },
++        "premium_access": bool(st.session_state.get("premium_access", False)),
++        "final_rationale": st.session_state.get("final_decision_rationale", ""),
++        "financial_snapshot": _build_financial_snapshot(),
++    }
++
++    strengths = _derive_strengths(packet, raw_scores)
++    risks = _derive_risks(packet, raw_scores)
++
++    conditions: list[str] = []
++    for item in parse_conditions(st.session_state.get("final_decision_conditions")):
++        _add_unique(conditions, item)
++    for item in packet.get("conditions", []) or []:
++        _add_unique(conditions, item)
++
++    base["strengths"] = strengths[:8]
++    base["risks"] = risks[:10]
++    base["conditions"] = conditions[:8]
++    base["top_strength"] = strengths[0] if strengths else "No clear strength identified yet"
++    base["top_risk"] = risks[0] if risks else "Not enough evidence yet"
++    base["next_steps"] = _derive_next_steps(base)
++    return base
++
++
+ def build_stress_test_report_text(pressure_test_result: dict) -> str:
++    from decision_engine import build_decision_packet
++
+     packet = build_decision_packet()
+     lines = [
+-        "PressureTest — Deal Stress Test Report",
++        "PressureTest - Deal Stress Test Report",
+         "",
+         f"Master verdict: {packet.get('master_verdict', 'Not available')}",
+         f"Decision action: {packet.get('decision_action') or 'Not locked'}",
+@@ -79,12 +284,12 @@
+         [
+             "",
+             "Pressure test output:",
+-            f"- Stressed revenue: ${pressure_test_result['stressed_revenue']:,.0f}",
+-            f"- Stressed margin: {pressure_test_result['stressed_margin_pct'] * 100:.1f}%",
+-            f"- Stressed buildout: ${pressure_test_result['stressed_buildout']:,.0f}",
+-            f"- Annual cash after fixed costs: ${pressure_test_result['annual_cash_after_fixed']:,.0f}",
+-            f"- Ending cash: ${pressure_test_result['ending_cash']:,.0f}",
+-            f"- What breaks first: {pressure_test_result['breaks_first']}",
++            f"- Stressed revenue: {money(pressure_test_result.get('stressed_revenue'))}",
++            f"- Stressed margin: {pct(float(pressure_test_result.get('stressed_margin_pct', 0)) * 100)}",
++            f"- Stressed buildout: {money(pressure_test_result.get('stressed_buildout'))}",
++            f"- Annual cash after fixed costs: {money(pressure_test_result.get('annual_cash_after_fixed'))}",
++            f"- Ending cash: {money(pressure_test_result.get('ending_cash'))}",
++            f"- What breaks first: {safe_text(pressure_test_result.get('breaks_first'))}",
+         ]
+     )
+     return "\n".join(lines)
+diff -ruN '--exclude=__pycache__' '--exclude=.venv' '--exclude=logo.png' /mnt/data/pt_task2_baseline/pressuretest_phase1_6_blunt_pressuretest_review/report_ui.py /mnt/data/pt_task2/pressuretest_phase1_6_blunt_pressuretest_review/report_ui.py
+--- /mnt/data/pt_task2_baseline/pressuretest_phase1_6_blunt_pressuretest_review/report_ui.py	2026-05-08 18:50:40.000000000 +0000
++++ /mnt/data/pt_task2/pressuretest_phase1_6_blunt_pressuretest_review/report_ui.py	2026-05-10 00:01:43.520237159 +0000
+@@ -1,28 +1,18 @@
+-# /Users/howardsparks/Desktop/pressuretest/report_ui.py
++# report_ui.py
+ 
+ from __future__ import annotations
+ 
+-import io
+-import os
+-from datetime import datetime
+-
+ import streamlit as st
+-from reportlab.lib.colors import HexColor, black
+-from reportlab.lib.pagesizes import LETTER
+-from reportlab.lib.utils import ImageReader
+-from reportlab.pdfbase.pdfmetrics import stringWidth
+-from reportlab.pdfgen import canvas
+ 
+-from decision_engine import build_decision_packet
+ from branding import APP_PRODUCT
++from pdf_report_engine import build_executive_report_pdf
+ from report_templates import (
+     build_condition_lines,
+     build_decision_headline,
+     build_executive_summary_text,
+-    build_profile_lines,
+     build_risk_lines,
+-    build_score_lines,
+     build_strength_lines,
++    collect_report_data,
+ )
+ from ui_styles import (
+     close_shell,
+@@ -34,405 +24,6 @@
+     render_section_intro,
+ )
+ 
+-NAVY = HexColor("#0B1730")
+-ORANGE = HexColor("#F97316")
+-AMBER = HexColor("#FBBF24")
+-SLATE = HexColor("#5B6577")
+-BORDER = HexColor("#E2E8F0")
+-SOFT = HexColor("#F8FAFC")
+-WHITE = HexColor("#FFFFFF")
+-
+-
+-def _safe_score(value: object) -> str:
+-    if value is None:
+-        return "—"
+-    try:
+-        return f"{float(value):.1f}"
+-    except Exception:
+-        return str(value)
+-
+-
+-def _score_value(value: object) -> float | None:
+-    if value is None:
+-        return None
+-    try:
+-        return float(value)
+-    except Exception:
+-        return None
+-
+-
+-def _score_band(score: float | None) -> str:
+-    if score is None:
+-        return "neutral"
+-    if score >= 78:
+-        return "strong"
+-    if score >= 58:
+-        return "mixed"
+-    return "weak"
+-
+-
+-def _band_color(score: float | None) -> HexColor:
+-    band = _score_band(score)
+-    if band == "strong":
+-        return HexColor("#16A34A")
+-    if band == "mixed":
+-        return AMBER
+-    if band == "weak":
+-        return HexColor("#DC2626")
+-    return HexColor("#94A3B8")
+-
+-
+-def _get_logo_path() -> str:
+-    base = os.path.dirname(os.path.abspath(__file__))
+-    for name in ("logo.png", "logo.jpeg", "logo.jpg"):
+-        path = os.path.join(base, name)
+-        if os.path.exists(path):
+-            return path
+-    return os.path.join(base, "logo.png")
+-
+-
+-def _parse_conditions(raw: str | None) -> list[str]:
+-    if not raw:
+-        return []
+-    return [line.strip("-• ").strip() for line in raw.splitlines() if line.strip()]
+-
+-
+-def _derive_final_choice() -> str:
+-    explicit = st.session_state.get("final_decision_choice")
+-    if explicit:
+-        return str(explicit)
+-
+-    move_forward = st.session_state.get("move_forward", False)
+-    walk_away = st.session_state.get("walk_away", False)
+-
+-    if move_forward:
+-        return "Proceed"
+-    if walk_away:
+-        return "Do Not Proceed"
+-    return "Not recorded"
+-
+-
+-def _collect_report_data() -> dict:
+-    packet = build_decision_packet()
+-
+-    readiness = st.session_state.get("readiness_score")
+-    concept = st.session_state.get("concept_score") or st.session_state.get("concept_validation_score")
+-    financial = st.session_state.get("financial_score")
+-    post = st.session_state.get("post_discovery_score")
+-    pressure = st.session_state.get("pressure_test_score")
+-
+-    overall_raw = packet.get("final_score", packet.get("weighted_score"))
+-    recommendation = packet.get("master_verdict", packet.get("recommendation", "Decision Summary"))
+-    final_choice = _derive_final_choice()
+-
+-    strengths = list(packet.get("strengths", []))
+-    if not strengths:
+-        if readiness is not None and float(readiness) >= 58:
+-            strengths.append("Personal and operational fit looks more workable than fragile.")
+-        if concept is not None and float(concept) >= 58:
+-            strengths.append("The concept looks directionally viable under current assumptions.")
+-        if financial is not None and float(financial) >= 58:
+-            strengths.append("The economics appear more grounded than purely aspirational.")
+-        if post is not None and float(post) >= 58:
+-            strengths.append("Discovery work is reducing unknowns and improving decision quality.")
+-        if pressure is not None and float(pressure) >= 58:
+-            strengths.append("The deal appears less fragile under stress than a weak deal would.")
+-
+-    risks: list[str] = []
+-    for group in (packet.get("key_risks", []), packet.get("conditions", []), packet.get("risks", [])):
+-        for item in group:
+-            if item and item not in risks:
+-                risks.append(item)
+-
+-    if not risks:
+-        if readiness is not None and float(readiness) < 58:
+-            risks.append("Fit, time demand, or downside tolerance may not align with the deal.")
+-        if concept is not None and float(concept) < 58:
+-            risks.append("The concept may be weaker or less durable than it first appears.")
+-        if financial is not None and float(financial) < 58:
+-            risks.append("The economics may be too thin under current assumptions.")
+-        if post is not None and float(post) < 58:
+-            risks.append("Too many unknowns may still be unresolved after discovery.")
+-        if pressure is not None and float(pressure) < 58:
+-            risks.append("The deal may break down when assumptions are stressed.")
+-
+-    final_conditions = _parse_conditions(st.session_state.get("final_decision_conditions"))
+-    packet_conditions = [item for item in packet.get("conditions", []) if item]
+-    conditions: list[str] = []
+-    for item in final_conditions + packet_conditions:
+-        if item not in conditions:
+-            conditions.append(item)
+-
+-    top_strength = strengths[0] if strengths else "No clear strength identified yet"
+-    top_risk = risks[0] if risks else "Not enough evidence yet"
+-
+-    data = {
+-        "full_name": st.session_state.get("full_name", ""),
+-        "email": st.session_state.get("email", ""),
+-        "city_state": st.session_state.get("city_state", ""),
+-        "franchise_name": st.session_state.get("franchise_name", ""),
+-        "units_considered": st.session_state.get("units_considered", ""),
+-        "ownership_style": st.session_state.get("ownership_style", ""),
+-        "recommendation": recommendation,
+-        "decision_action": packet.get("decision_action", ""),
+-        "final_choice": final_choice,
+-        "overall_score_display": _safe_score(overall_raw),
+-        "overall_score_value": _score_value(overall_raw),
+-        "scores": {
+-            "Franchise Fit": {"display": _safe_score(readiness), "value": _score_value(readiness)},
+-            "Concept Validation": {"display": _safe_score(concept), "value": _score_value(concept)},
+-            "Financial Model": {"display": _safe_score(financial), "value": _score_value(financial)},
+-            "Post-Discovery": {"display": _safe_score(post), "value": _score_value(post)},
+-            "Pressure Test": {"display": _safe_score(pressure), "value": _score_value(pressure)},
+-        },
+-        "strengths": strengths[:6],
+-        "risks": risks[:8],
+-        "conditions": conditions[:8],
+-        "premium_access": bool(st.session_state.get("premium_access", False)),
+-        "report_date": datetime.now().strftime("%Y-%m-%d"),
+-        "final_rationale": st.session_state.get("final_decision_rationale", ""),
+-        "top_strength": top_strength,
+-        "top_risk": top_risk,
+-    }
+-    return data
+-
+-
+-def _draw_footer(c: canvas.Canvas, width: float, page_no: int) -> None:
+-    c.setStrokeColor(BORDER)
+-    c.line(50, 34, width - 50, 34)
+-    c.setFont("Helvetica", 8)
+-    c.setFillColor(SLATE)
+-    c.drawString(50, 22, "PressureTest: Franchise — Decision Report")
+-    c.drawRightString(width - 50, 22, f"Page {page_no}")
+-
+-
+-def _new_page(c: canvas.Canvas, width: float, height: float, page_no: int) -> tuple[int, float]:
+-    _draw_footer(c, width, page_no)
+-    c.showPage()
+-    page_no += 1
+-    return page_no, height - 56
+-
+-
+-def _wrap_lines(text: str, max_width: float, font_name: str, font_size: int) -> list[str]:
+-    words = text.split()
+-    if not words:
+-        return [""]
+-    lines: list[str] = []
+-    current = words[0]
+-    for word in words[1:]:
+-        candidate = f"{current} {word}"
+-        if stringWidth(candidate, font_name, font_size) <= max_width:
+-            current = candidate
+-        else:
+-            lines.append(current)
+-            current = word
+-    lines.append(current)
+-    return lines
+-
+-
+-def _draw_wrapped_text(
+-    c: canvas.Canvas,
+-    text: str,
+-    x: float,
+-    y: float,
+-    max_width: float,
+-    font_name: str = "Helvetica",
+-    font_size: int = 10,
+-    leading: int = 14,
+-) -> float:
+-    c.setFont(font_name, font_size)
+-    for line in _wrap_lines(text, max_width, font_name, font_size):
+-        c.drawString(x, y, line)
+-        y -= leading
+-    return y
+-
+-
+-def _ensure_space(
+-    c: canvas.Canvas,
+-    y: float,
+-    needed: float,
+-    width: float,
+-    height: float,
+-    page_no: int,
+-) -> tuple[float, int]:
+-    if y - needed < 52:
+-        page_no, y = _new_page(c, width, height, page_no)
+-    return y, page_no
+-
+-
+-def _draw_section_header(c: canvas.Canvas, title: str, x: float, y: float, width: float) -> float:
+-    c.setStrokeColor(BORDER)
+-    c.line(x, y + 4, x + width, y + 4)
+-    c.setFont("Helvetica-Bold", 12)
+-    c.setFillColor(NAVY)
+-    c.drawString(x, y - 10, title)
+-    return y - 28
+-
+-
+-def _draw_bullets(
+-    c: canvas.Canvas,
+-    items: list[str],
+-    x: float,
+-    y: float,
+-    width: float,
+-    page_width: float,
+-    page_height: float,
+-    page_no: int,
+-    font_size: int = 10,
+-) -> tuple[float, int]:
+-    for item in items:
+-        y, page_no = _ensure_space(c, y, 24, page_width, page_height, page_no)
+-        lines = _wrap_lines(f"• {item}", width, "Helvetica", font_size)
+-        c.setFont("Helvetica", font_size)
+-        c.setFillColor(black)
+-        for line in lines:
+-            c.drawString(x, y, line)
+-            y -= 14
+-    return y, page_no
+-
+-
+-def _draw_metric_box(
+-    c: canvas.Canvas,
+-    x: float,
+-    y: float,
+-    w: float,
+-    h: float,
+-    label: str,
+-    value: str,
+-    score: float | None,
+-) -> None:
+-    accent = _band_color(score)
+-    c.setFillColor(WHITE)
+-    c.setStrokeColor(BORDER)
+-    c.roundRect(x, y - h, w, h, 10, fill=1, stroke=1)
+-
+-    c.setFillColor(accent)
+-    c.roundRect(x + 10, y - 16, 44, 6, 3, fill=1, stroke=0)
+-
+-    c.setFillColor(SLATE)
+-    c.setFont("Helvetica", 8)
+-    c.drawString(x + 10, y - 30, label.upper())
+-
+-    c.setFillColor(NAVY)
+-    c.setFont("Helvetica-Bold", 15)
+-    c.drawString(x + 10, y - 50, value)
+-
+-
+-def _create_pdf(report_data: dict) -> bytes:
+-    buffer = io.BytesIO()
+-    c = canvas.Canvas(buffer, pagesize=LETTER)
+-    width, height = LETTER
+-    page_no = 1
+-
+-    left = 50
+-    right = 50
+-    usable_width = width - left - right
+-    y = height - 56
+-
+-    logo_path = _get_logo_path()
+-    if os.path.exists(logo_path):
+-        try:
+-            logo = ImageReader(logo_path)
+-            c.drawImage(
+-                logo,
+-                left,
+-                y - 12,
+-                width=240,
+-                height=64,
+-                preserveAspectRatio=True,
+-                mask="auto",
+-            )
+-        except Exception:
+-            pass
+-
+-    c.setFont("Helvetica-Bold", 22)
+-    c.setFillColor(NAVY)
+-    c.drawRightString(width - right, y + 2, "Decision Report")
+-
+-    y -= 28
+-    c.setFont("Helvetica", 10)
+-    c.setFillColor(SLATE)
+-    c.drawRightString(width - right, y, f"Prepared on {report_data['report_date']}")
+-
+-    y -= 26
+-    c.setStrokeColor(ORANGE)
+-    c.setLineWidth(2)
+-    c.line(left, y, width - right, y)
+-
+-    y -= 26
+-    c.setFillColor(SOFT)
+-    c.setStrokeColor(BORDER)
+-    c.roundRect(left, y - 78, usable_width, 74, 12, fill=1, stroke=1)
+-
+-    c.setFillColor(NAVY)
+-    c.setFont("Helvetica-Bold", 14)
+-    c.drawString(left + 14, y - 20, report_data["franchise_name"] or "Opportunity")
+-    c.setFont("Helvetica", 10)
+-    c.setFillColor(SLATE)
+-    c.drawString(left + 14, y - 38, build_decision_headline(report_data))
+-    c.drawString(left + 14, y - 56, f"Client: {report_data['full_name'] or '—'}")
+-    c.drawRightString(width - right - 14, y - 56, f"Ownership: {report_data['ownership_style'] or '—'}")
+-
+-    y -= 104
+-
+-    y = _draw_section_header(c, "Executive Summary", left, y, usable_width)
+-    c.setFillColor(black)
+-    y = _draw_wrapped_text(c, build_executive_summary_text(report_data), left, y, usable_width)
+-    y -= 10
+-
+-    y, page_no = _ensure_space(c, y, 108, width, height, page_no)
+-    y = _draw_section_header(c, "Decision Snapshot", left, y, usable_width)
+-
+-    box_w = (usable_width - 24) / 3
+-    _draw_metric_box(c, left, y, box_w, 62, "Recommendation", report_data["recommendation"], report_data["overall_score_value"])
+-    _draw_metric_box(c, left + box_w + 12, y, box_w, 62, "Final Call", report_data["final_choice"], report_data["overall_score_value"])
+-    _draw_metric_box(c, left + (box_w + 12) * 2, y, box_w, 62, "Overall Score", report_data["overall_score_display"], report_data["overall_score_value"])
+-    y -= 82
+-
+-    y, page_no = _ensure_space(c, y, 140, width, height, page_no)
+-    y = _draw_section_header(c, "Section Scores", left, y, usable_width)
+-
+-    score_items = list(report_data["scores"].items())
+-    top_y = y
+-    first_row = score_items[:3]
+-    second_row = score_items[3:5]
+-    score_w = (usable_width - 24) / 3
+-
+-    for idx, (label, item) in enumerate(first_row):
+-        _draw_metric_box(c, left + idx * (score_w + 12), top_y, score_w, 58, label, item["display"], item["value"])
+-
+-    y -= 74
+-    for idx, (label, item) in enumerate(second_row):
+-        _draw_metric_box(c, left + idx * (score_w + 12), y, score_w, 58, label, item["display"], item["value"])
+-
+-    y -= 84
+-
+-    sections = [
+-        ("What Looks Stronger", build_strength_lines(report_data)),
+-        ("Main Risks", build_risk_lines(report_data)),
+-        ("Required Conditions Before Proceeding", build_condition_lines(report_data)),
+-        ("Profile Snapshot", build_profile_lines(report_data)),
+-    ]
+-
+-    for title, items in sections:
+-        y, page_no = _ensure_space(c, y, 120, width, height, page_no)
+-        y = _draw_section_header(c, title, left, y, usable_width)
+-        y, page_no = _draw_bullets(c, items, left, y, usable_width, width, height, page_no)
+-        y -= 10
+-
+-    if report_data.get("final_rationale"):
+-        y, page_no = _ensure_space(c, y, 120, width, height, page_no)
+-        y = _draw_section_header(c, "Why This Recommendation Exists", left, y, usable_width)
+-        c.setFillColor(black)
+-        y = _draw_wrapped_text(c, report_data["final_rationale"], left, y, usable_width)
+-
+-    _draw_footer(c, width, page_no)
+-    c.save()
+-
+-    pdf = buffer.getvalue()
+-    buffer.close()
+-    return pdf
+-
+ 
+ def _inject_local_styles() -> None:
+     st.markdown(
+@@ -443,6 +34,22 @@
+                 line-height: 1.55;
+                 color: #5B6577;
+             }
++            .rr-report-preview {
++                border: 1px solid #E2E8F0;
++                border-radius: 18px;
++                background: #FFFFFF;
++                padding: 1.1rem 1.2rem;
++                box-shadow: 0 16px 40px rgba(15, 23, 42, 0.06);
++            }
++            .rr-report-preview h4 {
++                margin: 0 0 .45rem 0;
++                color: #0B1730;
++            }
++            .rr-report-preview p {
++                margin: 0;
++                color: #5B6577;
++                line-height: 1.55;
++            }
+         </style>
+         """,
+         unsafe_allow_html=True,
+@@ -451,15 +58,15 @@
+ 
+ def render_report_screen() -> None:
+     _inject_local_styles()
+-    report_data = _collect_report_data()
+-    pdf_bytes = _create_pdf(report_data)
++    report_data = collect_report_data(report_type="executive")
++    pdf_bytes = build_executive_report_pdf(report_data)
+ 
+     open_shell()
+ 
+     render_page_header(
+         eyebrow=APP_PRODUCT,
+-        title="Report",
+-        subtitle="Generate a cleaner decision memo with the recommendation, risks, conditions, and section findings in one printable file.",
++        title="Executive Diligence Report",
++        subtitle="Export a cleaner operator packet with the decision posture, key risks, conditions, financial snapshot, and next-step checklist.",
+         wide=True,
+     )
+ 
+@@ -467,7 +74,7 @@
+         eyebrow="Report posture",
+         title=report_data["recommendation"],
+         body=build_decision_headline(report_data),
+-        chips=["Printable", "Decision memo", "Shareable"],
++        chips=["Printable PDF", "Decision memo", "Operator packet"],
+     )
+ 
+     col1, col2, col3 = st.columns(3, gap="large")
+@@ -475,14 +82,14 @@
+         render_card(
+             label="Recommendation",
+             title=report_data["recommendation"],
+-            body="The current recommendation based on the completed work and recorded signals.",
++            body="The current decision posture based on completed workflow signals.",
+             navy=True,
+         )
+     with col2:
+         render_card(
+-            label="Main risk",
++            label="Main pressure point",
+             title=report_data["top_risk"],
+-            body="The biggest unresolved issue that still matters to the decision.",
++            body="The biggest unresolved issue to validate before committing.",
+             soft=True,
+         )
+     with col3:
+@@ -494,48 +101,64 @@
+ 
+     st.markdown('<div class="rc-gap-md"></div>', unsafe_allow_html=True)
+ 
+-    render_section_intro(
+-        title="What the PDF now does better",
+-        body="The export opens with the recommendation, executive summary, section scores, main risks, proceed conditions, and a clearer memo-style layout for printing or sharing.",
+-    )
+-
+     left, right = st.columns([1.05, 1], gap="large")
+ 
+     with left:
++        render_section_intro(
++            title="What the PDF includes",
++            body="The report is structured as a reusable diligence memo, not a raw app printout.",
++        )
+         render_bullet_panel(
+-            label="Included in the report",
+-            title="Core contents",
++            label="Executive report",
++            title="Contents",
+             items=[
+-                "Executive summary",
+-                "Decision snapshot",
+-                "Section score summary",
+-                "Main risks",
+-                "Required proceed conditions",
+-                "Profile snapshot",
++                "Executive summary and decision snapshot",
++                "Section scores and pressure signals",
++                "Main risks and proceed conditions",
++                "Financial snapshot",
++                "Next-step checklist",
++                "Educational boundary notice",
+             ],
+         )
+ 
+     with right:
+-        render_bullet_panel(
+-            label="Download",
+-            title="Export a printable PDF",
+-            items=[
+-                "Clean cover and hierarchy",
+-                "Print-safe spacing",
+-                "Board-ready decision summary",
+-            ],
++        render_section_intro(
++            title="Download",
++            body="Use this as a discussion packet for personal review, partner conversations, lender preparation, or advisor review.",
++        )
++        st.download_button(
++            label="Download Executive Report PDF",
++            data=pdf_bytes,
++            file_name="pressuretest_executive_diligence_report.pdf",
++            mime="application/pdf",
++            type="primary",
++            use_container_width=True,
+         )
++        st.caption("PressureTest outputs are educational and should be independently validated.")
+ 
+-    st.download_button(
+-        label="Download PDF Report",
+-        data=pdf_bytes,
+-        file_name="pressuretest_report.pdf",
+-        mime="application/pdf",
+-        type="primary",
+-        use_container_width=True,
++    st.markdown('<div class="rc-gap-lg"></div>', unsafe_allow_html=True)
++
++    render_section_intro(
++        title="Report preview",
++        body="This is the plain-English content the PDF organizes into a printable operator packet.",
+     )
+ 
+-    st.markdown('<div class="rc-gap-md"></div>', unsafe_allow_html=True)
+-    st.markdown(f'<div class="rr-note">{build_executive_summary_text(report_data)}</div>', unsafe_allow_html=True)
++    st.markdown(
++        f"""
++        <div class="rr-report-preview">
++            <h4>Executive summary</h4>
++            <p>{build_executive_summary_text(report_data)}</p>
++        </div>
++        """,
++        unsafe_allow_html=True,
++    )
++
++    col_a, col_b, col_c = st.columns(3, gap="large")
++    with col_a:
++        render_bullet_panel("Strengths", "What looks stronger", build_strength_lines(report_data)[:5])
++    with col_b:
++        render_bullet_panel("Risks", "Main pressure points", build_risk_lines(report_data)[:5])
++    with col_c:
++        render_bullet_panel("Conditions", "Before proceeding", build_condition_lines(report_data)[:5])
+ 
+     close_shell()

@@ -17,6 +17,7 @@ CORE_DEFAULTS: Final[dict[str, Any]] = {
     "dev_pro_access": True,
     "current_page": DEFAULT_PAGE,
     "nav_target_page": DEFAULT_PAGE,
+    "workflow_type": "franchise",
 }
 
 PROFILE_DEFAULTS: Final[dict[str, Any]] = {
@@ -56,6 +57,8 @@ SESSION_DEFAULTS: Final[dict[str, Any]] = {
     **UI_DEFAULTS,
 }
 
+VALID_WORKFLOWS: Final[set[str]] = {"franchise", "acquisition", "startup"}
+
 
 def _clone_default(value: Any) -> Any:
     if isinstance(value, (dict, list, set)):
@@ -77,6 +80,12 @@ def normalize_session_state() -> None:
     nav_target_page = st.session_state.get("nav_target_page", st.session_state["current_page"])
     if not isinstance(nav_target_page, str) or not nav_target_page.strip():
         st.session_state["nav_target_page"] = st.session_state["current_page"]
+
+    # Normalize workflow_type (safe for old sessions)
+    workflow = st.session_state.get("workflow_type", "franchise")
+    if workflow not in VALID_WORKFLOWS:
+        workflow = "franchise"
+    st.session_state["workflow_type"] = workflow
 
     for key in (
         "auth_complete",
@@ -121,6 +130,20 @@ def set_current_page(page_name: str) -> None:
         raise ValueError("page_name must be a non-empty string.")
     st.session_state["current_page"] = page_name
     st.session_state["nav_target_page"] = page_name
+
+
+def get_workflow_type() -> str:
+    workflow = st.session_state.get("workflow_type", "franchise")
+    if workflow not in VALID_WORKFLOWS:
+        st.session_state["workflow_type"] = "franchise"
+        return "franchise"
+    return workflow
+
+
+def set_workflow_type(workflow: str) -> None:
+    if workflow not in VALID_WORKFLOWS:
+        raise ValueError(f"Invalid workflow: {workflow}. Must be one of {VALID_WORKFLOWS}")
+    st.session_state["workflow_type"] = workflow
 
 
 def has_premium_access() -> bool:

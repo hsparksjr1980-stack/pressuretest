@@ -4,15 +4,9 @@ import streamlit as st
 
 
 DECISION_BUCKETS = {
-<<<<<<< HEAD
-    "proceed": "Proceed — evidence supports moving forward",
-    "proceed_conditions": "Proceed only with conditions",
-    "do_not_proceed": "Do not proceed — pressure test failed",
-=======
     "proceed": "Proceed",
     "proceed_conditions": "Proceed with Conditions",
     "do_not_proceed": "Do Not Proceed",
->>>>>>> fec65288cb896b4679e84e61241f185fa625e150
 }
 
 
@@ -213,37 +207,6 @@ def build_unresolved_risks(phase_scores: dict, guardrail_eval: dict, hard_stop_e
     return unresolved[:6]
 
 
-<<<<<<< HEAD
-
-def get_brand_intelligence_adjustment() -> dict:
-    analysis = st.session_state.get("brand_territory_analysis", {}) or {}
-    intel = analysis.get("brand_intelligence", {}) or {}
-    adjustment = float(intel.get("risk_adjustment", st.session_state.get("brand_intelligence_adjustment", 0)) or 0)
-    level = intel.get("brand_risk_level", st.session_state.get("brand_intelligence_level", "Low / Unknown"))
-    signals = intel.get("signals", st.session_state.get("brand_intelligence_signals", [])) or []
-    note = intel.get("scoring_note", "Brand/territory intelligence has not been generated yet.")
-    return {
-        "adjustment": adjustment,
-        "level": level,
-        "signals": signals,
-        "note": note,
-    }
-
-
-def build_decision_packet() -> dict:
-    phase_scores = get_phase_scores()
-    weighted_score = calculate_weighted_score(phase_scores)
-    brand_intel_eval = get_brand_intelligence_adjustment()
-    adjusted_score = round(clamp_score(weighted_score + brand_intel_eval["adjustment"]), 1)
-    guardrail_eval = evaluate_guardrails()
-    hard_stop_eval = get_hard_stop_flags()
-    recommendation = classify_decision(adjusted_score, guardrail_eval, hard_stop_eval)
-    conditions = build_conditions_list(guardrail_eval, hard_stop_eval, phase_scores)
-    key_risks = summarize_key_risks(guardrail_eval, hard_stop_eval, phase_scores)
-    if brand_intel_eval["adjustment"] < 0:
-        key_risks.append(f"Brand/territory intelligence adjustment: {int(brand_intel_eval['adjustment'])} points ({brand_intel_eval['level']})")
-        key_risks.extend(brand_intel_eval.get("signals", [])[:3])
-=======
 def build_decision_packet() -> dict:
     phase_scores = get_phase_scores()
     weighted_score = calculate_weighted_score(phase_scores)
@@ -252,7 +215,6 @@ def build_decision_packet() -> dict:
     recommendation = classify_decision(weighted_score, guardrail_eval, hard_stop_eval)
     conditions = build_conditions_list(guardrail_eval, hard_stop_eval, phase_scores)
     key_risks = summarize_key_risks(guardrail_eval, hard_stop_eval, phase_scores)
->>>>>>> fec65288cb896b4679e84e61241f185fa625e150
     strengths = build_strengths_list(phase_scores, recommendation, guardrail_eval, hard_stop_eval)
     unresolved = build_unresolved_risks(phase_scores, guardrail_eval, hard_stop_eval)
 
@@ -264,25 +226,6 @@ def build_decision_packet() -> dict:
         confidence = "High"
 
     if recommendation == DECISION_BUCKETS["proceed"]:
-<<<<<<< HEAD
-        summary = "The current information clears the basic pressure test. Do not treat that as a green light to sign blindly; keep advisor review and deal conditions explicit."
-    elif recommendation == DECISION_BUCKETS["do_not_proceed"]:
-        summary = "The current information is flashing a stop signal. The cleaner answer is to walk away unless the weak points materially change."
-    else:
-        summary = "This is not a clean yes. The deal only stays alive if the biggest weak areas are fixed, verified, or renegotiated."
-
-    if brand_intel_eval["adjustment"] < 0:
-        summary += f" Brand/territory intelligence adjusted the score by {int(brand_intel_eval['adjustment'])} points due to {brand_intel_eval['level'].lower()} risk signals."
-
-    packet = {
-        "weighted_score": weighted_score,
-        "base_score": weighted_score,
-        "brand_intelligence_adjustment": brand_intel_eval["adjustment"],
-        "brand_intelligence_level": brand_intel_eval["level"],
-        "brand_intelligence_signals": brand_intel_eval.get("signals", []),
-        "brand_intelligence_note": brand_intel_eval.get("note", ""),
-        "final_score": adjusted_score,
-=======
         summary = "The current information is supportive enough to move forward, but only if you keep conditions explicit."
     elif recommendation == DECISION_BUCKETS["do_not_proceed"]:
         summary = "The current information is pointing to a stop signal rather than a pause."
@@ -292,7 +235,6 @@ def build_decision_packet() -> dict:
     packet = {
         "weighted_score": weighted_score,
         "final_score": weighted_score,
->>>>>>> fec65288cb896b4679e84e61241f185fa625e150
         "recommendation": recommendation,
         "master_verdict": recommendation,
         "confidence": confidence,

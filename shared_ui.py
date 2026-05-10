@@ -190,11 +190,10 @@ def render_profile_strip() -> None:
 
 def render_carry_forward_warning() -> None:
     return
-<<<<<<< HEAD
 
 
 def render_pressuretest_boundary_notice(compact: bool = True) -> None:
-    """Small, persistent boundary notice so the product stays blunt without drifting into legal advice."""
+    """Persistent boundary notice for legal/risk framing."""
     padding = "0.65rem 0.8rem" if compact else "0.9rem 1rem"
     st.markdown(
         f"""
@@ -208,52 +207,9 @@ def render_pressuretest_boundary_notice(compact: bool = True) -> None:
             font-size: 0.86rem;
             line-height: 1.45;
         ">
-            <strong>PressureTest boundary:</strong> This is a blunt operating and diligence screen — not legal, tax, lending, accounting, or investment advice.
-            Use it to identify weak assumptions, missing evidence, and questions to validate with qualified advisors before signing anything.
+            <strong>PressureTest boundary:</strong> This is a blunt operating and diligence screen, not legal, tax, lending, accounting, or investment advice.
+            Use it to identify weak assumptions and validation gaps, then confirm key decisions with qualified advisors before signing anything.
         </div>
         """,
         unsafe_allow_html=True,
     )
-
-# Compatibility override for older positional render_card calls
-def render_card(title=None, value=None, body=None, *, soft=False, **kwargs):
-    import streamlit as st
-
-    bg = "#F8FAFC" if soft else "#FFFFFF"
-    border = "#E5E7EB"
-
-    st.markdown(
-        f"""
-        <div style="background:{bg}; border:1px solid {border}; border-radius:14px; padding:18px; margin:10px 0;">
-            <div style="font-size:0.85rem; color:#64748B; font-weight:600; margin-bottom:6px;">{title or ""}</div>
-            <div style="font-size:1.25rem; color:#0F172A; font-weight:700; margin-bottom:6px;">{value or ""}</div>
-            <div style="font-size:0.95rem; color:#475569; line-height:1.5;">{body or ""}</div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-
-# Final compatibility override for positional render_card calls
-def render_card(*args, soft=False, **kwargs):
-    import streamlit as st
-
-    title = kwargs.get("title", args[0] if len(args) > 0 else "")
-    value = kwargs.get("value", args[1] if len(args) > 1 else "")
-    body = kwargs.get("body", args[2] if len(args) > 2 else kwargs.get("content", ""))
-
-    bg = "#F8FAFC" if soft else "#FFFFFF"
-    border = "#E5E7EB"
-
-    st.markdown(
-        f"""
-        <div style="background:{bg}; border:1px solid {border}; border-radius:14px; padding:18px; margin:10px 0;">
-            <div style="font-size:0.85rem; color:#64748B; font-weight:600; margin-bottom:6px;">{title}</div>
-            <div style="font-size:1.25rem; color:#0F172A; font-weight:700; margin-bottom:6px;">{value}</div>
-            <div style="font-size:0.95rem; color:#475569; line-height:1.5;">{body}</div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-=======
->>>>>>> fec65288cb896b4679e84e61241f185fa625e150

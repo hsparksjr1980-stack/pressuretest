@@ -15,26 +15,6 @@ class PageConfig:
 
 
 _PAGE_CONFIGS: Final[list[PageConfig]] = [
-<<<<<<< HEAD
-    PageConfig("Overview", "Start Here"),
-    PageConfig("Brand & Territory Snapshot", "Start Here"),
-    PageConfig("Franchise Fit", "Operator Fit"),
-    PageConfig("Concept Validation", "Opportunity Review"),
-    PageConfig("Opportunity Fit & Recommendations", "Opportunity Review"),
-    PageConfig("Financial Model", "Financial Reality"),
-    PageConfig("Calculators", "Financial Reality"),
-    PageConfig("Free Report", "Decision Outputs"),
-    PageConfig("Post-Discovery", "Commitment Review"),
-    PageConfig("Final Decision", "Final Decision"),
-    PageConfig("Report", "Decision Outputs"),
-    PageConfig("Plans & Support", "Support Options"),
-    PageConfig("SEO Resources", "Support Options"),
-    PageConfig("Paywall", "Support Options", "standard", False),
-    PageConfig("Deal Workspace", "Execution Tools", "pro"),
-    PageConfig("Deal Model", "Execution Tools", "pro"),
-    PageConfig("Buildout & Launch Tracker", "Execution Tools", "pro"),
-    PageConfig("Execution Report", "Execution Tools", "pro"),
-=======
     PageConfig("Overview", "Phase 1 — Self & Idea"),
     PageConfig("Franchise Fit", "Phase 1 — Self & Idea"),
     PageConfig("Concept Validation", "Phase 1 — Self & Idea"),
@@ -50,7 +30,6 @@ _PAGE_CONFIGS: Final[list[PageConfig]] = [
     PageConfig("Deal Model", "Phase 4 — Execution", "pro"),
     PageConfig("Buildout & Launch Tracker", "Phase 4 — Execution", "pro"),
     PageConfig("Execution Report", "Phase 4 — Execution", "pro"),
->>>>>>> fec65288cb896b4679e84e61241f185fa625e150
 ]
 
 DEFAULT_PAGE: Final[str] = "Overview"
@@ -71,21 +50,6 @@ SECTION_LABELS: Final[dict[str, str]] = {
     page.name: page.section for page in _PAGE_CONFIGS
 }
 
-<<<<<<< HEAD
-SECTION_HELPERS: Final[dict[str, str]] = {
-    "Start Here": "Orient the assessment, add brand context, and localize the diligence workflow.",
-    "Operator Fit": "Assess lifestyle, risk tolerance, capital comfort, and owner-role fit.",
-    "Opportunity Review": "Pressure test the concept, market, franchisor claims, and operational realities.",
-    "Financial Reality": "Validate assumptions, margins, runway, buildout, working capital, staffing, and what has to be true.",
-    "Commitment Review": "Turn Discovery Day answers into conditions, gaps, and no-go risks.",
-    "Final Decision": "Decide whether to proceed, pause, renegotiate, or walk away.",
-    "Decision Outputs": "Package the evidence into a clear report and recommendation.",
-    "Support Options": "Review optional advisory support, acquisition pages, and next-step help.",
-    "Execution Tools": "Deal workspace, buildout, lender, vendor, and launch tools available later.",
-}
-
-=======
->>>>>>> fec65288cb896b4679e84e61241f185fa625e150
 
 def get_page_config(page_name: str) -> PageConfig:
     return PAGE_CONFIG_MAP[page_name]
@@ -103,13 +67,6 @@ def get_section_label(page_name: str) -> str:
     return SECTION_LABELS[page_name]
 
 
-<<<<<<< HEAD
-def get_section_helper(section_name: str) -> str:
-    return SECTION_HELPERS.get(section_name, "")
-
-
-=======
->>>>>>> fec65288cb896b4679e84e61241f185fa625e150
 def validate_page_config() -> None:
     page_names = [page.name for page in _PAGE_CONFIGS]
 

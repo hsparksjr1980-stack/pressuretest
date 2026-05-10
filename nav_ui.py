@@ -1,33 +1,4 @@
 import streamlit as st
-<<<<<<< HEAD
-
-from page_config import PAGES, PRO_PAGES
-from phase_gate import is_page_unlocked
-
-OUTCOME_LABELS = {
-    "Overview": "Decision Cockpit",
-    "Brand & Territory Snapshot": "Brand Context",
-    "Franchise Fit": "Operator Fit",
-    "Concept Validation": "Concept Validation",
-    "Opportunity Fit & Recommendations": "Recommendation Signal",
-    "Financial Model": "Financial Reality",
-    "Free Report": "First Report",
-    "Post-Discovery": "Discovery Review",
-    "Final Decision": "Final Decision",
-    "Report": "Decision Report",
-    "Plans & Support": "Support Options",
-    "Deal Workspace": "Deal Workspace",
-    "Deal Model": "Deal Model",
-    "Buildout & Launch Tracker": "Buildout Tracker",
-    "Execution Report": "Execution Report",
-}
-
-
-def get_display_label(page: str, unlocked: bool) -> str:
-    status_icon = "✓" if unlocked else "Locked"
-    pro_suffix = " — Pro" if page in PRO_PAGES else ""
-    return f"{status_icon} {OUTCOME_LABELS.get(page, page)}{pro_suffix}"
-=======
 from page_config import PAGES, PRO_PAGES
 from phase_gate import is_page_unlocked
 
@@ -36,7 +7,6 @@ def get_display_label(page: str, unlocked: bool) -> str:
     status_icon = "✅" if unlocked else "🔒"
     pro_suffix = " — Pro" if page in PRO_PAGES else ""
     return f"{status_icon} {page}{pro_suffix}"
->>>>>>> fec65288cb896b4679e84e61241f185fa625e150
 
 
 def render_page_nav(pages, current_page):

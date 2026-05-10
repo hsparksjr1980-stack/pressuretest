@@ -4,10 +4,6 @@ from __future__ import annotations
 
 import streamlit as st
 
-<<<<<<< HEAD
-from decision_engine import build_decision_packet
-=======
->>>>>>> fec65288cb896b4679e84e61241f185fa625e150
 from branding import APP_PRODUCT
 from ui_styles import (
     close_shell,
@@ -115,126 +111,44 @@ def render_final_decision() -> None:
     render_page_header(
         eyebrow=APP_PRODUCT,
         title="Final Decision",
-<<<<<<< HEAD
-        subtitle="Make the call after the evidence is on the table. The goal is not to sell yourself on the deal — it is to decide whether the opportunity survives pressure.",
-=======
         subtitle="Make the call only after the earlier work is complete. This page should clarify whether to proceed, pause, or walk away.",
->>>>>>> fec65288cb896b4679e84e61241f185fa625e150
         wide=True,
     )
 
     snapshot = _decision_snapshot()
-<<<<<<< HEAD
-    decision_packet = build_decision_packet()
-    base_score = decision_packet.get("base_score", decision_packet.get("weighted_score"))
-    final_score = decision_packet.get("final_score", base_score)
-    brand_adjustment = decision_packet.get("brand_intelligence_adjustment", 0) or 0
-    brand_level = decision_packet.get("brand_intelligence_level", "Low / Unknown")
-    brand_signals = decision_packet.get("brand_intelligence_signals", []) or []
-    brand_note = decision_packet.get("brand_intelligence_note", "")
-=======
->>>>>>> fec65288cb896b4679e84e61241f185fa625e150
 
     render_action_banner(
         eyebrow="Decision state",
         title=str(snapshot["stance"]),
         body=str(snapshot["stance_body"]),
-<<<<<<< HEAD
-        chips=["Blunt read", "Risk", "Conditions", "Not legal advice"],
-=======
         chips=["Decision", "Risk", "Conditions"],
->>>>>>> fec65288cb896b4679e84e61241f185fa625e150
     )
 
     col1, col2, col3 = st.columns(3, gap="large")
 
-<<<<<<< HEAD
-    def _fmt_score(value: object) -> str:
-        try:
-            return f"{float(value):.0f}/100"
-        except Exception:
-            return "—"
-
-    with col1:
-        render_card(
-            label="Base diligence score",
-            title=_fmt_score(base_score),
-            body="Built from the core assessment, financial review, guardrails, and user-entered diligence inputs.",
-=======
     with col1:
         render_card(
             label="Current stance",
             title=str(snapshot["stance"]),
             body=str(snapshot["stance_body"]),
->>>>>>> fec65288cb896b4679e84e61241f185fa625e150
             navy=True,
         )
 
     with col2:
-<<<<<<< HEAD
-        adj_display = f"{int(brand_adjustment):+d} pts" if isinstance(brand_adjustment, (int, float)) else "0 pts"
-        render_card(
-            label="Brand / territory adjustment",
-            title=adj_display,
-            body=f"Risk level: {brand_level}. This reflects AI/manual brand notes, closure signals, market fit, and territory pressure.",
-=======
         render_card(
             label="Main unresolved risk",
             title=str(snapshot["top_risk"]),
             body=str(snapshot["top_risk_body"]),
->>>>>>> fec65288cb896b4679e84e61241f185fa625e150
             soft=True,
         )
 
     with col3:
         render_card(
-<<<<<<< HEAD
-            label="Final PressureTest score",
-            title=_fmt_score(final_score),
-            body=f"Recommendation: {decision_packet.get('recommendation', 'Review required')}. The final call includes brand intelligence when available.",
-        )
-
-    # Blunt decision read: make the score interpretable instead of just numeric.
-    blunt_items = []
-    try:
-        fs = float(final_score or 0)
-    except Exception:
-        fs = 0
-    if fs < 55:
-        blunt_items.append("This does not currently survive the pressure test. Treat the default answer as no unless the facts materially improve.")
-    elif fs < 70:
-        blunt_items.append("This is not a clean yes. The burden of proof is on the deal, not on you to rationalize it.")
-    elif fs < 82:
-        blunt_items.append("The deal may be viable, but only if the open conditions are specific, measurable, and resolved before signing.")
-    else:
-        blunt_items.append("The current signal is comparatively stronger, but strong scores do not replace FDD review, operator validation, lender review, or legal review.")
-    if brand_adjustment < 0:
-        blunt_items.append("Brand and territory research reduced the score. Do not ignore closure, expansion, competition, or market-fit signals just because the concept is attractive.")
-    blunt_items.append("PressureTest is an operating diligence tool. It is not legal, tax, lending, accounting, or investment advice.")
-    render_bullet_panel(
-        label="Blunt read",
-        title="What the score is really saying",
-        items=blunt_items,
-    )
-
-    if brand_adjustment < 0 or brand_signals:
-        st.markdown('<div class="rc-gap-sm"></div>', unsafe_allow_html=True)
-        render_bullet_panel(
-            label="Brand intelligence carried forward",
-            title="Signals affecting the final decision",
-            items=[str(x) for x in brand_signals[:6]],
-            empty_text=brand_note or "No brand intelligence signals have been generated yet.",
-        )
-    elif not st.session_state.get("brand_territory_analysis"):
-        st.info("Brand/territory intelligence has not been generated yet. The final decision is currently based only on the core assessment. Add a Brand & Territory Snapshot to include closure, expansion, and territory signals in the score.")
-
-=======
             label="Decision discipline",
             title="Proceed only on explicit terms",
             body="Do not use optimism, momentum, or sunk time as a substitute for evidence.",
         )
 
->>>>>>> fec65288cb896b4679e84e61241f185fa625e150
     st.markdown('<div class="rc-gap-md"></div>', unsafe_allow_html=True)
 
     left, right = st.columns([1.1, 1], gap="large")
@@ -257,11 +171,7 @@ def render_final_decision() -> None:
 
         rationale_default = st.session_state.get(
             "final_decision_rationale",
-<<<<<<< HEAD
-            str(decision_packet.get("summary") or _default_rationale(selected_option)),
-=======
             _default_rationale(selected_option),
->>>>>>> fec65288cb896b4679e84e61241f185fa625e150
         )
         rationale = st.text_area(
             "Why this recommendation exists",
@@ -273,11 +183,7 @@ def render_final_decision() -> None:
 
         conditions_default = st.session_state.get(
             "final_decision_conditions",
-<<<<<<< HEAD
-            "\n".join([str(x) for x in decision_packet.get("conditions", snapshot["conditions"])]) if selected_option == "Proceed with Conditions" else "",
-=======
             "\n".join(snapshot["conditions"]) if selected_option == "Proceed with Conditions" else "",
->>>>>>> fec65288cb896b4679e84e61241f185fa625e150
         )
         conditions_text = st.text_area(
             "Required conditions before proceeding",
@@ -295,11 +201,7 @@ def render_final_decision() -> None:
         render_bullet_panel(
             label="Required conditions",
             title="What must be true before you move forward",
-<<<<<<< HEAD
-            items=[str(item) for item in decision_packet.get("conditions", snapshot["conditions"])],
-=======
             items=[str(item) for item in snapshot["conditions"]],
->>>>>>> fec65288cb896b4679e84e61241f185fa625e150
             empty_text="No conditions listed yet.",
         )
 
@@ -307,17 +209,10 @@ def render_final_decision() -> None:
             label="Use this page well",
             title="Decision quality rules",
             items=[
-<<<<<<< HEAD
-                "Do not let sunk cost, excitement, or broker/franchisor pressure force a yes.",
-                "Treat unresolved assumptions as risk.",
-                "Write down the exact reason for your decision.",
-                "Use conditions when the answer is not a clean yes — and walk if the conditions are not met.",
-=======
                 "Do not let sunk cost force a yes.",
                 "Treat unresolved assumptions as risk.",
                 "Write down the exact reason for your decision.",
                 "Use conditions when the answer is not a clean yes.",
->>>>>>> fec65288cb896b4679e84e61241f185fa625e150
             ],
         )
 

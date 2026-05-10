@@ -6,10 +6,6 @@ from dataclasses import dataclass
 
 import streamlit as st
 
-<<<<<<< HEAD
-from anchored_slider import anchored_slider
-=======
->>>>>>> fec65288cb896b4679e84e61241f185fa625e150
 from gotcha_engine import render_gotcha_section
 from ui_styles import (
     close_shell,
@@ -257,74 +253,6 @@ def _render_core_inputs() -> None:
     col1, col2 = st.columns(2, gap="large")
 
     with col1:
-<<<<<<< HEAD
-        anchored_slider(
-            "Market Confidence",
-            value=int(st.session_state.get("cv_market_confidence_score", 3)),
-            key="cv_market_confidence_score",
-            help="How strongly your market assumptions are supported by local evidence, not just franchisor averages.",
-            anchors={
-                1: "Mostly assumptions / unproven market",
-                2: "Some evidence but major gaps",
-                3: "Mixed evidence; needs more validation",
-                4: "Good local demand signals",
-                5: "Strong validated demand and market fit",
-            },
-        )
-        anchored_slider(
-            "Competition / Positioning Confidence",
-            value=int(st.session_state.get("cv_competition_position_score", 3)),
-            key="cv_competition_position_score",
-            help="How clearly the concept can win against local alternatives and customer habits.",
-            anchors={
-                1: "No clear differentiation",
-                2: "Crowded market / weak position",
-                3: "Some differentiation but uncertain",
-                4: "Clear positioning advantage",
-                5: "Highly differentiated and locally compelling",
-            },
-        )
-        anchored_slider(
-            "Economic Confidence",
-            value=int(st.session_state.get("cv_economic_confidence_score", 3)),
-            key="cv_economic_confidence_score",
-            help="How confident you are that revenue, COGS, labor, rent, debt, and ramp assumptions work together.",
-            anchors={
-                1: "Numbers do not hold up",
-                2: "Thin margin / many unanswered costs",
-                3: "Possible but sensitive to assumptions",
-                4: "Reasonable economics with cushion",
-                5: "Strong economics with downside room",
-            },
-        )
-
-    with col2:
-        anchored_slider(
-            "Support Confidence",
-            value=int(st.session_state.get("cv_support_confidence_score", 3)),
-            key="cv_support_confidence_score",
-            help="How much confidence you have in training, launch support, marketing, field ops, systems, and vendor readiness.",
-            anchors={
-                1: "Support appears weak or vague",
-                2: "Some support but meaningful gaps",
-                3: "Adequate but not fully proven",
-                4: "Strong support structure",
-                5: "Highly proven support and execution system",
-            },
-        )
-        anchored_slider(
-            "Decision Discipline",
-            value=int(st.session_state.get("cv_decision_discipline_score", 3)),
-            key="cv_decision_discipline_score",
-            help="How well you are separating excitement and sales pressure from evidence-based diligence.",
-            anchors={
-                1: "Mostly emotional / rushed",
-                2: "Leaning on hope or sales momentum",
-                3: "Some discipline but still gaps",
-                4: "Mostly evidence-based",
-                5: "Clear, disciplined, documented decision process",
-            },
-=======
         st.slider(
             "Market Confidence",
             min_value=1,
@@ -366,7 +294,6 @@ def _render_core_inputs() -> None:
             value=int(st.session_state.get("cv_decision_discipline_score", 3)),
             key="cv_decision_discipline_score",
             help="1 = emotional / rushed, 5 = disciplined / evidence-based",
->>>>>>> fec65288cb896b4679e84e61241f185fa625e150
         )
 
         st.text_input(

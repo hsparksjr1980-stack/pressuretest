@@ -2,23 +2,6 @@
 
 from __future__ import annotations
 
-<<<<<<< HEAD
-import streamlit as st
-
-from lead_capture_ui import render_lead_capture_gate, render_inline_lead_prompt
-from pdf_report_engine import build_free_snapshot_pdf
-from report_templates import (
-    build_executive_summary_text,
-    build_risk_lines,
-    collect_report_data,
-    money,
-    safe_text,
-)
-from ui_styles import close_shell, open_shell, render_card, render_page_header, render_section_intro
-
-
-def _inject_styles() -> None:
-=======
 import io
 import os
 from datetime import datetime
@@ -271,47 +254,10 @@ def _create_pdf(data):
 
 
 def _inject_styles():
->>>>>>> fec65288cb896b4679e84e61241f185fa625e150
     st.markdown(
         """
         <style>
         .fr-card {
-<<<<<<< HEAD
-            border: 1px solid #E2E8F0;
-            border-radius: 18px;
-            padding: 1rem;
-            background: #FFFFFF;
-            box-shadow: 0 14px 34px rgba(15, 23, 42, 0.05);
-            min-height: 132px;
-        }
-        .fr-label {
-            text-transform: uppercase;
-            letter-spacing: .08em;
-            font-size: .72rem;
-            color: #64748B;
-            font-weight: 700;
-            margin-bottom: .35rem;
-        }
-        .fr-score {
-            font-size: 1.7rem;
-            line-height: 1.1;
-            font-weight: 800;
-            color: #0B1730;
-        }
-        .fr-note {
-            margin-top: .45rem;
-            color: #5B6577;
-            font-size: .9rem;
-            line-height: 1.45;
-        }
-        .fr-summary {
-            border: 1px solid #E2E8F0;
-            border-radius: 18px;
-            padding: 1rem 1.1rem;
-            background: #F8FAFC;
-            color: #334155;
-            line-height: 1.55;
-=======
             border: 1px solid #e5e7eb;
             border-radius: 20px;
             padding: 1rem;
@@ -349,7 +295,6 @@ def _inject_styles():
         .fr-bad {
             border-color: rgba(220, 38, 38, 0.22);
             background: linear-gradient(180deg, rgba(220, 38, 38, 0.06), #ffffff);
->>>>>>> fec65288cb896b4679e84e61241f185fa625e150
         }
         </style>
         """,
@@ -357,79 +302,13 @@ def _inject_styles():
     )
 
 
-<<<<<<< HEAD
-def _format_score(item: dict | object) -> str:
-    if isinstance(item, dict):
-        return safe_text(item.get("display"))
-    return safe_text(item)
-
-
-def render_free_report() -> None:
-    _inject_styles()
-    report_data = collect_report_data(report_type="free_snapshot")
-    pdf = build_free_snapshot_pdf(report_data)
-    st.session_state["free_report_generated"] = True
-=======
 def render_free_report():
     _inject_styles()
     data = _get_data()
->>>>>>> fec65288cb896b4679e84e61241f185fa625e150
 
     open_shell()
 
     render_page_header(
-<<<<<<< HEAD
-        eyebrow="Free Pressure Snapshot",
-        title="Your early diligence signal",
-        subtitle="A concise PDF snapshot of current fit, concept, financial signals, primary pressure points, and next-step diligence actions.",
-        wide=True,
-    )
-
-    col1, col2, col3 = st.columns(3, gap="large")
-    with col1:
-        render_card(
-            label="Current posture",
-            title=report_data["recommendation"],
-            body="A directional read from the work completed so far.",
-            navy=True,
-        )
-    with col2:
-        render_card(
-            label="Top pressure point",
-            title=report_data["top_risk"],
-            body="The first issue to validate before relying on the current assumptions.",
-            soft=True,
-        )
-    with col3:
-        render_card(
-            label="Opportunity",
-            title=safe_text(report_data.get("franchise_name"), "Not recorded"),
-            body="The concept currently being reviewed.",
-        )
-
-    st.markdown('<div class="rc-gap-lg"></div>', unsafe_allow_html=True)
-
-    render_section_intro(
-        title="Score snapshot",
-        body="These are directional signals for organizing diligence, not predictions or recommendations to buy, invest, or proceed.",
-    )
-
-    visible_scores = [
-        ("Franchise Fit", report_data["scores"].get("Franchise Fit")),
-        ("Brand & Territory", report_data["scores"].get("Brand & Territory")),
-        ("Concept Validation", report_data["scores"].get("Concept Validation")),
-        ("Financial Model", report_data["scores"].get("Financial Model")),
-    ]
-
-    cols = st.columns(4, gap="large")
-    for col, (label, item) in zip(cols, visible_scores):
-        with col:
-            st.markdown(
-                f"""
-                <div class="fr-card">
-                    <div class="fr-label">{label}</div>
-                    <div class="fr-score">{_format_score(item)}</div>
-=======
         eyebrow="Output — Free Report",
         title="Review an early summary of your assessment so far.",
         subtitle=(
@@ -468,7 +347,6 @@ def render_free_report():
                 <div class="fr-card {band_class}">
                     <div class="fr-label">{label}</div>
                     <div class="fr-score">{_safe_score(score)}</div>
->>>>>>> fec65288cb896b4679e84e61241f185fa625e150
                     <div class="fr-note">Current directional signal based on available inputs.</div>
                 </div>
                 """,
@@ -477,46 +355,6 @@ def render_free_report():
 
     st.markdown('<div class="rc-gap-lg"></div>', unsafe_allow_html=True)
 
-<<<<<<< HEAD
-    left, right = st.columns([1.05, 1], gap="large")
-    with left:
-        render_section_intro(
-            title="Plain-English summary",
-            body="This is the same core message included in the downloadable snapshot.",
-        )
-        st.markdown(
-            f"<div class='fr-summary'>{build_executive_summary_text(report_data)}</div>",
-            unsafe_allow_html=True,
-        )
-
-    with right:
-        render_section_intro(
-            title="Download your snapshot",
-            body="Use the PDF as an early diligence memo and checklist starter.",
-        )
-        render_inline_lead_prompt(
-            asset_name="Free Pressure Snapshot PDF",
-            context="This is the first natural lead-capture moment: the user has received value and is asking to keep the output.",
-        )
-        unlocked = render_lead_capture_gate(
-            asset_key="free_pressure_snapshot_pdf",
-            asset_name="Free Pressure Snapshot PDF",
-            lead_source="free_report_download",
-            title="Unlock the downloadable snapshot",
-            body="Enter your email to save this early diligence snapshot and download the PDF.",
-            button_label="Unlock Free Snapshot PDF",
-        )
-        if unlocked:
-            st.download_button(
-                "Download Free Pressure Snapshot PDF",
-                pdf,
-                file_name="pressuretest_free_pressure_snapshot.pdf",
-                mime="application/pdf",
-                use_container_width=True,
-                type="primary",
-            )
-        st.caption("The free snapshot is intentionally concise. Deeper scenario planning and execution workflows belong in Pro.")
-=======
     render_section_intro(
         title="What this means",
         body=(
@@ -528,30 +366,10 @@ def render_free_report():
     st.markdown('<div class="rc-gap-md"></div>', unsafe_allow_html=True)
 
     st.info("This is not a final decision. It is an early signal based on the work completed so far.")
->>>>>>> fec65288cb896b4679e84e61241f185fa625e150
 
     st.markdown('<div class="rc-gap-lg"></div>', unsafe_allow_html=True)
 
     render_section_intro(
-<<<<<<< HEAD
-        title="Main pressure points to resolve",
-        body="Treat these as diligence prompts to validate, not final conclusions.",
-    )
-    for item in build_risk_lines(report_data)[:5]:
-        st.markdown(f"- {item}")
-
-    st.markdown('<div class="rc-gap-lg"></div>', unsafe_allow_html=True)
-
-    snapshot = report_data.get("financial_snapshot", {})
-    with st.expander("Financial snapshot included in the executive report", expanded=False):
-        rows = [
-            {"Metric": key, "Current value": value if value != "-" else money(0) if key in {"Selected loan amount", "Monthly rent + NNN"} else "-"}
-            for key, value in snapshot.items()
-        ]
-        st.table(rows)
-
-    if st.button("Continue to Plans & Support", use_container_width=True, type="primary"):
-=======
         title="Basic P&L vs. FDD",
         body="This is a simple comparison between the FDD-style unit economics and the assumptions in your current model.",
     )
@@ -598,7 +416,6 @@ def render_free_report():
     st.markdown('<div class="rc-gap-md"></div>', unsafe_allow_html=True)
 
     if st.button("Continue", use_container_width=True, type="primary"):
->>>>>>> fec65288cb896b4679e84e61241f185fa625e150
         st.session_state["current_page"] = "Plans & Support"
         st.rerun()
 

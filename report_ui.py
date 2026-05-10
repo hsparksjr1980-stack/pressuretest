@@ -1,14 +1,3 @@
-<<<<<<< HEAD
-# report_ui.py
-
-from __future__ import annotations
-
-import streamlit as st
-
-from branding import APP_PRODUCT
-from lead_capture_ui import render_lead_capture_gate, render_inline_lead_prompt
-from pdf_report_engine import build_executive_report_pdf
-=======
 # /Users/howardsparks/Desktop/pressuretest/report_ui.py
 
 from __future__ import annotations
@@ -26,21 +15,14 @@ from reportlab.pdfgen import canvas
 
 from decision_engine import build_decision_packet
 from branding import APP_PRODUCT
->>>>>>> fec65288cb896b4679e84e61241f185fa625e150
 from report_templates import (
     build_condition_lines,
     build_decision_headline,
     build_executive_summary_text,
-<<<<<<< HEAD
-    build_risk_lines,
-    build_strength_lines,
-    collect_report_data,
-=======
     build_profile_lines,
     build_risk_lines,
     build_score_lines,
     build_strength_lines,
->>>>>>> fec65288cb896b4679e84e61241f185fa625e150
 )
 from ui_styles import (
     close_shell,
@@ -52,8 +34,6 @@ from ui_styles import (
     render_section_intro,
 )
 
-<<<<<<< HEAD
-=======
 NAVY = HexColor("#0B1730")
 ORANGE = HexColor("#F97316")
 AMBER = HexColor("#FBBF24")
@@ -453,7 +433,6 @@ def _create_pdf(report_data: dict) -> bytes:
     buffer.close()
     return pdf
 
->>>>>>> fec65288cb896b4679e84e61241f185fa625e150
 
 def _inject_local_styles() -> None:
     st.markdown(
@@ -464,25 +443,6 @@ def _inject_local_styles() -> None:
                 line-height: 1.55;
                 color: #5B6577;
             }
-<<<<<<< HEAD
-            .rr-report-preview {
-                border: 1px solid #E2E8F0;
-                border-radius: 18px;
-                background: #FFFFFF;
-                padding: 1.1rem 1.2rem;
-                box-shadow: 0 16px 40px rgba(15, 23, 42, 0.06);
-            }
-            .rr-report-preview h4 {
-                margin: 0 0 .45rem 0;
-                color: #0B1730;
-            }
-            .rr-report-preview p {
-                margin: 0;
-                color: #5B6577;
-                line-height: 1.55;
-            }
-=======
->>>>>>> fec65288cb896b4679e84e61241f185fa625e150
         </style>
         """,
         unsafe_allow_html=True,
@@ -491,25 +451,15 @@ def _inject_local_styles() -> None:
 
 def render_report_screen() -> None:
     _inject_local_styles()
-<<<<<<< HEAD
-    report_data = collect_report_data(report_type="executive")
-    pdf_bytes = build_executive_report_pdf(report_data)
-=======
     report_data = _collect_report_data()
     pdf_bytes = _create_pdf(report_data)
->>>>>>> fec65288cb896b4679e84e61241f185fa625e150
 
     open_shell()
 
     render_page_header(
         eyebrow=APP_PRODUCT,
-<<<<<<< HEAD
-        title="Executive Diligence Report",
-        subtitle="Export a cleaner operator packet with the decision posture, key risks, conditions, financial snapshot, and next-step checklist.",
-=======
         title="Report",
         subtitle="Generate a cleaner decision memo with the recommendation, risks, conditions, and section findings in one printable file.",
->>>>>>> fec65288cb896b4679e84e61241f185fa625e150
         wide=True,
     )
 
@@ -517,11 +467,7 @@ def render_report_screen() -> None:
         eyebrow="Report posture",
         title=report_data["recommendation"],
         body=build_decision_headline(report_data),
-<<<<<<< HEAD
-        chips=["Printable PDF", "Decision memo", "Operator packet"],
-=======
         chips=["Printable", "Decision memo", "Shareable"],
->>>>>>> fec65288cb896b4679e84e61241f185fa625e150
     )
 
     col1, col2, col3 = st.columns(3, gap="large")
@@ -529,24 +475,14 @@ def render_report_screen() -> None:
         render_card(
             label="Recommendation",
             title=report_data["recommendation"],
-<<<<<<< HEAD
-            body="The current decision posture based on completed workflow signals.",
-=======
             body="The current recommendation based on the completed work and recorded signals.",
->>>>>>> fec65288cb896b4679e84e61241f185fa625e150
             navy=True,
         )
     with col2:
         render_card(
-<<<<<<< HEAD
-            label="Main pressure point",
-            title=report_data["top_risk"],
-            body="The biggest unresolved issue to validate before committing.",
-=======
             label="Main risk",
             title=report_data["top_risk"],
             body="The biggest unresolved issue that still matters to the decision.",
->>>>>>> fec65288cb896b4679e84e61241f185fa625e150
             soft=True,
         )
     with col3:
@@ -558,25 +494,6 @@ def render_report_screen() -> None:
 
     st.markdown('<div class="rc-gap-md"></div>', unsafe_allow_html=True)
 
-<<<<<<< HEAD
-    left, right = st.columns([1.05, 1], gap="large")
-
-    with left:
-        render_section_intro(
-            title="What the PDF includes",
-            body="The report is structured as a reusable diligence memo, not a raw app printout.",
-        )
-        render_bullet_panel(
-            label="Executive report",
-            title="Contents",
-            items=[
-                "Executive summary and decision snapshot",
-                "Section scores and pressure signals",
-                "Main risks and proceed conditions",
-                "Financial snapshot",
-                "Next-step checklist",
-                "Educational boundary notice",
-=======
     render_section_intro(
         title="What the PDF now does better",
         body="The export opens with the recommendation, executive summary, section scores, main risks, proceed conditions, and a clearer memo-style layout for printing or sharing.",
@@ -595,64 +512,10 @@ def render_report_screen() -> None:
                 "Main risks",
                 "Required proceed conditions",
                 "Profile snapshot",
->>>>>>> fec65288cb896b4679e84e61241f185fa625e150
             ],
         )
 
     with right:
-<<<<<<< HEAD
-        render_section_intro(
-            title="Download",
-            body="Use this as a discussion packet for personal review, partner conversations, lender preparation, or advisor review.",
-        )
-        render_inline_lead_prompt(
-            asset_name="Executive Diligence Report PDF",
-            context="This capture point preserves the report workflow and creates a CRM-ready handoff for serious users.",
-        )
-        unlocked = render_lead_capture_gate(
-            asset_key="executive_diligence_report_pdf",
-            asset_name="Executive Diligence Report PDF",
-            lead_source="executive_report_download",
-            title="Unlock the executive report download",
-            body="Enter your email to save the operator packet and download the PDF.",
-            button_label="Unlock Executive Report PDF",
-        )
-        if unlocked:
-            st.download_button(
-                label="Download Executive Report PDF",
-                data=pdf_bytes,
-                file_name="pressuretest_executive_diligence_report.pdf",
-                mime="application/pdf",
-                type="primary",
-                use_container_width=True,
-            )
-        st.caption("PressureTest outputs are educational and should be independently validated.")
-
-    st.markdown('<div class="rc-gap-lg"></div>', unsafe_allow_html=True)
-
-    render_section_intro(
-        title="Report preview",
-        body="This is the plain-English content the PDF organizes into a printable operator packet.",
-    )
-
-    st.markdown(
-        f"""
-        <div class="rr-report-preview">
-            <h4>Executive summary</h4>
-            <p>{build_executive_summary_text(report_data)}</p>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    col_a, col_b, col_c = st.columns(3, gap="large")
-    with col_a:
-        render_bullet_panel("Strengths", "What looks stronger", build_strength_lines(report_data)[:5])
-    with col_b:
-        render_bullet_panel("Risks", "Main pressure points", build_risk_lines(report_data)[:5])
-    with col_c:
-        render_bullet_panel("Conditions", "Before proceeding", build_condition_lines(report_data)[:5])
-=======
         render_bullet_panel(
             label="Download",
             title="Export a printable PDF",
@@ -674,6 +537,5 @@ def render_report_screen() -> None:
 
     st.markdown('<div class="rc-gap-md"></div>', unsafe_allow_html=True)
     st.markdown(f'<div class="rr-note">{build_executive_summary_text(report_data)}</div>', unsafe_allow_html=True)
->>>>>>> fec65288cb896b4679e84e61241f185fa625e150
 
     close_shell()

@@ -14,11 +14,7 @@ CORE_DEFAULTS: Final[dict[str, Any]] = {
     "auth_complete": False,
     "profile_complete": False,
     "premium_access": False,
-<<<<<<< HEAD
-    "dev_pro_access": False,
-=======
     "dev_pro_access": True,
->>>>>>> fec65288cb896b4679e84e61241f185fa625e150
     "current_page": DEFAULT_PAGE,
     "nav_target_page": DEFAULT_PAGE,
 }
@@ -30,11 +26,6 @@ PROFILE_DEFAULTS: Final[dict[str, Any]] = {
     "franchise_name": "",
     "units_considered": "",
     "ownership_style": "",
-<<<<<<< HEAD
-    "diligence_stage": "Exploring",
-    "capital_range": "Not sure yet",
-=======
->>>>>>> fec65288cb896b4679e84e61241f185fa625e150
     "signed_anything": False,
 }
 
@@ -58,24 +49,11 @@ UI_DEFAULTS: Final[dict[str, Any]] = {
     "toast_type": "info",
 }
 
-<<<<<<< HEAD
-LEAD_CAPTURE_DEFAULTS: Final[dict[str, Any]] = {
-    "lead_captured": False,
-    "lead_captured_assets": {},
-    "lead_capture_last_source": "",
-}
-
-=======
->>>>>>> fec65288cb896b4679e84e61241f185fa625e150
 SESSION_DEFAULTS: Final[dict[str, Any]] = {
     **CORE_DEFAULTS,
     **PROFILE_DEFAULTS,
     **ASSESSMENT_DEFAULTS,
     **UI_DEFAULTS,
-<<<<<<< HEAD
-    **LEAD_CAPTURE_DEFAULTS,
-=======
->>>>>>> fec65288cb896b4679e84e61241f185fa625e150
 }
 
 
@@ -118,19 +96,9 @@ def normalize_session_state() -> None:
         "move_forward",
         "walk_away",
         "signed_anything",
-<<<<<<< HEAD
-        "lead_captured",
     ):
         st.session_state[key] = bool(st.session_state.get(key, False))
 
-    if not isinstance(st.session_state.get("lead_captured_assets"), dict):
-        st.session_state["lead_captured_assets"] = {}
-
-=======
-    ):
-        st.session_state[key] = bool(st.session_state.get(key, False))
-
->>>>>>> fec65288cb896b4679e84e61241f185fa625e150
 
 def get_state(key: str, default: Any = None) -> Any:
     return st.session_state.get(key, default)

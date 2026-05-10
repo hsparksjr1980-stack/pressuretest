@@ -6,10 +6,6 @@ from dataclasses import dataclass
 
 import streamlit as st
 
-<<<<<<< HEAD
-from anchored_slider import anchored_slider
-=======
->>>>>>> fec65288cb896b4679e84e61241f185fa625e150
 from ui_styles import (
     close_shell,
     open_shell,
@@ -259,74 +255,6 @@ def _render_core_inputs() -> None:
             ["Owner-Operator", "Manager-Led", "Investor / Semi-Absentee"],
             key="ownership_style",
         )
-<<<<<<< HEAD
-        anchored_slider(
-            "Time Availability",
-            value=int(st.session_state.get("time_availability_score", 3)),
-            key="time_availability_score",
-            help="How much real weekly time you can give the business, especially during ramp-up.",
-            anchors={
-                1: "Very limited; mostly nights/weekends",
-                2: "Some availability but constrained",
-                3: "Meaningful part-time involvement",
-                4: "High availability most weeks",
-                5: "Fully available / owner-operator level",
-            },
-        )
-        anchored_slider(
-            "Operational Willingness",
-            value=int(st.session_state.get("operational_willingness_score", 3)),
-            key="operational_willingness_score",
-            help="How willing you are to be directly involved in daily execution when the business needs it.",
-            anchors={
-                1: "Want mostly passive ownership",
-                2: "Prefer manager-led with light involvement",
-                3: "Willing to step in when needed",
-                4: "Comfortable being hands-on",
-                5: "Ready to run daily operations yourself",
-            },
-        )
-
-    with col2:
-        anchored_slider(
-            "People Management Comfort",
-            value=int(st.session_state.get("people_management_comfort_score", 3)),
-            key="people_management_comfort_score",
-            help="Your comfort with hiring, training, turnover, accountability, and frontline staffing issues.",
-            anchors={
-                1: "Avoid managing people",
-                2: "Limited experience / uncomfortable",
-                3: "Can manage with structure and support",
-                4: "Comfortable leading a small team",
-                5: "Strong operator / people leader",
-            },
-        )
-        anchored_slider(
-            "Risk Tolerance",
-            value=int(st.session_state.get("risk_tolerance_score", 3)),
-            key="risk_tolerance_score",
-            help="How much uncertainty, downside, debt, and ramp volatility you can realistically tolerate.",
-            anchors={
-                1: "Very conservative; low loss tolerance",
-                2: "Cautious; needs strong proof",
-                3: "Moderate risk tolerance",
-                4: "Comfortable with meaningful uncertainty",
-                5: "Aggressive; can absorb high downside",
-            },
-        )
-        anchored_slider(
-            "Capital Flexibility",
-            value=int(st.session_state.get("capital_flexibility_score", 3)),
-            key="capital_flexibility_score",
-            help="How much cushion you have beyond opening costs for overruns, ramp losses, and surprises.",
-            anchors={
-                1: "Tight capital; little cushion",
-                2: "Limited reserves after opening",
-                3: "Some cushion but needs discipline",
-                4: "Good reserves for delays/overruns",
-                5: "Strong cushion and fallback options",
-            },
-=======
         st.slider(
             "Time Availability",
             min_value=1,
@@ -368,7 +296,6 @@ def _render_core_inputs() -> None:
             value=int(st.session_state.get("capital_flexibility_score", 3)),
             key="capital_flexibility_score",
             help="1 = tight capital, 5 = strong flexibility",
->>>>>>> fec65288cb896b4679e84e61241f185fa625e150
         )
 
     st.checkbox(

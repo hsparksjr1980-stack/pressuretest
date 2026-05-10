@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import streamlit as st
 
+from assessment_template import AssessmentGroup, AssessmentQuestion, render_assessment_template
 from brand_territory_analyzer import (
     CATEGORY_KEYWORDS,
     build_analysis,
@@ -113,27 +114,78 @@ def render_brand_territory() -> None:
         unsafe_allow_html=True,
     )
 
-    st.markdown("### Brand inputs")
-    c1, c2 = st.columns([1, 1])
-    with c1:
-        brand_name = st.text_input("Brand name", value=st.session_state.get("franchise_name", ""), placeholder="Example: Sample Coffee Concept")
-        website = st.text_input("Brand website", value=st.session_state.get("brand_website", ""), placeholder="https://www.examplefranchise.com")
-        selected_category = st.selectbox("Business category", CATEGORY_OPTIONS, index=0, help="Use Auto-detect first. Override it if the website is vague.")
-    with c2:
-        territory = st.text_input("Target territory / city / zip", value=st.session_state.get("city_state", ""), placeholder="Example: St. Louis, MO or 63368")
-        competitor_count_raw = st.number_input(
-            "Estimated direct competitors nearby",
-            min_value=0,
-            max_value=100,
-            value=int(st.session_state.get("territory_competitor_count", 0) or 0),
-            help="No paid maps API yet. Enter a rough count from Google Maps/Yelp search in the target area.",
-        )
-        market_notes = st.text_area(
-            "Territory notes",
-            value=st.session_state.get("territory_notes", ""),
-            placeholder="Examples: new market for brand, heavy coffee competition, suburban drive-thru corridor, high rent area, college town, known closures in nearby markets, etc.",
-            height=120,
-        )
+    st.session_state.setdefault("brand_name_input", st.session_state.get("franchise_name", ""))
+    st.session_state.setdefault("brand_website", st.session_state.get("brand_website", ""))
+    st.session_state.setdefault("selected_category", "Auto-detect")
+    st.session_state.setdefault("city_state", st.session_state.get("city_state", ""))
+    st.session_state.setdefault("territory_competitor_count", int(st.session_state.get("territory_competitor_count", 0) or 0))
+    st.session_state.setdefault("territory_notes", st.session_state.get("territory_notes", ""))
+
+    input_groups = [
+        AssessmentGroup(
+            title="Brand context",
+            description="Capture the basic brand details so the system can interpret the concept correctly.",
+            questions=[
+                AssessmentQuestion(
+                    key="brand_name_input",
+                    label="Brand name",
+                    placeholder="Example: Sample Coffee Concept",
+                ),
+                AssessmentQuestion(
+                    key="brand_website",
+                    label="Brand website",
+                    placeholder="https://www.examplefranchise.com",
+                ),
+                AssessmentQuestion(
+                    key="selected_category",
+                    label="Business category",
+                    kind="select",
+                    options=CATEGORY_OPTIONS,
+                    help_text="Use Auto-detect first. Override it if the website is vague.",
+                ),
+            ],
+        ),
+        AssessmentGroup(
+            title="Territory context",
+            description="Add local market details to sharpen competition and expansion risk signals.",
+            questions=[
+                AssessmentQuestion(
+                    key="city_state",
+                    label="Target territory / city / zip",
+                    placeholder="Example: St. Louis, MO or 63368",
+                ),
+                AssessmentQuestion(
+                    key="territory_competitor_count",
+                    label="Estimated direct competitors nearby",
+                    kind="number",
+                    min_value=0,
+                    max_value=100,
+                    help_text="No paid maps API yet. Enter a rough count from Google Maps/Yelp search in the target area.",
+                ),
+                AssessmentQuestion(
+                    key="territory_notes",
+                    label="Territory notes",
+                    kind="textarea",
+                    placeholder="Examples: new market for brand, heavy coffee competition, suburban drive-thru corridor, high rent area, college town, known closures in nearby markets, etc.",
+                ),
+            ],
+        ),
+    ]
+
+    render_assessment_template(
+        section_title="Brand inputs",
+        context_description="Provide a quick diligence baseline before generating the snapshot.",
+        groups=input_groups,
+        why_this_matters="Clear brand and territory inputs make pressure points more realistic and reduce false confidence from generic assumptions.",
+        next_step_guidance="Complete both groups, then run Generate Brand & Territory Snapshot. Use Deep Dive if you need stronger market evidence.",
+    )
+
+    brand_name = st.session_state.get("brand_name_input", "")
+    website = st.session_state.get("brand_website", "")
+    selected_category = st.session_state.get("selected_category", "Auto-detect")
+    territory = st.session_state.get("city_state", "")
+    competitor_count_raw = int(st.session_state.get("territory_competitor_count", 0) or 0)
+    market_notes = st.session_state.get("territory_notes", "")
 
     with st.expander("Optional: paste website/franchise/FDD/operator text manually", expanded=False):
         pasted_text = st.text_area(

@@ -601,11 +601,7 @@ def _create_pdf(payload: dict[str, Any]) -> bytes:
 
     pdf.setFont("Helvetica", 8)
     pdf.setFillColor(grey)
-<<<<<<< HEAD
-    pdf.drawCentredString(page_width / 2, 20, "PressureTest — Execution Report")
-=======
     pdf.drawCentredString(page_width / 2, 20, "Reality Check — Execution Report")
->>>>>>> fec65288cb896b4679e84e61241f185fa625e150
 
     pdf.save()
     pdf_bytes = buffer.getvalue()

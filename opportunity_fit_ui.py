@@ -6,10 +6,6 @@ from dataclasses import dataclass
 
 import streamlit as st
 
-<<<<<<< HEAD
-from anchored_slider import anchored_slider
-=======
->>>>>>> fec65288cb896b4679e84e61241f185fa625e150
 from ui_styles import (
     close_shell,
     open_shell,
@@ -251,116 +247,47 @@ def _render_core_inputs() -> None:
     col1, col2 = st.columns(2, gap="large")
 
     with col1:
-<<<<<<< HEAD
-        anchored_slider(
-=======
         st.slider(
->>>>>>> fec65288cb896b4679e84e61241f185fa625e150
             "Personal Alignment",
             min_value=RATING_MIN,
             max_value=RATING_MAX,
             value=int(st.session_state.get("of_personal_alignment_score", DEFAULT_RATING)),
             key="of_personal_alignment_score",
-<<<<<<< HEAD
-            help="How well the opportunity fits your lifestyle, skills, risk profile, and ownership goals.",
-            anchors={
-                1: "Poor lifestyle/operator fit",
-                2: "Several personal misalignments",
-                3: "Mixed fit; tradeoffs remain",
-                4: "Good fit with manageable tradeoffs",
-                5: "Strong personal and ownership fit",
-            },
-        )
-        anchored_slider(
-=======
             help="1 = weak fit, 5 = strong fit",
         )
         st.slider(
->>>>>>> fec65288cb896b4679e84e61241f185fa625e150
             "Financial Fit",
             min_value=RATING_MIN,
             max_value=RATING_MAX,
             value=int(st.session_state.get("of_financial_fit_score", DEFAULT_RATING)),
             key="of_financial_fit_score",
-<<<<<<< HEAD
-            help="How well the capital requirement, debt load, runway, and return profile fit your situation.",
-            anchors={
-                1: "Too much financial strain",
-                2: "Thin cushion / uncomfortable debt",
-                3: "Possible but sensitive",
-                4: "Good fit with reasonable cushion",
-                5: "Strong financial fit and runway",
-            },
-        )
-        anchored_slider(
-=======
             help="1 = poor fit, 5 = strong fit",
         )
         st.slider(
->>>>>>> fec65288cb896b4679e84e61241f185fa625e150
             "Execution Fit",
             min_value=RATING_MIN,
             max_value=RATING_MAX,
             value=int(st.session_state.get("of_execution_fit_score", DEFAULT_RATING)),
             key="of_execution_fit_score",
-<<<<<<< HEAD
-            help="How well your team, time, systems, vendors, and support can execute the plan.",
-            anchors={
-                1: "Major execution gaps",
-                2: "Several weak spots",
-                3: "Executable but needs support",
-                4: "Good execution setup",
-                5: "Strong team, systems, and support",
-            },
-        )
-
-    with col2:
-        anchored_slider(
-=======
             help="1 = weak fit, 5 = strong fit",
         )
 
     with col2:
         st.slider(
->>>>>>> fec65288cb896b4679e84e61241f185fa625e150
             "Decision Conviction",
             min_value=RATING_MIN,
             max_value=RATING_MAX,
             value=int(st.session_state.get("of_decision_conviction_score", DEFAULT_RATING)),
             key="of_decision_conviction_score",
-<<<<<<< HEAD
-            help="How clear and evidence-backed your proceed / pause / walk-away decision feels right now.",
-            anchors={
-                1: "Low clarity; many doubts",
-                2: "Leaning but unresolved",
-                3: "Mixed conviction",
-                4: "Clear direction with some conditions",
-                5: "High conviction backed by evidence",
-            },
-        )
-        anchored_slider(
-=======
             help="1 = low clarity, 5 = high clarity",
         )
         st.slider(
->>>>>>> fec65288cb896b4679e84e61241f185fa625e150
             "Support System Strength",
             min_value=RATING_MIN,
             max_value=RATING_MAX,
             value=int(st.session_state.get("of_support_system_score", DEFAULT_RATING)),
             key="of_support_system_score",
-<<<<<<< HEAD
-            help="How strong your family, partner, lender, advisor, manager, and operational support system is.",
-            anchors={
-                1: "Mostly alone / weak support",
-                2: "Limited support or buy-in",
-                3: "Some support but gaps remain",
-                4: "Good support network",
-                5: "Strong aligned support system",
-            },
-=======
             help="1 = weak support, 5 = strong support",
->>>>>>> fec65288cb896b4679e84e61241f185fa625e150
         )
         st.text_input(
             "Primary Decision Driver",

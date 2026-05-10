@@ -10,8 +10,9 @@ STARTUP_WORKFLOW_CONFIG: Final[dict[str, object]] = {
     "label": "New Business / Startup",
     "short_label": "Startup",
     "description": "Evaluate a new concept, launch assumptions, capital pressure, market validation, and execution readiness.",
-    "status": "Workflow in progress",
-    "enabled": False,
-    "placeholder": True,
-    "default_page": "Workflow Placeholder",
+    "status": "MVP workflow shell in progress",
+    "enabled": True,
+    "placeholder": False,
+    "default_page": "Startup Overview",
+    "entry_page": "Startup Overview",
 }

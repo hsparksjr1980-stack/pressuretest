@@ -1,23 +1,6 @@
 export default function Home() {
   return (
     <main className="min-h-screen bg-[#0b0f14] px-6 py-8 text-white">
-      <nav className="mx-auto flex max-w-6xl items-center justify-between border-b border-slate-800 pb-6">
-        <div className="text-lg font-semibold tracking-tight">PressureTest</div>
-
-        <div className="hidden gap-6 text-sm text-slate-300 md:flex">
-          <a href="#how-it-works" className="hover:text-white">How It Works</a>
-          <a href="#evaluates" className="hover:text-white">What It Evaluates</a>
-          <a href="#disclaimer" className="hover:text-white">Disclaimer</a>
-        </div>
-
-        <a
-          href="#"
-          className="rounded-lg border border-slate-700 px-4 py-2 text-sm font-medium text-slate-200 hover:border-slate-500"
-        >
-          Run a Pressure Test
-        </a>
-      </nav>
-
       <section className="mx-auto max-w-6xl py-24">
         <p className="mb-5 text-sm uppercase tracking-[0.3em] text-slate-400">
           Franchise & Small-Business Diligence

@@ -1,0 +1,27 @@
+# macOS
+.DS_Store
+
+# Python cache/bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Streamlit cache and local config
+.streamlit/cache/
+
+# Local temp/runtime files
+*.tmp
+*.temp
+*.swp
+*.swo
+*.pid
+*.log
+
+# Project-local scratch directory
+pressuretest_modular_tasks_1_5_plug_and_play/

@@ -9,14 +9,14 @@ v0.5.0-dev
 Current development phase:
 
 ```text
-Phase 3B — Startup Assessment State + Questions
+Phase 3C — Startup Scoring MVP
 ```
 
 PressureTest is a Streamlit app for evaluating franchise opportunities and early-stage startup concepts through structured operational diligence workflows.
 
 The platform now supports:
 - franchise diligence workflow (primary production workflow)
-- startup workflow shell with startup assessment-state capture
+- startup workflow shell with startup assessment-state capture and MVP scoring
 - acquisition workflow placeholder architecture
 
 ---
@@ -39,7 +39,7 @@ Includes:
 ### Startup Workflow
 Status:
 ```text
-Assessment-state MVP
+Scoring MVP
 ```
 
 Currently includes:
@@ -47,14 +47,25 @@ Currently includes:
 - startup-only navigation
 - startup assessment questions
 - startup session-state persistence
-- startup assessment summary page
+- startup readiness summary page
+- startup MVP readiness scoring
+- startup risk-flag summaries
+- startup validation-question prompts
+
+Startup scoring currently evaluates:
+- liquidity/runway pressure
+- market validation
+- pricing assumptions
+- customer acquisition approach
+- founder/operator involvement
+- execution complexity
+- launch readiness
 
 Not yet implemented:
-- startup scoring
-- startup calculations
-- startup recommendations
-- generated startup reports
-- startup persistence/database layer
+- advanced startup financial modeling
+- startup generated recommendations
+- startup database persistence
+- acquisition workflow engine
 
 ### Acquisition Workflow
 Status:
@@ -74,19 +85,28 @@ Startup Financial Assumptions
 Startup Readiness Report
 ```
 
-The Startup Readiness Report currently summarizes entered answers only.
+The Startup Readiness Report currently provides:
+- MVP startup signal
+- scoring summary
+- top risks
+- strongest signals
+- weakest assumptions
+- next validation questions
+- startup answer summary
 
-It does not generate:
-- scores
-- recommendations
-- calculations
-- advisory conclusions
+The report does not provide:
+- investment recommendations
+- legal advice
+- tax advice
+- accounting advice
+- lending advice
+- guaranteed outcomes
 
 ---
 
 ## Architecture Notes
 
-The repo now contains isolated workflow boundaries:
+The repo contains isolated workflow boundaries:
 
 ```text
 /workflows
@@ -101,8 +121,9 @@ Shared platform architecture includes:
 - isolated startup state handling
 - shared risk taxonomy foundation
 - startup-only navigation registry
+- startup-only scoring engine
 
-Franchise workflow logic remains isolated from startup workflow state.
+Franchise workflow logic remains isolated from startup workflow state and startup scoring.
 
 ---
 
@@ -110,8 +131,8 @@ Franchise workflow logic remains isolated from startup workflow state.
 
 Current implementation intentionally avoids:
 - shared scoring engines between workflows
-- startup financial modeling
-- startup advisory outputs
+- advanced startup financial modeling
+- generated investment recommendations
 - acquisition workflow logic
 - database persistence
 - production auth/payment infrastructure
@@ -119,7 +140,7 @@ Current implementation intentionally avoids:
 The current startup workflow is intentionally scoped as:
 
 ```text
-workflow shell + assessment-state capture
+startup workflow + MVP readiness scoring
 ```
 
 not:

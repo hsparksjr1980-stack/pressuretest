@@ -2,33 +2,35 @@
 
 ## v0.5.0-dev
 
-### Phase 3B — Startup Assessment State + Questions
+### Phase 3C — Startup Scoring MVP
 
 Added:
-- startup-specific assessment state
-- isolated startup session-state handling
-- startup workflow shell navigation
-- startup assessment question pages
-- startup answer persistence across navigation
-- startup readiness summary page
+- startup-specific scoring engine
+- startup readiness MVP signal
+- startup scoring summaries
+- startup risk-flag summaries
+- strongest-signal summaries
+- weakest-assumption summaries
+- next validation-question prompts
+- startup scoring integration into readiness report
 
-Startup workflow currently supports:
-- concept/problem intake
-- target customer definition
-- market-demand capture
+Startup scoring currently evaluates:
+- liquidity/runway pressure
+- market validation
 - pricing assumptions
 - customer acquisition approach
 - founder/operator involvement
-- execution complexity inputs
-- launch-readiness inputs
-- startup cost and burn inputs
-- startup answer summary view
+- execution complexity
+- launch readiness
+
+Startup scoring outputs:
+- Stronger foundation
+- Needs validation
+- High pressure / high uncertainty
 
 Not yet implemented:
-- startup scoring
-- startup calculations
-- startup recommendations
-- startup generated reports
+- advanced startup financial modeling
+- generated investment recommendations
 - startup persistence/database layer
 - acquisition workflow engine
 
@@ -38,3 +40,4 @@ No changes introduced to:
 - franchise reports
 - paywall logic
 - acquisition placeholder behavior
+- legal/tax/accounting/lending advice logic

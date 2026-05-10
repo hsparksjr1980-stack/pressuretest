@@ -4,34 +4,17 @@ from __future__ import annotations
 
 from typing import Final
 
+from workflows.acquisition.config import ACQUISITION_WORKFLOW_CONFIG
+from workflows.franchise.config import FRANCHISE_WORKFLOW_CONFIG
+from workflows.startup.config import STARTUP_WORKFLOW_CONFIG
+
 
 DEFAULT_WORKFLOW: Final[str] = "franchise"
 
 WORKFLOW_CONFIG: Final[dict[str, dict[str, object]]] = {
-    "franchise": {
-        "label": "Franchise Opportunity",
-        "short_label": "Franchise",
-        "description": "Evaluate a franchise system, operator fit, financial pressure, and execution readiness.",
-        "status": "Available now",
-        "enabled": True,
-        "entry_page": "Overview",
-    },
-    "acquisition": {
-        "label": "Existing Business Acquisition",
-        "short_label": "Acquisition",
-        "description": "Evaluate an operating business, seller claims, transition risk, and post-close execution realities.",
-        "status": "Workflow in progress",
-        "enabled": False,
-        "entry_page": "Workflow Placeholder",
-    },
-    "startup": {
-        "label": "New Business / Startup",
-        "short_label": "Startup",
-        "description": "Evaluate a new concept, launch assumptions, capital pressure, market validation, and execution readiness.",
-        "status": "Workflow in progress",
-        "enabled": False,
-        "entry_page": "Workflow Placeholder",
-    },
+    "franchise": dict(FRANCHISE_WORKFLOW_CONFIG),
+    "acquisition": dict(ACQUISITION_WORKFLOW_CONFIG),
+    "startup": dict(STARTUP_WORKFLOW_CONFIG),
 }
 
 VALID_WORKFLOWS: Final[set[str]] = set(WORKFLOW_CONFIG.keys())
@@ -45,3 +28,11 @@ def get_workflow_config(workflow_type: str | None) -> dict[str, object]:
 
 def get_workflow_label(workflow_type: str | None) -> str:
     return str(get_workflow_config(workflow_type)["label"])
+
+
+def is_placeholder_workflow(workflow_type: str | None) -> bool:
+    return bool(get_workflow_config(workflow_type).get("placeholder", True))
+
+
+def get_workflow_default_page(workflow_type: str | None) -> str:
+    return str(get_workflow_config(workflow_type).get("default_page", "Overview"))

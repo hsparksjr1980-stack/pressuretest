@@ -1,13 +1,9 @@
 streamlit>=1.36.0
 pandas
 numpy
-<<<<<<< HEAD
 plotly
 altair
 reportlab
 requests
 beautifulsoup4
 openai
-=======
-reportlab
->>>>>>> fec65288cb896b4679e84e61241f185fa625e150

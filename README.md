@@ -1,14 +1,8 @@
-<<<<<<< HEAD
 # PressureTest
 
 PressureTest is a Streamlit app for evaluating whether a franchise opportunity is worth pursuing, financing, and negotiating.
-=======
-# Reality Check
 
-Reality Check is a Streamlit app for evaluating whether a franchise opportunity is worth pursuing, financing, and negotiating.
->>>>>>> fec65288cb896b4679e84e61241f185fa625e150
-
-The product is organized as a guided decision flow. Users move from a welcome/profile gate into a multi-phase assessment, generate decision outputs, and optionally unlock Pro execution tools after choosing **Move Forward**.
+The product is organized as a guided decision flow. Users move from a welcome/profile gate into a multi-phase assessment, generate decision outputs, and optionally unlock Pro execution tools.
 
 ## What the app does
 
@@ -26,11 +20,7 @@ The current repo already contains the core assessment flow, report views, and Pr
 Welcome
   -> Profile
   -> Overview
-<<<<<<< HEAD
   -> PressureTest
-=======
-  -> Reality Check
->>>>>>> fec65288cb896b4679e84e61241f185fa625e150
   -> Concept Validation
   -> Opportunity Fit & Recommendations
   -> Financial Model
@@ -45,11 +35,7 @@ Welcome
 ### Free pages
 
 - Overview
-<<<<<<< HEAD
 - PressureTest
-=======
-- Reality Check
->>>>>>> fec65288cb896b4679e84e61241f185fa625e150
 - Concept Validation
 - Opportunity Fit & Recommendations
 - Financial Model
@@ -121,18 +107,14 @@ welcome_ui.py                  # front door / auth shell
 profile_ui.py                  # profile intake
 overview_ui.py                 # overview page
 
-<<<<<<< HEAD
 phase0_*.py                    # PressureTest questions, logic, UI
-=======
-phase0_*.py                    # Reality Check questions, logic, UI
->>>>>>> fec65288cb896b4679e84e61241f185fa625e150
 phase1_*.py                    # Concept Validation questions, logic, UI
 post_discovery_*.py            # Post-Discovery questions, logic, UI
 
 financial_model_ui.py          # financial model UI
 opportunity_fit_*.py           # fit/recommendation engine and UI
 final_decision_ui.py           # final recommendation / decision page
-decision_engine.py             # normalized decision packet builder
+decision_engine.py            # normalized decision packet builder
 
 free_report_ui.py              # free report output
 report_ui.py                   # report screen
@@ -202,10 +184,7 @@ They increase archive size and make the repo feel less production-ready.
 3. Add screenshots of the main user flow.
 4. Add environment-variable and deployment guidance.
 5. Turn Pro access, auth, and persistence into real services.
-<<<<<<< HEAD
-
 
 ## Advisory Boundary
-PressureTest is a blunt operating and diligence screen. It is not legal, tax, lending, accounting, or investment advice. Users should validate findings with qualified advisors before signing franchise, lease, loan, or other binding documents.
-=======
->>>>>>> fec65288cb896b4679e84e61241f185fa625e150
+
+PressureTest is a blunt operating and diligence screen. It is not legal, tax, lending, accounting, or investment advice. Users should validate findings with qualified advisors before signing franchise agreements or making material financial commitments.

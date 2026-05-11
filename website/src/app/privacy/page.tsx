@@ -13,46 +13,44 @@ export default function PrivacyPage() {
         <p className="mt-6 text-slate-400">Last updated: May 11, 2026</p>
 
         <div className="mt-12 space-y-10 leading-8 text-slate-300">
-          <section>
-            <h2 className="mb-3 text-2xl font-semibold text-white">Overview</h2>
-            <p>
-              PressureTest is designed as an educational diligence and operational
-              planning tool. This page explains how information may be collected,
-              used, and protected when users interact with the platform.
-            </p>
-          </section>
+          {[
+            [
+              "Overview",
+              "PressureTest is an educational diligence and operational planning platform. This page explains how information may be collected, used, and protected when users interact with the platform.",
+            ],
+            [
+              "Information We May Collect",
+              "We may collect information voluntarily provided by users, including names, email addresses, waitlist submissions, questionnaire responses, calculator inputs, and diligence-related assumptions.",
+            ],
+            [
+              "How Information May Be Used",
+              "Information may be used to operate the platform, improve workflows, respond to inquiries, provide educational outputs, improve usability, and support future product development.",
+            ],
+            [
+              "Data Storage",
+              "PressureTest may use third-party hosting, analytics, infrastructure, and software providers to support operation of the platform.",
+            ],
+            [
+              "No Sale of Personal Information",
+              "PressureTest does not currently intend to sell personal information to third parties.",
+            ],
+            [
+              "User Responsibility",
+              "Users should avoid submitting sensitive personal, financial, legal, medical, or confidential business information unless specifically requested through secure workflows.",
+            ],
+            [
+              "Working Draft Notice",
+              "This Privacy Policy is a working draft and should be reviewed by qualified counsel before public launch.",
+            ],
+          ].map(([title, body]) => (
+            <section key={title}>
+              <h2 className="mb-3 text-2xl font-semibold text-white">
+                {title}
+              </h2>
 
-          <section>
-            <h2 className="mb-3 text-2xl font-semibold text-white">
-              Information We May Collect
-            </h2>
-            <p>
-              We may collect information users voluntarily provide, such as name,
-              email address, business evaluation details, form responses, waitlist
-              submissions, and inputs entered into diligence tools or calculators.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="mb-3 text-2xl font-semibold text-white">
-              How Information May Be Used
-            </h2>
-            <p>
-              Information may be used to operate the platform, improve product
-              functionality, respond to inquiries, provide educational outputs,
-              support waitlist communication, and improve diligence workflows.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="mb-3 text-2xl font-semibold text-white">
-              Working Draft Notice
-            </h2>
-            <p>
-              This page is a working draft and should be reviewed by qualified
-              counsel before public launch.
-            </p>
-          </section>
+              <p>{body}</p>
+            </section>
+          ))}
         </div>
       </section>
     </main>

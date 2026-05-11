@@ -13,68 +13,44 @@ export default function DataUsePage() {
         <p className="mt-6 text-slate-400">Last updated: May 11, 2026</p>
 
         <div className="mt-12 space-y-10 leading-8 text-slate-300">
-          <section>
-            <h2 className="mb-3 text-2xl font-semibold text-white">
-              Purpose of Data Use
-            </h2>
-            <p>
-              PressureTest uses user-provided information to help structure
-              diligence workflows, generate educational outputs, organize
-              assumptions, and identify operational pressure points.
-            </p>
-          </section>
+          {[
+            [
+              "Purpose of Data Use",
+              "PressureTest uses user-provided information to help structure diligence workflows, organize assumptions, review operational readiness, and generate educational planning outputs.",
+            ],
+            [
+              "User Inputs",
+              "Users may voluntarily enter assumptions related to startup costs, working capital, staffing, revenue expectations, operating risks, and execution timelines.",
+            ],
+            [
+              "Educational Outputs",
+              "PressureTest may use submitted information to generate summaries, calculators, workflows, operational reviews, or educational reporting outputs.",
+            ],
+            [
+              "Analytics & Improvement",
+              "Usage patterns and platform interactions may be reviewed to improve workflows, usability, navigation, educational content, and product functionality.",
+            ],
+            [
+              "No Outcome Prediction",
+              "PressureTest does not guarantee outcomes, validate assumptions, predict success, or replace independent diligence and professional review.",
+            ],
+            [
+              "Third-Party Services",
+              "PressureTest may rely on third-party infrastructure, hosting, analytics, and software providers to support operation of the platform.",
+            ],
+            [
+              "Working Draft Notice",
+              "This Data Use page is a working draft and should be reviewed by qualified counsel before public launch.",
+            ],
+          ].map(([title, body]) => (
+            <section key={title}>
+              <h2 className="mb-3 text-2xl font-semibold text-white">
+                {title}
+              </h2>
 
-          <section>
-            <h2 className="mb-3 text-2xl font-semibold text-white">
-              User-Provided Inputs
-            </h2>
-            <p>
-              Users may enter assumptions related to startup costs, working
-              capital, staffing, ramp timing, revenue expectations, operating
-              risks, and business readiness. These inputs are used to generate
-              educational diligence summaries and planning outputs.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="mb-3 text-2xl font-semibold text-white">
-              No Outcome Guarantees
-            </h2>
-            <p>
-              PressureTest does not predict success or failure, recommend
-              investments, endorse franchise systems, or validate the accuracy
-              of user assumptions. Outputs are educational and should be
-              independently verified.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="mb-3 text-2xl font-semibold text-white">
-              Data Accuracy
-            </h2>
-            <p>
-              The quality of PressureTest outputs depends on the quality and
-              completeness of information provided by the user. Users are
-              responsible for validating assumptions with qualified
-              professionals and independent sources.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="mb-3 text-2xl font-semibold text-white">
-              Future Product Development
-            </h2>
-            <p>
-              Aggregated or non-identifying usage patterns may be reviewed to
-              improve workflows, content, calculators, reports, and platform
-              usability.
-            </p>
-          </section>
-
-          <p className="text-sm text-slate-500">
-            This page is a working draft and should be reviewed by qualified
-            counsel before public launch.
-          </p>
+              <p>{body}</p>
+            </section>
+          ))}
         </div>
       </section>
     </main>

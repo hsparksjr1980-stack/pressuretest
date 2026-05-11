@@ -1,0 +1,8 @@
+streamlit>=1.36.0
+pandas
+numpy
+plotly
+altair
+reportlab
+requests
+beautifulsoup4

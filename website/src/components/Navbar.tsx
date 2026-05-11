@@ -1,34 +1,45 @@
+import Image from "next/image";
+
 export default function Navbar() {
   return (
-    <nav className="mx-auto flex max-w-6xl items-center justify-between border-b border-slate-800 bg-[#0b0f14] px-6 py-6">
-      <a href="/" className="text-lg font-semibold tracking-tight text-white">
-        PressureTest
-      </a>
-
-      <div className="flex gap-6 text-sm text-slate-300">
-        <a href="/how-it-works" className="hover:text-white">
-          How It Works
+    <nav className="border-b border-slate-200 bg-white">
+      <div className="mx-auto flex max-w-6x1 items-center justify-between px-6 py-0">
+        <a href="/" className="flex items-center">
+          <Image
+            src="/logo.png"
+            alt="PressureTest"
+            width={300}
+            height={70}
+            priority
+            className="max-h-35 w-auto object-contain"
+          />
         </a>
 
-        <a href="/pricing" className="hover:text-white">
-          Pricing
-        </a>
+        <div className="hidden items-center gap-8 text-sm text-slate-600 md:flex">
+          <a href="/how-it-works" className="hover:text-black">
+            How It Works
+          </a>
 
-        <a href="/blog" className="hover:text-white">
-          Blog
-        </a>
+          <a href="/pricing" className="hover:text-black">
+            Pricing
+          </a>
 
-        <a href="/contact" className="hover:text-white">
-          Contact
+          <a href="/blog" className="hover:text-black">
+            Blog
+          </a>
+
+          <a href="/privacy" className="hover:text-black">
+            Privacy
+          </a>
+        </div>
+
+        <a
+          href="/contact"
+          className="rounded-xl border border-slate-300 px-5 py-2.5 text-sm font-medium text-black hover:border-slate-500"
+        >
+          Join Waitlist
         </a>
       </div>
-
-      <a
-        href="/contact"
-        className="rounded-lg border border-slate-700 px-4 py-2 text-sm font-medium text-slate-200 hover:border-slate-500"
-      >
-        Join Waitlist
-      </a>
     </nav>
   );
 }

@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections import defaultdict
 from collections.abc import Callable
 from typing import Final
+from uuid import uuid4
 
 import streamlit as st
 
@@ -22,6 +23,7 @@ from opportunity_fit_ui import render_opportunity_fit
 from overview_ui import render_overview
 from page_config import DEFAULT_PAGE, PAGES, SIDEBAR_PAGES, get_page_config, is_pro_page
 from paywall_ui import render_paywall
+from persistence import apply_session_to_state, delete_session, list_sessions, load_session, save_session
 from phase0_ui import render_phase_0
 from phase1_ui import render_phase_1
 from phase_gate import guard_page_or_warn
@@ -58,6 +60,7 @@ RESET_KEYS_TO_KEEP: Final[list[str]] = [
     "premium_access",
     "dev_pro_access",
     "workflow_type",
+    "active_session_id",
 ]
 
 PAGE_RENDERERS: Final[dict[str, PageRenderer]] = {
@@ -102,23 +105,38 @@ def _current_workflow() -> str:
     return workflow_type
 
 
+def _default_page_for_workflow(workflow_type: str) -> str:
+    if workflow_type == "startup":
+        return STARTUP_DEFAULT_PAGE
+    return DEFAULT_PAGE
+
+
+def _valid_pages_for_workflow(workflow_type: str) -> list[str]:
+    if workflow_type == "startup":
+        return list(STARTUP_PAGES)
+    if workflow_type == "franchise":
+        return list(PAGES)
+    return []
+
+
+def _normalize_page_for_workflow(workflow_type: str, page_name: str | None = None) -> str:
+    pages = _valid_pages_for_workflow(workflow_type)
+    current_page = page_name or st.session_state.get("current_page")
+    if current_page in pages:
+        return str(current_page)
+    return _default_page_for_workflow(workflow_type)
+
+
 def ensure_required_state() -> None:
     st.session_state.setdefault("auth_complete", False)
     st.session_state.setdefault("profile_complete", False)
     st.session_state.setdefault("premium_access", False)
     st.session_state.setdefault("dev_pro_access", True)
     st.session_state.setdefault("workflow_type", DEFAULT_WORKFLOW)
+    st.session_state.setdefault("active_session_id", str(uuid4()))
 
     workflow_type = _current_workflow()
-    current_page = st.session_state.get("current_page", DEFAULT_PAGE)
-
-    if workflow_type == "startup":
-        if current_page not in STARTUP_PAGES:
-            current_page = STARTUP_DEFAULT_PAGE
-    elif current_page not in PAGES:
-        current_page = DEFAULT_PAGE
-
-    st.session_state["current_page"] = current_page
+    st.session_state["current_page"] = _normalize_page_for_workflow(workflow_type)
 
 
 def render_gates() -> bool:
@@ -152,6 +170,84 @@ def _go_to(page_name: str) -> None:
     st.rerun()
 
 
+def _session_default_label() -> str:
+    workflow_type = _current_workflow()
+    workflow_label = get_workflow_config(workflow_type)["label"]
+    profile_name = st.session_state.get("franchise_name") or st.session_state.get("full_name") or "Untitled"
+    return f"{profile_name} — {workflow_label}"
+
+
+def _session_option_label(session_id: str, metadata_lookup: dict[str, object]) -> str:
+    metadata = metadata_lookup[session_id]
+    workflow = getattr(metadata, "workflow_type", "franchise").title()
+    label = getattr(metadata, "label", "Untitled session")
+    updated_at = str(getattr(metadata, "updated_at", ""))
+    return f"{label} · {workflow} · {updated_at[:10]}"
+
+
+def _restore_saved_session(session_id: str) -> None:
+    session = load_session(session_id)
+    if session is None:
+        st.sidebar.error("Saved session could not be found.")
+        return
+
+    apply_session_to_state(session)
+    st.session_state["active_session_id"] = session.session_id
+
+    workflow_type = _current_workflow()
+    st.session_state["current_page"] = _normalize_page_for_workflow(
+        workflow_type,
+        st.session_state.get("current_page"),
+    )
+    st.sidebar.success("Session loaded.")
+    st.rerun()
+
+
+def render_persistence_controls() -> None:
+    with st.sidebar.expander("Saved sessions", expanded=False):
+        st.caption("Local JSON saves for this app instance. Cloud/user accounts come later.")
+
+        label = st.text_input(
+            "Session name",
+            value=str(st.session_state.get("session_save_label") or _session_default_label()),
+            key="session_save_label",
+        )
+
+        if st.button("Save current session", use_container_width=True, type="primary"):
+            session_id = str(st.session_state.get("active_session_id") or uuid4())
+            st.session_state["active_session_id"] = session_id
+            saved = save_session(user_id=session_id, label=label.strip() or _session_default_label())
+            st.sidebar.success(f"Saved: {saved.label}")
+
+        sessions = list_sessions()
+        if not sessions:
+            st.caption("No saved sessions yet.")
+            return
+
+        metadata_lookup = {session.session_id: session for session in sessions}
+        selected_session_id = st.selectbox(
+            "Prior sessions",
+            options=[session.session_id for session in sessions],
+            format_func=lambda value: _session_option_label(value, metadata_lookup),
+            key="selected_saved_session_id",
+        )
+
+        left, right = st.columns(2)
+        with left:
+            if st.button("Load", use_container_width=True):
+                _restore_saved_session(selected_session_id)
+
+        with right:
+            confirm_delete = st.checkbox("Confirm delete", key="confirm_delete_saved_session")
+            if st.button("Delete", disabled=not confirm_delete, use_container_width=True):
+                deleted = delete_session(selected_session_id)
+                if deleted and st.session_state.get("active_session_id") == selected_session_id:
+                    st.session_state["active_session_id"] = str(uuid4())
+                st.session_state["confirm_delete_saved_session"] = False
+                st.sidebar.success("Deleted saved session." if deleted else "Saved session was not found.")
+                st.rerun()
+
+
 def _render_workflow_sidebar(workflow_type: str) -> bool:
     workflow_config = get_workflow_config(workflow_type)
     st.sidebar.caption("Active workflow")
@@ -172,6 +268,7 @@ def _render_startup_sidebar() -> None:
     workflow_config = get_workflow_config("startup")
     st.sidebar.caption("Active workflow")
     st.sidebar.info(f"{workflow_config['label']}\n\n{workflow_config['status']}")
+    render_persistence_controls()
     st.sidebar.caption("Startup workflow shell")
     st.sidebar.markdown("---")
     st.sidebar.caption("Startup navigation")
@@ -211,6 +308,8 @@ def render_sidebar() -> None:
     )
     st.sidebar.caption("Your plan")
     st.sidebar.info(f"{plan_label}\n\n{plan_subtext}")
+
+    render_persistence_controls()
 
     packet = build_decision_packet()
     next_page, next_reason = _recommended_page()
@@ -264,7 +363,7 @@ def render_reset_controls() -> None:
         )
         if st.button("Reset now", type="secondary", disabled=not confirm_reset, use_container_width=True):
             reset_assessment_state(keys_to_keep=RESET_KEYS_TO_KEEP)
-            st.session_state["current_page"] = DEFAULT_PAGE
+            st.session_state["current_page"] = _default_page_for_workflow(_current_workflow())
             st.session_state["confirm_reset_assessment"] = False
             st.rerun()
 
@@ -272,11 +371,7 @@ def render_reset_controls() -> None:
 def get_current_page() -> str:
     page = st.session_state.get("current_page", DEFAULT_PAGE)
     workflow_type = _current_workflow()
-    if workflow_type == "startup":
-        return page if page in STARTUP_PAGES else STARTUP_DEFAULT_PAGE
-    if page not in PAGES:
-        return DEFAULT_PAGE
-    return page
+    return _normalize_page_for_workflow(workflow_type, page)
 
 
 def render_current_page(page: str) -> None:

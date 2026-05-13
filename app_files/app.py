@@ -10,6 +10,7 @@ from uuid import uuid4
 import streamlit as st
 
 from app_state import initialize_app_state, reset_assessment_state
+from auth import ensure_authenticated, get_authenticated_user_id, render_auth_sidebar_summary
 from branding import APP_PRODUCT, FIT_PAGE_LABEL
 from buildout_tracker_ui import render_buildout_tracker
 from decision_engine import build_decision_packet
@@ -49,6 +50,11 @@ PageRenderer = Callable[[], None]
 
 RESET_KEYS_TO_KEEP: Final[list[str]] = [
     "auth_complete",
+    "is_authenticated",
+    "auth_user_id",
+    "auth_email",
+    "auth_access_token",
+    "auth_refresh_token",
     "profile_complete",
     "full_name",
     "email",
@@ -127,8 +133,20 @@ def _normalize_page_for_workflow(workflow_type: str, page_name: str | None = Non
     return _default_page_for_workflow(workflow_type)
 
 
+def _local_session_user_id() -> str:
+    auth_user_id = get_authenticated_user_id()
+    if auth_user_id:
+        return auth_user_id
+    session_id = str(st.session_state.get("active_session_id") or uuid4())
+    st.session_state["active_session_id"] = session_id
+    return session_id
+
+
 def ensure_required_state() -> None:
     st.session_state.setdefault("auth_complete", False)
+    st.session_state.setdefault("is_authenticated", False)
+    st.session_state.setdefault("auth_user_id", "")
+    st.session_state.setdefault("auth_email", "")
     st.session_state.setdefault("profile_complete", False)
     st.session_state.setdefault("premium_access", False)
     st.session_state.setdefault("dev_pro_access", True)
@@ -140,6 +158,9 @@ def ensure_required_state() -> None:
 
 
 def render_gates() -> bool:
+    if not ensure_authenticated():
+        return False
+
     if not st.session_state["auth_complete"]:
         render_welcome()
         return False
@@ -191,7 +212,16 @@ def _restore_saved_session(session_id: str) -> None:
         st.sidebar.error("Saved session could not be found.")
         return
 
+    auth_keys = {
+        "is_authenticated": st.session_state.get("is_authenticated", False),
+        "auth_user_id": st.session_state.get("auth_user_id", ""),
+        "auth_email": st.session_state.get("auth_email", ""),
+        "auth_access_token": st.session_state.get("auth_access_token", ""),
+        "auth_refresh_token": st.session_state.get("auth_refresh_token", ""),
+    }
+
     apply_session_to_state(session)
+    st.session_state.update(auth_keys)
     st.session_state["active_session_id"] = session.session_id
 
     workflow_type = _current_workflow()
@@ -205,7 +235,7 @@ def _restore_saved_session(session_id: str) -> None:
 
 def render_persistence_controls() -> None:
     with st.sidebar.expander("Saved sessions", expanded=False):
-        st.caption("Local JSON saves for this app instance. Cloud/user accounts come later.")
+        st.caption("Local JSON saves for this app instance. Authenticated user IDs are available for the next persistence phase.")
 
         label = st.text_input(
             "Session name",
@@ -214,7 +244,7 @@ def render_persistence_controls() -> None:
         )
 
         if st.button("Save current session", use_container_width=True, type="primary"):
-            session_id = str(st.session_state.get("active_session_id") or uuid4())
+            session_id = _local_session_user_id()
             st.session_state["active_session_id"] = session_id
             saved = save_session(user_id=session_id, label=label.strip() or _session_default_label())
             st.sidebar.success(f"Saved: {saved.label}")
@@ -268,6 +298,7 @@ def _render_startup_sidebar() -> None:
     workflow_config = get_workflow_config("startup")
     st.sidebar.caption("Active workflow")
     st.sidebar.info(f"{workflow_config['label']}\n\n{workflow_config['status']}")
+    render_auth_sidebar_summary()
     render_persistence_controls()
     st.sidebar.caption("Startup workflow shell")
     st.sidebar.markdown("---")
@@ -288,6 +319,7 @@ def _render_startup_sidebar() -> None:
 
 def render_sidebar() -> None:
     render_sidebar_branding()
+    render_auth_sidebar_summary()
 
     workflow_type = _current_workflow()
 

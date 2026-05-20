@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 const tiers = [
   {
     name: "Free",
@@ -69,12 +71,12 @@ export default function Pricing() {
                 ))}
               </ul>
 
-              <a
+              <Link
                 href="/contact"
                 className="mt-8 inline-block rounded-xl bg-white px-5 py-3 font-semibold text-black hover:bg-slate-200"
               >
                 Join Waitlist
-              </a>
+              </Link>
             </div>
           ))}
         </div>

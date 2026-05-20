@@ -1,10 +1,12 @@
+import Link from "next/link";
+
 export default function HowItWorks() {
   return (
     <main className="min-h-screen bg-[#0b0f14] px-6 py-8 text-white">
       <section className="mx-auto max-w-6xl py-20">
-        <a href="/" className="text-sm text-slate-400 hover:text-white">
+        <Link href="/" className="text-sm text-slate-400 hover:text-white">
           ← Back to Home
-        </a>
+        </Link>
 
         <p className="mt-16 mb-4 text-sm uppercase tracking-[0.3em] text-slate-500">
           How It Works

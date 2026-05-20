@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function Footer() {
   return (
     <footer className="border-t border-slate-800 bg-[#0b0f14] px-6 py-12 text-white">
@@ -16,21 +18,21 @@ export default function Footer() {
             <p className="mb-4 font-semibold text-white">Platform</p>
 
             <div className="space-y-3 text-slate-400">
-              <a href="/" className="block hover:text-white">
+              <Link href="/" className="block hover:text-white">
                 Home
-              </a>
+              </Link>
 
-              <a href="/how-it-works" className="block hover:text-white">
+              <Link href="/how-it-works" className="block hover:text-white">
                 How It Works
-              </a>
+              </Link>
 
-              <a href="/pricing" className="block hover:text-white">
+              <Link href="/pricing" className="block hover:text-white">
                 Pricing
-              </a>
+              </Link>
 
-              <a href="/blog" className="block hover:text-white">
+              <Link href="/blog" className="block hover:text-white">
                 Blog
-              </a>
+              </Link>
             </div>
           </div>
 
@@ -38,21 +40,21 @@ export default function Footer() {
             <p className="mb-4 font-semibold text-white">Legal</p>
 
             <div className="space-y-3 text-slate-400">
-              <a href="/privacy" className="block hover:text-white">
+              <Link href="/privacy" className="block hover:text-white">
                 Privacy
-              </a>
+              </Link>
 
-              <a href="/data-use" className="block hover:text-white">
+              <Link href="/data-use" className="block hover:text-white">
                 Data Use
-              </a>
+              </Link>
 
-              <a href="/terms" className="block hover:text-white">
+              <Link href="/terms" className="block hover:text-white">
                 Terms
-              </a>
+              </Link>
 
-              <a href="/disclaimer" className="block hover:text-white">
+              <Link href="/disclaimer" className="block hover:text-white">
                 Disclaimer
-              </a>
+              </Link>
             </div>
           </div>
 
@@ -60,26 +62,26 @@ export default function Footer() {
             <p className="mb-4 font-semibold text-white">Content</p>
 
             <div className="space-y-3 text-slate-400">
-              <a
+              <Link
                 href="/blog/what-first-time-franchise-buyers-underestimate"
                 className="block hover:text-white"
               >
                 First-Time Buyers
-              </a>
+              </Link>
 
-              <a
+              <Link
                 href="/blog/how-much-working-capital-do-new-franchise-owners-need"
                 className="block hover:text-white"
               >
                 Working Capital
-              </a>
+              </Link>
 
-              <a
+              <Link
                 href="/blog/pressure-testing-revenue-assumptions-before-signing"
                 className="block hover:text-white"
               >
                 Revenue Assumptions
-              </a>
+              </Link>
             </div>
           </div>
         </div>

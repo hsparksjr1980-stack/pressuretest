@@ -7,14 +7,14 @@ from typing import Any, Final
 
 import streamlit as st
 
-from page_config import DEFAULT_PAGE
+from page_config import DEFAULT_PAGE, normalize_page_name
 
 
 CORE_DEFAULTS: Final[dict[str, Any]] = {
     "auth_complete": False,
     "profile_complete": False,
     "premium_access": False,
-    "dev_pro_access": True,
+    "dev_pro_access": False,
     "current_page": DEFAULT_PAGE,
     "nav_target_page": DEFAULT_PAGE,
     "workflow_type": "franchise",
@@ -57,7 +57,7 @@ SESSION_DEFAULTS: Final[dict[str, Any]] = {
     **UI_DEFAULTS,
 }
 
-VALID_WORKFLOWS: Final[set[str]] = {"franchise", "acquisition", "startup"}
+VALID_WORKFLOWS: Final[set[str]] = {"franchise"}
 
 
 def _clone_default(value: Any) -> Any:
@@ -73,19 +73,17 @@ def initialize_app_state() -> None:
 
 
 def normalize_session_state() -> None:
-    current_page = st.session_state.get("current_page", DEFAULT_PAGE)
+    current_page = normalize_page_name(st.session_state.get("current_page", DEFAULT_PAGE))
     if not isinstance(current_page, str) or not current_page.strip():
-        st.session_state["current_page"] = DEFAULT_PAGE
+        current_page = DEFAULT_PAGE
+    st.session_state["current_page"] = current_page
 
-    nav_target_page = st.session_state.get("nav_target_page", st.session_state["current_page"])
+    nav_target_page = normalize_page_name(st.session_state.get("nav_target_page", current_page))
     if not isinstance(nav_target_page, str) or not nav_target_page.strip():
-        st.session_state["nav_target_page"] = st.session_state["current_page"]
+        nav_target_page = current_page
+    st.session_state["nav_target_page"] = nav_target_page
 
-    # Normalize workflow_type (safe for old sessions)
-    workflow = st.session_state.get("workflow_type", "franchise")
-    if workflow not in VALID_WORKFLOWS:
-        workflow = "franchise"
-    st.session_state["workflow_type"] = workflow
+    st.session_state["workflow_type"] = "franchise"
 
     for key in (
         "auth_complete",
@@ -119,13 +117,14 @@ def set_state(**kwargs: Any) -> None:
 
 
 def get_current_page() -> str:
-    page = st.session_state.get("current_page", DEFAULT_PAGE)
+    page = normalize_page_name(st.session_state.get("current_page", DEFAULT_PAGE))
     if not isinstance(page, str) or not page.strip():
         return DEFAULT_PAGE
     return page
 
 
 def set_current_page(page_name: str) -> None:
+    page_name = normalize_page_name(page_name)
     if not isinstance(page_name, str) or not page_name.strip():
         raise ValueError("page_name must be a non-empty string.")
     st.session_state["current_page"] = page_name
@@ -133,21 +132,16 @@ def set_current_page(page_name: str) -> None:
 
 
 def get_workflow_type() -> str:
-    workflow = st.session_state.get("workflow_type", "franchise")
-    if workflow not in VALID_WORKFLOWS:
-        st.session_state["workflow_type"] = "franchise"
-        return "franchise"
-    return workflow
+    st.session_state["workflow_type"] = "franchise"
+    return "franchise"
 
 
 def set_workflow_type(workflow: str) -> None:
-    if workflow not in VALID_WORKFLOWS:
-        raise ValueError(f"Invalid workflow: {workflow}. Must be one of {VALID_WORKFLOWS}")
-    st.session_state["workflow_type"] = workflow
+    st.session_state["workflow_type"] = "franchise"
 
 
 def has_premium_access() -> bool:
-    return bool(st.session_state.get("premium_access", False))
+    return False
 
 
 def mark_assessment_started() -> None:
@@ -180,6 +174,7 @@ def reset_assessment_state(keys_to_keep: list[str] | None = None) -> None:
     for key, value in preserved_values.items():
         st.session_state[key] = value
 
+    st.session_state["workflow_type"] = "franchise"
     st.session_state["current_page"] = DEFAULT_PAGE
     st.session_state["nav_target_page"] = DEFAULT_PAGE
     st.session_state["confirm_reset_assessment"] = False

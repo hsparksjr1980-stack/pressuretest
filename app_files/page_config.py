@@ -15,56 +15,62 @@ class PageConfig:
 
 
 _PAGE_CONFIGS: Final[list[PageConfig]] = [
-    PageConfig("Overview", "Phase 1 — Self & Idea"),
-    PageConfig("Franchise Fit", "Phase 1 — Self & Idea"),
-    PageConfig("Concept Validation", "Phase 1 — Self & Idea"),
-    PageConfig("Opportunity Fit & Recommendations", "Phase 1 — Self & Idea"),
-    PageConfig("Financial Model", "Phase 1 — Self & Idea"),
-    PageConfig("Free Report", "Output"),
-    PageConfig("Plans & Support", "Commercial"),
-    PageConfig("Post-Discovery", "Phase 2 — Pre-Commitment"),
-    PageConfig("Final Decision", "Phase 3 — Decision"),
-    PageConfig("Report", "Output"),
-    PageConfig("Paywall", "Commercial", "standard", False),
-    PageConfig("Deal Workspace", "Phase 4 — Execution", "pro"),
-    PageConfig("Deal Model", "Phase 4 — Execution", "pro"),
-    PageConfig("Buildout & Launch Tracker", "Phase 4 — Execution", "pro"),
-    PageConfig("Execution Report", "Phase 4 — Execution", "pro"),
+    PageConfig("Start Here", "Franchise Beta"),
+    PageConfig("Operator Fit", "Franchise Beta"),
+    PageConfig("Opportunity Review", "Franchise Beta"),
+    PageConfig("Financial Reality", "Franchise Beta"),
+    PageConfig("Commitment Review", "Franchise Beta"),
+    PageConfig("Final Decision", "Franchise Beta"),
+    PageConfig("Report", "Franchise Beta"),
 ]
 
-DEFAULT_PAGE: Final[str] = "Overview"
+DEFAULT_PAGE: Final[str] = "Start Here"
 
 PAGES: Final[list[str]] = [page.name for page in _PAGE_CONFIGS]
 SIDEBAR_PAGES: Final[list[str]] = [page.name for page in _PAGE_CONFIGS if page.show_in_sidebar]
 PAGE_CONFIG_MAP: Final[dict[str, PageConfig]] = {page.name: page for page in _PAGE_CONFIGS}
 
-FREE_PAGES: Final[set[str]] = {
-    page.name for page in _PAGE_CONFIGS if page.access != "pro"
+FREE_PAGES: Final[set[str]] = {page.name for page in _PAGE_CONFIGS if page.access != "pro"}
+PRO_PAGES: Final[set[str]] = {page.name for page in _PAGE_CONFIGS if page.access == "pro"}
+SECTION_LABELS: Final[dict[str, str]] = {page.name: page.section for page in _PAGE_CONFIGS}
+
+LEGACY_PAGE_ALIASES: Final[dict[str, str]] = {
+    "Overview": "Start Here",
+    "Franchise Fit": "Operator Fit",
+    "Concept Validation": "Opportunity Review",
+    "Opportunity Fit & Recommendations": "Opportunity Review",
+    "Financial Model": "Financial Reality",
+    "Post-Discovery": "Commitment Review",
+    "Free Report": "Report",
+    "Plans & Support": "Report",
+    "Paywall": "Report",
+    "Deal Workspace": "Report",
+    "Deal Model": "Report",
+    "Buildout & Launch Tracker": "Report",
+    "Execution Report": "Report",
 }
 
-PRO_PAGES: Final[set[str]] = {
-    page.name for page in _PAGE_CONFIGS if page.access == "pro"
-}
 
-SECTION_LABELS: Final[dict[str, str]] = {
-    page.name: page.section for page in _PAGE_CONFIGS
-}
+def normalize_page_name(page_name: str | None) -> str:
+    if not page_name:
+        return DEFAULT_PAGE
+    return LEGACY_PAGE_ALIASES.get(page_name, page_name)
 
 
 def get_page_config(page_name: str) -> PageConfig:
-    return PAGE_CONFIG_MAP[page_name]
+    return PAGE_CONFIG_MAP[normalize_page_name(page_name)]
 
 
 def is_free_page(page_name: str) -> bool:
-    return page_name in FREE_PAGES
+    return normalize_page_name(page_name) in FREE_PAGES
 
 
 def is_pro_page(page_name: str) -> bool:
-    return page_name in PRO_PAGES
+    return normalize_page_name(page_name) in PRO_PAGES
 
 
 def get_section_label(page_name: str) -> str:
-    return SECTION_LABELS[page_name]
+    return SECTION_LABELS[normalize_page_name(page_name)]
 
 
 def validate_page_config() -> None:

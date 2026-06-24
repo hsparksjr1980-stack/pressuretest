@@ -17,11 +17,22 @@ from ui_styles import (
 
 
 FINAL_OPTIONS = [
-    "Proceed",
-    "Proceed with Conditions",
-    "Pause",
-    "Do Not Proceed",
+    "Move Forward",
+    "Proceed Only If Conditions Are Met",
+    "Walk Away",
 ]
+
+LEGACY_OPTION_MAP = {
+    "Proceed": "Move Forward",
+    "Proceed with Conditions": "Proceed Only If Conditions Are Met",
+    "Pause": "Proceed Only If Conditions Are Met",
+    "Do Not Proceed": "Walk Away",
+}
+
+
+def _normalize_final_choice(value: object) -> str:
+    choice = str(value or "Proceed Only If Conditions Are Met")
+    return LEGACY_OPTION_MAP.get(choice, choice if choice in FINAL_OPTIONS else "Proceed Only If Conditions Are Met")
 
 
 def _decision_snapshot() -> dict[str, object]:
@@ -35,65 +46,64 @@ def _decision_snapshot() -> dict[str, object]:
     if completed <= 1:
         return {
             "stance": "Too early to commit",
-            "stance_body": "You do not yet have enough completed work to make a confident go / no-go call.",
+            "stance_body": "Based on the information provided, there is not enough completed work to make a reliable decision.",
             "top_risk": "Decision made before enough evidence",
-            "top_risk_body": "The biggest risk right now is forcing a conclusion before fit, concept, and economics have been pressure-tested.",
+            "top_risk_body": "This may indicate risk because fit, opportunity quality, and economics have not all been pressure-tested.",
             "conditions": [
-                "Complete Franchise Fit",
-                "Complete Concept Validation",
+                "Complete Operator Fit",
+                "Complete Opportunity Review",
                 "Pressure-test the economics",
             ],
-            "default_option": "Pause",
+            "default_option": "Proceed Only If Conditions Are Met",
         }
 
     if not financial:
         return {
             "stance": "Needs economic validation",
-            "stance_body": "You may have directional signal, but the economics are not complete enough to support a confident recommendation.",
+            "stance_body": "Based on the information provided, the economics are not complete enough to support a cleaner recommendation.",
             "top_risk": "Weak or untested economics",
-            "top_risk_body": "A concept that looks promising can still be the wrong deal if the numbers do not hold up.",
+            "top_risk_body": "This should be verified because a concept can look promising and still fail under the numbers.",
             "conditions": [
-                "Finish the Financial Model",
+                "Finish Financial Reality",
                 "Test downside assumptions",
                 "Confirm capital and cash-flow tolerance",
             ],
-            "default_option": "Pause",
+            "default_option": "Proceed Only If Conditions Are Met",
         }
 
     if not phase_2:
         return {
             "stance": "Close, but not decision-ready",
-            "stance_body": "The deal is starting to take shape, but discovery gaps and unresolved assumptions can still change the recommendation.",
+            "stance_body": "Based on the information provided, discovery gaps and unresolved assumptions may still change the recommendation.",
             "top_risk": "Unresolved conditions",
-            "top_risk_body": "Outstanding discovery items may materially change the real risk, cost, or operating burden.",
+            "top_risk_body": "Outstanding items may materially change the real risk, cost, or operating burden.",
             "conditions": [
-                "Complete Post-Discovery Review",
+                "Complete Commitment Review",
                 "Resolve major unknowns",
-                "List explicit proceed / walk-away conditions",
+                "List explicit move-forward or walk-away conditions",
             ],
-            "default_option": "Proceed with Conditions",
+            "default_option": "Proceed Only If Conditions Are Met",
         }
 
     return {
         "stance": "Ready for a final call",
-        "stance_body": "You have enough completed work to make a more disciplined final recommendation.",
+        "stance_body": "Based on the information provided, there is enough completed work to choose a disciplined decision posture.",
         "top_risk": "Execution risk",
-        "top_risk_body": "Even a good decision can fail if sequencing, capital discipline, or operator readiness are weak.",
+        "top_risk_body": "This should be verified because sequencing, capital discipline, and operator readiness still matter.",
         "conditions": [
             "Confirm final assumptions",
-            "Document your non-negotiables",
-            "Proceed only if conditions remain true",
+            "Document non-negotiables",
+            "Move forward only if required conditions remain true",
         ],
-        "default_option": "Proceed with Conditions",
+        "default_option": "Proceed Only If Conditions Are Met",
     }
 
 
 def _default_rationale(selected_option: str) -> str:
     defaults = {
-        "Proceed": "The evidence is strong enough to move forward without major open conditions.",
-        "Proceed with Conditions": "The opportunity may work, but only if specific risks are resolved first.",
-        "Pause": "More work is needed before making a high-confidence decision.",
-        "Do Not Proceed": "The current evidence suggests the opportunity is not strong enough to justify moving forward.",
+        "Move Forward": "Based on the information provided, the evidence appears strong enough to continue diligence while still verifying assumptions.",
+        "Proceed Only If Conditions Are Met": "Based on the information provided, the opportunity may remain viable only if specific risks are resolved first.",
+        "Walk Away": "Based on the information provided, the current risk profile appears too unresolved to continue without major changes.",
     }
     return defaults[selected_option]
 
@@ -111,7 +121,7 @@ def render_final_decision() -> None:
     render_page_header(
         eyebrow=APP_PRODUCT,
         title="Final Decision",
-        subtitle="Make the call only after the earlier work is complete. This page should clarify whether to proceed, pause, or walk away.",
+        subtitle="Make the call only after the earlier work is complete. The goal is a disciplined decision posture, not a sales-style yes/no.",
         wide=True,
     )
 
@@ -145,8 +155,8 @@ def render_final_decision() -> None:
     with col3:
         render_card(
             label="Decision discipline",
-            title="Proceed only on explicit terms",
-            body="Do not use optimism, momentum, or sunk time as a substitute for evidence.",
+            title="Use evidence, not momentum",
+            body="Do not use optimism, pressure, or sunk time as a substitute for verified evidence.",
         )
 
     st.markdown('<div class="rc-gap-md"></div>', unsafe_allow_html=True)
@@ -159,8 +169,8 @@ def render_final_decision() -> None:
             body="Choose the option that best matches the evidence, then write the reasoning in plain English.",
         )
 
-        saved_choice = st.session_state.get("final_decision_choice", str(snapshot["default_option"]))
-        default_index = FINAL_OPTIONS.index(saved_choice) if saved_choice in FINAL_OPTIONS else FINAL_OPTIONS.index(str(snapshot["default_option"]))
+        saved_choice = _normalize_final_choice(st.session_state.get("final_decision_choice", str(snapshot["default_option"])))
+        default_index = FINAL_OPTIONS.index(saved_choice)
 
         selected_option = st.radio(
             "Final recommendation",
@@ -183,10 +193,10 @@ def render_final_decision() -> None:
 
         conditions_default = st.session_state.get(
             "final_decision_conditions",
-            "\n".join(snapshot["conditions"]) if selected_option == "Proceed with Conditions" else "",
+            "\n".join(snapshot["conditions"]) if selected_option == "Proceed Only If Conditions Are Met" else "",
         )
         conditions_text = st.text_area(
-            "Required conditions before proceeding",
+            "Required conditions before moving forward",
             value=conditions_default,
             key="final_decision_conditions_input",
             height=120,
@@ -200,7 +210,7 @@ def render_final_decision() -> None:
     with right:
         render_bullet_panel(
             label="Required conditions",
-            title="What must be true before you move forward",
+            title="What must be true before moving forward",
             items=[str(item) for item in snapshot["conditions"]],
             empty_text="No conditions listed yet.",
         )
@@ -212,7 +222,7 @@ def render_final_decision() -> None:
                 "Do not let sunk cost force a yes.",
                 "Treat unresolved assumptions as risk.",
                 "Write down the exact reason for your decision.",
-                "Use conditions when the answer is not a clean yes.",
+                "Use conditions when the answer is not clean.",
             ],
         )
 

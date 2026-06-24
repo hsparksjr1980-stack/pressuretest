@@ -8,7 +8,7 @@ from branding import APP_PRODUCT
 from decision_engine import build_decision_packet
 from ui_styles import close_shell, open_shell, render_action_banner, render_page_header
 
-NOTE = "Educational diligence summary only. Verify assumptions before making commitments."
+NOTE = "This is not legal, financial, tax, lending, or investment advice. Based on the information provided, verify assumptions before making commitments."
 
 
 def _items(values: list[str]) -> str:
@@ -57,7 +57,7 @@ def _report_text() -> str:
         ("Commitment Risk Summary", [f"Score: {scores.get('post_discovery', 'Not scored yet')}" ]),
         ("Questions to Ask the Franchisor", ["Which assumptions are based on mature units?", "What support is provided after signing?", "What causes new owners to miss plan?"]),
         ("Questions to Ask Franchisees", ["What would you verify before signing again?", "What costs were higher than expected?", "Would you open another unit?"]),
-        ("Questions to Ask Advisors", ["How much working capital should be held back?", "Do the agreements create conflicts?", "What assumptions should be adjusted?"]),
+        ("Questions to Ask Lender/CPA/Attorney", ["How much working capital should be held back?", "Do the agreements create conflicts?", "What assumptions should be adjusted?"]),
         ("Recommended Next Steps", conditions or ["Collect missing evidence, validate assumptions, and slow the process until key items are verified."]),
         ("Important Note", [NOTE]),
     ]
@@ -69,19 +69,20 @@ def _report_text() -> str:
 
 
 def _render_request_form() -> None:
-    with st.expander("Request Review", expanded=False):
+    with st.expander("Request Paid Review", expanded=False):
         with st.form("review_request_form"):
             st.text_input("Name", key="review_name", value=st.session_state.get("full_name", ""))
             st.text_input("Email", key="review_email", value=st.session_state.get("email", ""))
             st.text_input("Franchise brand", key="review_brand", value=st.session_state.get("franchise_name", ""))
             st.text_input("Current stage", key="review_stage")
-            st.text_input("Amount at risk", key="review_amount_at_risk")
+            st.text_input("Amount of capital at risk", key="review_amount_at_risk")
             st.selectbox("Have you received the FDD?", ["", "Yes", "No", "Not sure"], key="review_fdd")
             st.selectbox("Have you signed anything?", ["", "Yes", "No", "Not sure"], key="review_signed")
             st.text_area("What do you want reviewed?", key="review_scope")
             st.selectbox("Preferred contact method", ["", "Email", "Phone", "Text"], key="review_contact_method")
-            submitted = st.form_submit_button("Request Review", type="primary")
+            submitted = st.form_submit_button("Request Paid Review", type="primary")
         if submitted:
+            st.session_state["paid_review_requested"] = True
             st.session_state["review_requested"] = True
             st.success("Request captured for beta follow-up.")
 
@@ -93,8 +94,8 @@ def _render_feedback_form() -> None:
             st.text_area("What question was missing?", key="feedback_missing_question")
             st.text_area("What felt too soft?", key="feedback_too_soft")
             st.text_area("What felt too harsh?", key="feedback_too_harsh")
-            st.selectbox("Would you consider a reviewed version?", ["", "Yes", "No", "Maybe"], key="feedback_reviewed_version")
-            st.selectbox("Would you show this report to an advisor or partner?", ["", "Yes", "No", "Maybe"], key="feedback_share_report")
+            st.selectbox("Would you pay $299 for a reviewed version?", ["", "Yes", "No", "Maybe"], key="feedback_pay_299")
+            st.selectbox("Would you show this report to a spouse, lender, CPA, or attorney?", ["", "Yes", "No", "Maybe"], key="feedback_share_report")
             st.text_area("What part was most useful?", key="feedback_most_useful")
             st.text_area("What part was confusing?", key="feedback_confusing")
             submitted = st.form_submit_button("Submit beta feedback")

@@ -15,6 +15,15 @@ def _items(values: list[str]) -> str:
     return "\n".join(f"- {item}" for item in values if item)
 
 
+def _recommendation_label(value: object) -> str:
+    labels = {
+        "Proceed": "Move Forward",
+        "Do Not Proceed": "Walk Away",
+        "Proceed with Conditions": "Proceed Only If Conditions Are Met",
+    }
+    return labels.get(str(value), str(value or "Not enough data"))
+
+
 def _missing_evidence() -> list[str]:
     missing = []
     if not st.session_state.get("fdd_received") and not st.session_state.get("received_fdd"):
@@ -35,10 +44,11 @@ def _report_text() -> str:
     scores = packet.get("phase_scores", {}) or {}
     risks = list(dict.fromkeys(list(packet.get("risks", [])) + list(packet.get("key_risks", []))))[:8]
     conditions = list(dict.fromkeys(list(packet.get("conditions", []))))[:8]
+    recommendation = _recommendation_label(packet.get("recommendation"))
     sections = [
         ("Executive Summary", [packet.get("summary", "Based on the information provided, this report is ready for review.")]),
         ("Current Decision Stage", [str(st.session_state.get("final_decision_choice") or "Current stage not recorded")]),
-        ("Recommendation", [packet.get("recommendation", "Not enough data")]),
+        ("Recommendation", [recommendation]),
         ("Top Risks", risks or ["No major risk has been recorded yet."]),
         ("Missing Evidence", _missing_evidence() or ["No missing evidence has been flagged yet."]),
         ("Operator Fit Summary", [f"Score: {scores.get('readiness', 'Not scored yet')}" ]),
@@ -96,9 +106,10 @@ def _render_feedback_form() -> None:
 def render_report_screen() -> None:
     report_text = _report_text()
     packet = build_decision_packet()
+    recommendation = _recommendation_label(packet.get("recommendation"))
     open_shell()
     render_page_header(eyebrow=APP_PRODUCT, title="Report", subtitle="A cautious franchise diligence report built from your responses.", wide=True)
-    render_action_banner(eyebrow="Report posture", title=packet.get("recommendation", "Not enough data"), body=packet.get("summary", "Complete the workflow to improve the report."), chips=["Savable", "Copyable", "Exportable"])
+    render_action_banner(eyebrow="Report posture", title=recommendation, body=packet.get("summary", "Complete the workflow to improve the report."), chips=["Savable", "Copyable", "Exportable"])
     st.text_area("Copyable report", value=report_text, height=420)
     st.download_button("Download Text Report", data=report_text, file_name="pressuretest_franchise_report.txt", mime="text/plain", use_container_width=True)
     st.markdown("### Want a second set of eyes?")

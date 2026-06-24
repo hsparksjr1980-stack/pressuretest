@@ -63,6 +63,16 @@ PAGE_RENDERERS: Final[dict[str, PageRenderer]] = {
     "Report": render_report_screen,
 }
 
+RECOMMENDATION_LABELS: Final[dict[str, str]] = {
+    "Proceed": "Move Forward",
+    "Do Not Proceed": "Walk Away",
+    "Proceed with Conditions": "Proceed Only If Conditions Are Met",
+}
+
+
+def _recommendation_label(value: object) -> str:
+    return RECOMMENDATION_LABELS.get(str(value), str(value or "Not enough data"))
+
 
 def configure_app() -> None:
     st.set_page_config(page_title=APP_PRODUCT, layout="wide")
@@ -227,9 +237,10 @@ def render_sidebar() -> None:
     next_page, next_reason = _recommended_page()
     risks = packet.get("risks") or packet.get("key_risks") or []
     top_risk = risks[0] if risks else "No meaningful risk signal yet. Complete more of the workflow."
+    recommendation = _recommendation_label(packet.get("recommendation", "Not enough data"))
 
     st.sidebar.caption("Decision pulse")
-    st.sidebar.write(f"**{packet.get('recommendation', 'Not enough data')}**")
+    st.sidebar.write(f"**{recommendation}**")
     st.sidebar.caption(f"Score: {packet.get('weighted_score', 0)} · Confidence: {packet.get('confidence', 'Unknown')}")
     st.sidebar.caption(f"Biggest unresolved risk: {top_risk}")
 

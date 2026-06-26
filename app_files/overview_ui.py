@@ -170,6 +170,52 @@ def _render_depth_toggle() -> None:
     st.caption("You can switch from Quick Assessment to Full Review later. Existing answers stay in the same workflow and report.")
 
 
+def _render_fdd_translation_inputs() -> None:
+    render_section_intro(
+        title="FDD Translation Risk snapshot",
+        body="System-wide information may not translate directly to this market. Capture these early so the report can flag what needs local verification.",
+    )
+    st.markdown('<div class="rc-gap-sm"></div>', unsafe_allow_html=True)
+    c1, c2 = st.columns(2, gap="large")
+    with c1:
+        st.selectbox(
+            "Is this market already proven for this franchise?",
+            [
+                "",
+                "Yes, there are successful nearby or similar-market locations",
+                "Somewhat, but the market is still developing",
+                "No, this is a new or unproven market",
+                "Not sure",
+            ],
+            key="fdd_market_proof",
+        )
+        st.selectbox(
+            "Have you spoken with franchisees in markets similar to yours?",
+            ["", "Yes", "No", "Not yet", "Not sure"],
+            key="similar_market_franchisee_calls",
+        )
+    with c2:
+        st.selectbox(
+            "Are the financial examples or performance claims from markets similar to yours?",
+            ["", "Yes, similar market/location/cost structure", "Somewhat similar", "No, different market or unclear comparison", "Not sure"],
+            key="fdd_market_similarity",
+        )
+        st.selectbox(
+            "Are your local rent, labor, buildout, and supply costs materially different from examples you have seen?",
+            ["", "No major difference identified", "Some differences", "Material differences", "Not sure yet"],
+            key="local_cost_difference",
+        )
+    if _assessment_depth() == "Full Review":
+        with st.expander("Go Deeper: FDD Translation Risk notes", expanded=False):
+            st.text_area(
+                "What local evidence would make these assumptions more credible?",
+                value=st.session_state.get("fdd_translation_notes", ""),
+                key="fdd_translation_notes",
+                height=100,
+                placeholder="Examples: similar-market franchisees, rent comps, labor model, buildout bids, supply chain differences",
+            )
+
+
 def render_overview() -> None:
     open_shell()
 
@@ -181,6 +227,8 @@ def render_overview() -> None:
     )
 
     _render_depth_toggle()
+    st.markdown('<div class="rc-gap-lg"></div>', unsafe_allow_html=True)
+    _render_fdd_translation_inputs()
     st.markdown('<div class="rc-gap-lg"></div>', unsafe_allow_html=True)
 
     next_step, next_reason = _recommended_next_step()

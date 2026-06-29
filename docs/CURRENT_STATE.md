@@ -1,202 +1,102 @@
 # Current PressureTest State
 
-## Current Version
+## Current Focus
 
-v1.6
+PressureTest is currently focused on **PressureTest: Franchise**.
 
-## Current Positioning
+The active beta product is the **7-step Franchise Beta workflow**:
 
-PressureTest is a franchise and small-business diligence platform focused on operator-first decision making and realistic expectation setting.
+1. Start Here
+2. Operator Fit
+3. Opportunity Review
+4. Financial Reality
+5. Commitment Review
+6. Final Decision
+7. Report
 
-## Current Priorities
+Startup and Acquisition are future placeholders only. They should not be described as active workflows.
 
-- Reduce onboarding overwhelm
+## Current Milestone
 
-- Improve UX consistency
+**Franchise Beta UX + Report Trust Pass**
 
-- Improve mobile responsiveness
+The milestone goal is not to make the app bigger. The goal is to make Franchise Beta easier to complete, more credible to trust, mobile-ready, and sharper at identifying the few issues that actually matter before a user signs, borrows, leases, or invests.
 
-- Simplify navigation flow
+## Product Direction
 
-- Strengthen Final Decision outputs
+Positioning: **Stress-test a franchise before you sign, borrow, lease, or invest.**
 
-- Improve readability and spacing
+PressureTest exists to slow the decision down and help the user ask:
 
-- Continue refining blunt but compliant tone
+- What actually matters here?
+- What is missing?
+- What has not been verified?
+- What assumptions am I making?
+- What would make this harder to unwind?
+- What should I ask before signing, borrowing, leasing, or investing?
 
-## Current Strengths
+PressureTest is not anti-franchise or pro-franchise. It is pro-diligence.
 
-- Strong operator-focused positioning
+## Active Product Rules
 
-- Clear differentiation from hype-driven franchise tools
+- Quick Assessment is the default path.
+- Full Review is a depth toggle within the same Franchise workflow, not a separate product.
+- The same data model and report are used for both depths.
+- Users should be able to switch from Quick Assessment to Full Review without losing answers.
+- The report is the core product artifact.
+- Paid review remains manual.
+- Stripe is not part of this phase.
+- Native iOS and Android apps are not part of this phase.
+- The current requirement is mobile-ready web.
 
-- Modular architecture
+## Core Report Concepts
 
-- Strong diligence framing
+**Decision-Critical Issues** are a core report concept. They are the 3-5 issues most likely to change the decision, trigger a pause, or require verification before further commitment.
 
-- Good foundation for SEO and content expansion
+Each Decision-Critical Issue should include:
 
-## Current Risks / Weaknesses
+- Issue title
+- Risk label
+- Why it matters
+- What to verify next
 
-- Some pages feel text-heavy
+**FDD Translation Risk** is a named PressureTest concept. The FDD is important, but it is often system-wide. It may not prove the model works in the user's specific market, rent structure, labor market, buildout environment, supply chain, customer-demand profile, brand-awareness conditions, operator situation, or financing pressure.
 
-- UX can feel overwhelming in longer flows
+Risk labels:
 
-- Mobile experience still needs refinement
+- Low Concern
+- Needs Verification
+- Material Risk
+- Stop and Review
 
-- Some outputs may still feel repetitive
+Low Concern does not mean safe or recommended. It only means low concern based on the information provided.
 
-- Visual consistency between pages can improve
+## Product Voice
+
+The voice should be:
+
+- Cautious
+- Fair
+- Direct
+- Practical
+- Skeptical but not cynical
+- Calm, not alarmist
+- Clear, not academic
+- Helpful, not salesy
+- Founder-led, but not overly personal
+- Serious enough for someone risking real money
+
+PressureTest should not present itself as legal, tax, accounting, lending, or investment advice.
 
 ## Current Stack
 
 - Python
-
 - Streamlit
-
-- GitHub
-
-- Cursor
-
-- OpenAI-assisted workflows
-
-## Active Product Areas
-
-- Reality Check
-
-- Concept Validation
-
-- Financial Modeling
-
-- Final Decision
-
-- Opportunity Fit / Recommendations
-
-- Plans & Support
-
-## Product Direction
-
-PressureTest should feel like:
-
-- a premium diligence platform
-
-- practical and grounded
-
-- experienced but not arrogant
-
-- realistic without becoming cynical
-
-## Things We Are Avoiding
-
-- Feature bloat
-
-- Generic AI-generated language
-
-- Fear-based messaging
-
-- Overcomplicated dashboards
-
-- Legal/advisory positioning
-
-- Franchise "guru" tone
-# Current PressureTest State
-
-## Current Version
-
-v1.6
-
-## Current Positioning
-
-PressureTest is a franchise and small-business diligence platform focused on operator-first decision making and realistic expectation setting.
-
-## Current Priorities
-
-- Reduce onboarding overwhelm
-
-- Improve UX consistency
-
-- Improve mobile responsiveness
-
-- Simplify navigation flow
-
-- Strengthen Final Decision outputs
-
-- Improve readability and spacing
-
-- Continue refining blunt but compliant tone
-
-## Current Strengths
-
-- Strong operator-focused positioning
-
-- Clear differentiation from hype-driven franchise tools
-
-- Modular architecture
-
-- Strong diligence framing
-
-- Good foundation for SEO and content expansion
+- Local file capture for beta feedback and manual paid review requests
+- Next.js marketing site in `website/`
 
 ## Current Risks / Weaknesses
 
-- Some pages feel text-heavy
-
-- UX can feel overwhelming in longer flows
-
-- Mobile experience still needs refinement
-
-- Some outputs may still feel repetitive
-
-- Visual consistency between pages can improve
-
-## Current Stack
-
-- Python
-
-- Streamlit
-
-- GitHub
-
-- Cursor
-
-- OpenAI-assisted workflows
-
-## Active Product Areas
-
-- Reality Check
-
-- Concept Validation
-
-- Financial Modeling
-
-- Final Decision
-
-- Opportunity Fit / Recommendations
-
-- Plans & Support
-
-## Product Direction
-
-PressureTest should feel like:
-
-- a premium diligence platform
-
-- practical and grounded
-
-- experienced but not arrogant
-
-- realistic without becoming cynical
-
-## Things We Are Avoiding
-
-- Feature bloat
-
-- Generic AI-generated language
-
-- Fear-based messaging
-
-- Overcomplicated dashboards
-
-- Legal/advisory positioning
-
-- Franchise “guru” tone
+- Some legacy modules still exist in the repo but are not active Franchise Beta scope.
+- Financial Reality remains a long screen and should continue to be simplified over time.
+- Mobile readiness should be checked manually at 390px, 430px, and 768px during beta passes.

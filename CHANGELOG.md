@@ -1,52 +1,27 @@
 # CHANGELOG
 
-## v0.5.0-dev
+## Franchise Beta UX + Report Trust Pass
 
-### Phase 3D — Startup Readiness Report Enhancements
+Added / improved:
 
-Added:
-- enhanced startup readiness report structure
-- startup readiness signal presentation improvements
-- startup execution-pressure sections
-- founder/operator consideration sections
-- capital and runway observations
-- startup validation checklist section
-- startup readiness summary section
-- expanded startup risk explanations
-- improved report hierarchy and section separation
+- Focused active app navigation on the 7-step Franchise Beta workflow.
+- Added Quick Assessment / Full Review depth toggle.
+- Kept Quick Assessment as the default.
+- Kept Full Review inside the same workflow rather than creating a separate product.
+- Added Go Deeper handling for deeper diligence questions.
+- Added FDD Translation Risk inputs and report explanation.
+- Added Decision-Critical Issues to the report.
+- Added professional risk labels: Low Concern, Needs Verification, Material Risk, Stop and Review.
+- Added report note that Low Concern does not mean safe or recommended.
+- Added manual paid review request form.
+- Added beta feedback form with local reviewable storage.
+- Updated documentation to match current Franchise-focused product direction.
 
-Startup readiness report now includes:
-- startup readiness signal
-- key risk areas
-- strongest signals
-- weakest assumptions
-- execution pressure areas
-- validation questions
-- founder/operator considerations
-- capital and runway observations
-- final readiness summary
+Out of scope maintained:
 
-Validation checklist examples include:
-- customer interviews
-- pricing validation
-- demand testing
-- launch assumptions
-- CAC validation
-- runway sufficiency
-- operational bottleneck review
-
-Not yet implemented:
-- advanced startup financial modeling
-- startup forecasting engine
-- startup PDF export
-- generated investment recommendations
-- startup persistence/database layer
-- acquisition workflow engine
-
-No changes introduced to:
-- franchise scoring
-- franchise financial modeling
-- franchise reports
-- paywall logic
-- acquisition placeholder behavior
-- legal/tax/accounting/lending advice logic
+- No Stripe
+- No native iOS or Android apps
+- No Startup expansion
+- No Acquisition expansion
+- No AI agent layer
+- No Pro tools

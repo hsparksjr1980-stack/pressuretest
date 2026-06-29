@@ -12,9 +12,14 @@ from page_config import DEFAULT_PAGE
 
 CORE_DEFAULTS: Final[dict[str, Any]] = {
     "auth_complete": False,
+    "is_authenticated": False,
+    "auth_user_id": "",
+    "auth_email": "",
+    "auth_access_token": "",
+    "auth_refresh_token": "",
     "profile_complete": False,
     "premium_access": False,
-    "dev_pro_access": True,
+    "dev_pro_access": False,
     "current_page": DEFAULT_PAGE,
     "nav_target_page": DEFAULT_PAGE,
     "workflow_type": "franchise",
@@ -32,6 +37,7 @@ PROFILE_DEFAULTS: Final[dict[str, Any]] = {
 
 ASSESSMENT_DEFAULTS: Final[dict[str, Any]] = {
     "assessment_started": False,
+    "assessment_depth": "quick",
     "assessment_completed": False,
     "phase_0_complete": False,
     "phase_1_complete": False,
@@ -87,8 +93,14 @@ def normalize_session_state() -> None:
         workflow = "franchise"
     st.session_state["workflow_type"] = workflow
 
+    depth = str(st.session_state.get("assessment_depth", "quick")).lower()
+    if depth not in {"quick", "full"}:
+        depth = "quick"
+    st.session_state["assessment_depth"] = depth
+
     for key in (
         "auth_complete",
+        "is_authenticated",
         "profile_complete",
         "premium_access",
         "dev_pro_access",

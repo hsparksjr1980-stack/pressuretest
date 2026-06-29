@@ -6,6 +6,7 @@ from dataclasses import dataclass
 
 import streamlit as st
 
+from franchise_beta import is_full_review, render_beta_styles, render_depth_toggle, render_pressure_check
 from ui_styles import (
     close_shell,
     open_shell,
@@ -307,21 +308,36 @@ def _render_core_inputs() -> None:
 
 def _render_question_groups() -> None:
     render_section_intro(
-        title="Franchise Fit questions",
-        body="Answer based on what is true today. The goal is not optimism. The goal is fit, readiness, and discipline.",
+        title="Operator Fit questions",
+        body="Answer based on what is true today. Quick Assessment shows the core fit questions; Full Review opens the deeper diligence set.",
     )
+    render_pressure_check("A franchise can look attractive and still be a poor fit for your time, risk tolerance, capital cushion, or family reality.")
     st.markdown('<div class="rc-gap-md"></div>', unsafe_allow_html=True)
 
+    full_review = is_full_review()
     for group_index, group in enumerate(QUESTION_GROUPS, start=1):
-        with st.expander(f"{group_index}. {group.title}", expanded=(group_index == 1)):
+        core_questions = group.questions[:2]
+        deeper_questions = group.questions[2:]
+        with st.expander(f"{group_index}. {group.title}", expanded=(group_index <= 2)):
             st.caption(group.description)
-            for question in group.questions:
+            for question in core_questions:
                 question_number = int(question.split(".", 1)[0])
                 st.selectbox(
                     question,
                     ANSWER_OPTIONS,
                     key=f"rc_q{question_number}",
                 )
+            if full_review:
+                st.markdown("**Go Deeper**")
+                for question in deeper_questions:
+                    question_number = int(question.split(".", 1)[0])
+                    st.selectbox(
+                        question,
+                        ANSWER_OPTIONS,
+                        key=f"rc_q{question_number}",
+                    )
+            elif deeper_questions:
+                st.caption("Switch to Full Review on Start Here to answer the deeper questions in this section.")
 
 
 def _render_reflection_notes() -> None:
@@ -380,7 +396,7 @@ def _render_results(
         )
     with col2:
         next_signal = (
-            "Continue to Concept Validation"
+            "Continue to Opportunity Review"
             if score >= 55
             else "Continue carefully and pressure test fit more aggressively"
         )
@@ -422,19 +438,21 @@ def _render_results(
 
 
 def render_phase_0() -> None:
+    render_beta_styles()
     score, verdict, verdict_body, strengths, watchouts, answered_count, total_questions = _score_from_answers()
 
     open_shell()
 
     render_page_header(
-        eyebrow="Phase 1 — Self & Idea",
-        title="Pressure test readiness before focusing on the deal itself.",
+        eyebrow="Step 2 of 7 — Operator Fit",
+        title="Pressure test your fit before focusing on the deal itself.",
         subtitle=(
             "This stage evaluates whether your time, operating posture, risk tolerance, "
             "support system, and capital flexibility align with what the business may actually require."
         ),
         wide=True,
     )
+    render_depth_toggle()
 
     st.markdown('<div class="rc-gap-lg"></div>', unsafe_allow_html=True)
 
@@ -487,8 +505,8 @@ def render_phase_0() -> None:
 
     st.markdown('<div class="rc-gap-lg"></div>', unsafe_allow_html=True)
 
-    if st.button("Continue to Concept Validation", key="phase0_continue", use_container_width=True, type="primary"):
-        st.session_state["current_page"] = "Concept Validation"
+    if st.button("Continue to Opportunity Review", key="phase0_continue", use_container_width=True, type="primary"):
+        st.session_state["current_page"] = "Opportunity Review"
         st.rerun()
 
     close_shell()

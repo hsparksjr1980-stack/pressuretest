@@ -2,153 +2,114 @@
 
 ## Core Positioning
 
-PressureTest is a franchise and small-business diligence tool. It helps users pressure-test assumptions before committing time, money, or reputation.
+PressureTest is currently focused on **PressureTest: Franchise**.
 
-## Tone
+Positioning: **Stress-test a franchise before you sign, borrow, lease, or invest.**
 
-- Blunt but fair
+Startup and Acquisition are future placeholders only. They are not active workflows in this phase.
 
-- Operator-focused
+## Product Standard
 
-- Calm, direct, and practical
+PressureTest: Franchise is a caution-first decision tool for people considering buying into a franchise before they sign, borrow, lease, or invest.
 
-- No hype
+The product is not anti-franchise and not pro-franchise. It is pro-diligence.
 
-- No fear tactics
+The main product value is not the questionnaire. **The report is the product.** The workflow is the path to get there.
 
-- No startup jargon unless necessary
+## Voice
 
-## Legal / Risk Guardrails
+The product voice should be:
 
-- Do not give legal, tax, lending, accounting, or investment advice
+- Cautious
+- Fair
+- Direct
+- Practical
+- Skeptical but not cynical
+- Calm, not alarmist
+- Clear, not academic
+- Helpful, not salesy
+- Founder-led, but not overly personal
+- Serious enough for someone risking real money
 
-- Do not tell users to buy, invest, sign, or walk away
+The app should sound like:
 
-- Use cautious language: appears, may, commonly, should be validated
+- Here is what appears risky.
+- Here is what is missing.
+- Here is what should be verified.
+- Here are the few issues that could materially change the decision.
+- Here are the questions to ask before committing more money or signing obligations.
 
-- Avoid guarantees about success, failure, profit, loss, or outcomes
+## Language Rules
 
-- Avoid claims about franchise failure rates, costs, or profitability unless sourced and carefully qualified
+Use cautious language:
 
-- Do not imply franchisors lie or intentionally mislead
+- Based on the information provided...
+- This may indicate risk...
+- This should be verified...
+- This could materially affect the decision...
+- This appears to need more evidence...
+- This may be reasonable, but should not be assumed...
+- System-wide franchise information may not translate directly to this market...
+- Local economics should be validated before further commitment...
 
-- Do not bash specific franchise brands
+Avoid overconfident language:
 
-- Do not use the founder's personal franchise experience as direct evidence in app outputs
+- This is safe.
+- This is a good investment.
+- This is a bad investment.
+- This will work.
+- This will fail.
+- Approved.
+- Guaranteed.
+- You should buy this.
+- You should not buy this.
+- This will be profitable.
 
-## Product Principles
+## Advisory Boundary
 
-- Clarity over complexity
+PressureTest should never imply it is giving legal, tax, accounting, lending, or investment advice.
 
-- Pressure-test assumptions, not people
+It should help users organize diligence, identify risk signals, clarify missing evidence, and prepare better questions for professionals, lenders, attorneys, CPAs, franchisees, spouses, partners, and advisors.
 
-- Explain why a risk matters
+## Report Rules
 
-- Show users what to validate next
+The report should feel like a decision memo someone could share with:
 
-- Reduce overwhelm
+- Spouse
+- Business partner
+- Lender
+- CPA
+- Attorney
+- Franchise consultant
+- Potential investor
 
-- Make scoring explainable
+The report should not summarize everything equally. It should identify the few things that really matter.
 
-- Prefer practical diligence questions over generic advice
+Decision-Critical Issues should highlight the 3-5 issues most likely to change the decision, trigger a pause, or require verification before further commitment.
 
-## UX Principles
+FDD Translation Risk is a named PressureTest concept and should be explained when triggered.
 
-- Keep pages focused
+## Risk Labels
 
-- Avoid walls of text
+Use only:
 
-- Use progressive disclosure when possible
+- Low Concern
+- Needs Verification
+- Material Risk
+- Stop and Review
 
-- Every page should answer: "What should the user do next?"
+Do not use "Low Risk." Low Concern does not mean safe. It only means low concern based on the information provided.
 
-- Warnings should be useful, not dramatic
+## Phase Guardrails
 
-## Engineering Principles
-
-- Preserve modular architecture
-
-- Avoid unnecessary rewrites
-
-- Make small, testable changes
-
-- Keep reusable UI components consistent
-
-- Do not introduce large new dependencies without a clear reason
-# PressureTest System Rules
-
-## Core Positioning
-
-PressureTest is a franchise and small-business diligence tool. It helps users pressure-test assumptions before committing time, money, or reputation.
-
-## Tone
-
-- Blunt but fair
-
-- Operator-focused
-
-- Calm, direct, and practical
-
-- No hype
-
-- No fear tactics
-
-- No startup jargon unless necessary
-
-## Legal / Risk Guardrails
-
-- Do not give legal, tax, lending, accounting, or investment advice
-
-- Do not tell users to buy, invest, sign, or walk away
-
-- Use cautious language: appears, may, commonly, should be validated
-
-- Avoid guarantees about success, failure, profit, loss, or outcomes
-
-- Avoid claims about franchise failure rates, costs, or profitability unless sourced and carefully qualified
-
-- Do not imply franchisors lie or intentionally mislead
-
-- Do not bash specific franchise brands
-
-- Do not use the founder’s personal franchise experience as direct evidence in app outputs
-
-## Product Principles
-
-- Clarity over complexity
-
-- Pressure-test assumptions, not people
-
-- Explain why a risk matters
-
-- Show users what to validate next
-
-- Reduce overwhelm
-
-- Make scoring explainable
-
-- Prefer practical diligence questions over generic advice
-
-## UX Principles
-
-- Keep pages focused
-
-- Avoid walls of text
-
-- Use progressive disclosure when possible
-
-- Every page should answer: “What should the user do next?”
-
-- Warnings should be useful, not dramatic
-
-## Engineering Principles
-
-- Preserve modular architecture
-
-- Avoid unnecessary rewrites
-
-- Make small, testable changes
-
-- Keep reusable UI components consistent
-
-- Do not introduce large new dependencies without a clear reason
+Do not add:
+
+- Stripe
+- Native iOS or Android apps
+- AI agent layer
+- Pro tools
+- Startup expansion
+- Acquisition expansion
+- New product areas
+- Major redesign
+- Framework rebuild

@@ -6,6 +6,7 @@ from dataclasses import dataclass
 
 import streamlit as st
 
+from franchise_beta import is_full_review, render_beta_styles, render_depth_toggle, render_pressure_check
 from gotcha_engine import render_gotcha_section
 from ui_styles import (
     close_shell,
@@ -304,21 +305,34 @@ def _render_focus_cards() -> None:
 
 def _render_question_groups() -> None:
     render_section_intro(
-        title="Post-discovery questions",
-        body="Answer based on what is now known from discovery, lease review, lender conversations, and real operating assumptions.",
+        title="Commitment Review questions",
+        body="Answer based on what is known before signing, borrowing, leasing, or investing. Quick Assessment shows core commitment questions; Full Review opens deeper sections.",
     )
+    render_pressure_check("The closer you are to signing or funding, the less missing evidence should be treated as harmless.")
     st.markdown('<div class="rc-gap-md"></div>', unsafe_allow_html=True)
 
+    full_review = is_full_review()
     for group_index, group in enumerate(QUESTION_GROUPS, start=1):
         with st.expander(f"{group_index}. {group.title}", expanded=(group_index == 1)):
             st.caption(group.description)
-            for question in group.questions:
+            for question in group.questions[:2]:
                 question_number = int(question.split(".", 1)[0])
                 st.selectbox(
                     question,
                     ANSWER_OPTIONS,
                     key=f"pd_q{question_number}",
                 )
+            if full_review:
+                st.markdown("**Go Deeper**")
+                for question in group.questions[2:]:
+                    question_number = int(question.split(".", 1)[0])
+                    st.selectbox(
+                        question,
+                        ANSWER_OPTIONS,
+                        key=f"pd_q{question_number}",
+                    )
+            else:
+                st.caption("Switch to Full Review on Start Here to answer the deeper questions in this section.")
 
 
 def _render_notes() -> None:
@@ -414,12 +428,13 @@ def _render_results(
 
 
 def render_post_discovery() -> None:
+    render_beta_styles()
     score, verdict, verdict_body, positives, conditions, answered_count, total_questions = _score_post_discovery()
 
     open_shell()
 
     render_page_header(
-        eyebrow="Phase 2 — Pre-Commitment",
+        eyebrow="Step 5 of 7 — Commitment Review",
         title="Review the real deal, not the early story.",
         subtitle=(
             "At this stage, the goal is to pressure test what is now known, what is still unknown, "
@@ -427,6 +442,7 @@ def render_post_discovery() -> None:
         ),
         wide=True,
     )
+    render_depth_toggle()
 
     st.markdown('<div class="rc-gap-lg"></div>', unsafe_allow_html=True)
 

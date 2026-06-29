@@ -5,6 +5,7 @@ from __future__ import annotations
 import streamlit as st
 
 from branding import APP_PRODUCT
+from franchise_beta import render_beta_styles, render_depth_toggle, render_pressure_check
 from ui_styles import (
     close_shell,
     open_shell,
@@ -39,9 +40,9 @@ def _decision_snapshot() -> dict[str, object]:
             "top_risk": "Decision made before enough evidence",
             "top_risk_body": "The biggest risk right now is forcing a conclusion before fit, concept, and economics have been pressure-tested.",
             "conditions": [
-                "Complete Franchise Fit",
-                "Complete Concept Validation",
-                "Pressure-test the economics",
+                "Complete Operator Fit",
+                "Complete Opportunity Review",
+                "Pressure-test Financial Reality",
             ],
             "default_option": "Pause",
         }
@@ -53,7 +54,7 @@ def _decision_snapshot() -> dict[str, object]:
             "top_risk": "Weak or untested economics",
             "top_risk_body": "A concept that looks promising can still be the wrong deal if the numbers do not hold up.",
             "conditions": [
-                "Finish the Financial Model",
+                "Finish Financial Reality",
                 "Test downside assumptions",
                 "Confirm capital and cash-flow tolerance",
             ],
@@ -67,7 +68,7 @@ def _decision_snapshot() -> dict[str, object]:
             "top_risk": "Unresolved conditions",
             "top_risk_body": "Outstanding discovery items may materially change the real risk, cost, or operating burden.",
             "conditions": [
-                "Complete Post-Discovery Review",
+                "Complete Commitment Review",
                 "Resolve major unknowns",
                 "List explicit proceed / walk-away conditions",
             ],
@@ -106,13 +107,18 @@ def _save_final_decision(selected_option: str, rationale: str, conditions_text: 
 
 
 def render_final_decision() -> None:
+    render_beta_styles()
     open_shell()
 
     render_page_header(
-        eyebrow=APP_PRODUCT,
+        eyebrow="Step 6 of 7 — Final Decision",
         title="Final Decision",
-        subtitle="Make the call only after the earlier work is complete. This page should clarify whether to proceed, pause, or walk away.",
+        subtitle="Make the call only after the earlier work is complete. This page clarifies whether the current information supports continuing, pausing, or stopping for review.",
         wide=True,
+    )
+    render_depth_toggle()
+    render_pressure_check(
+        "This is a decision memo input, not advice to buy, invest, sign, borrow, lease, or walk away."
     )
 
     snapshot = _decision_snapshot()
@@ -196,6 +202,10 @@ def render_final_decision() -> None:
         if st.button("Save Final Decision", type="primary", use_container_width=True):
             _save_final_decision(selected_option, rationale, conditions_text)
             st.success("Final decision saved.")
+
+        if st.session_state.get("phase_3_complete") and st.button("Continue to Report", use_container_width=True):
+            st.session_state["current_page"] = "Report"
+            st.rerun()
 
     with right:
         render_bullet_panel(

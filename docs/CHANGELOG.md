@@ -1,98 +1,30 @@
 # PressureTest Changelog
 
-# v1.6
+## Franchise Beta UX + Report Trust Pass
 
-## Focus
+### Focus
 
-Blunt pressure-test review build.
+Made PressureTest: Franchise easier to complete, more credible to trust, mobile-ready, and sharper at identifying the few issues that matter before a user signs, borrows, leases, or invests.
 
-## Added / Improved
+### Added / Improved
 
-- Stronger operator-focused positioning
+- Added Quick Assessment / Full Review depth toggle.
+- Kept Quick Assessment as the default path.
+- Kept Full Review inside the same Franchise workflow rather than creating a separate product.
+- Updated the active app navigation to the 7-step Franchise Beta path.
+- Added Decision-Critical Issues to the report.
+- Added FDD Translation Risk capture and report explanation.
+- Standardized report risk labels.
+- Added report note clarifying that Low Concern does not mean safe or recommended.
+- Added manual paid review request form after the report.
+- Added beta feedback form after the report with locally reviewable storage.
+- Added lightweight mobile and trust polish.
 
-- Improved blunt but practical analysis tone
+### Product Direction
 
-- Expanded pressure-test style outputs
-
-- Improved branding consistency
-
-- Additional UX and flow refinements
-
-- Expanded diligence framing
-
-- Improved modular organization
-
-## UX / Design
-
-- Continued movement toward premium diligence platform feel
-
-- Improved readability in several areas
-
-- Better consistency across pages and components
-
-## Product Direction
-
-- Strengthened non-hype positioning
-
-- Improved realism and expectation-setting
-
-- Reinforced compliance and disclaimer approach
-
-## Known Issues
-
-- Some flows still feel text-heavy
-
-- Mobile responsiveness still needs refinement
-
-- Some outputs can still feel repetitive
-
-- Navigation and spacing consistency can improve
-# PressureTest Changelog
-
-# v1.6
-
-## Focus
-
-Blunt pressure-test review build.
-
-## Added / Improved
-
-- Stronger operator-focused positioning
-
-- Improved blunt but practical analysis tone
-
-- Expanded pressure-test style outputs
-
-- Improved branding consistency
-
-- Additional UX and flow refinements
-
-- Expanded diligence framing
-
-- Improved modular organization
-
-## UX / Design
-
-- Continued movement toward premium diligence platform feel
-
-- Improved readability in several areas
-
-- Better consistency across pages and components
-
-## Product Direction
-
-- Strengthened non-hype positioning
-
-- Improved realism and expectation-setting
-
-- Reinforced compliance and disclaimer approach
-
-## Known Issues
-
-- Some flows still feel text-heavy
-
-- Mobile responsiveness still needs refinement
-
-- Some outputs can still feel repetitive
-
-- Navigation and spacing consistency can improve
+- Franchise is the only active product workflow.
+- Startup and Acquisition are future placeholders only.
+- Paid review remains manual.
+- Stripe is not part of this phase.
+- Native iOS and Android apps are not part of this phase.
+- PressureTest does not present itself as legal, tax, accounting, lending, or investment advice.

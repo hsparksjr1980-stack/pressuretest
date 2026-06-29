@@ -9,9 +9,11 @@ from typing import Final
 import streamlit as st
 
 from app_state import initialize_app_state, reset_assessment_state
+from auth import ensure_authenticated, render_auth_sidebar_summary
 from branding import APP_PRODUCT, FIT_PAGE_LABEL
 from buildout_tracker_ui import render_buildout_tracker
 from decision_engine import build_decision_packet
+from franchise_beta import assessment_type_label
 from deal_model_ui import render_deal_model
 from deal_workspace_ui import render_deal_workspace
 from execution_report_ui import render_execution_report
@@ -47,6 +49,11 @@ PageRenderer = Callable[[], None]
 
 RESET_KEYS_TO_KEEP: Final[list[str]] = [
     "auth_complete",
+    "is_authenticated",
+    "auth_user_id",
+    "auth_email",
+    "auth_access_token",
+    "auth_refresh_token",
     "profile_complete",
     "full_name",
     "email",
@@ -58,16 +65,28 @@ RESET_KEYS_TO_KEEP: Final[list[str]] = [
     "premium_access",
     "dev_pro_access",
     "workflow_type",
+    "assessment_depth",
 ]
 
+PAGE_ALIASES: Final[dict[str, str]] = {
+    "Overview": "Start Here",
+    "Franchise Fit": "Operator Fit",
+    "Concept Validation": "Opportunity Review",
+    "Opportunity Fit & Recommendations": "Opportunity Review",
+    "Financial Model": "Financial Reality",
+    "Post-Discovery": "Commitment Review",
+    "Free Report": "Report",
+    "Plans & Support": "Report",
+}
+
 PAGE_RENDERERS: Final[dict[str, PageRenderer]] = {
-    "Overview": render_overview,
-    FIT_PAGE_LABEL: render_phase_0,
-    "Concept Validation": render_phase_1,
+    "Start Here": render_overview,
+    "Operator Fit": render_phase_0,
+    "Opportunity Review": render_phase_1,
     "Opportunity Fit & Recommendations": render_opportunity_fit,
-    "Financial Model": render_financial_model,
+    "Financial Reality": render_financial_model,
     "Free Report": render_free_report,
-    "Post-Discovery": render_post_discovery,
+    "Commitment Review": render_post_discovery,
     "Final Decision": render_final_decision,
     "Report": render_report_screen,
     "Plans & Support": render_plans_support,
@@ -104,13 +123,20 @@ def _current_workflow() -> str:
 
 def ensure_required_state() -> None:
     st.session_state.setdefault("auth_complete", False)
+    st.session_state.setdefault("is_authenticated", False)
+    st.session_state.setdefault("auth_user_id", "")
+    st.session_state.setdefault("auth_email", "")
+    st.session_state.setdefault("auth_access_token", "")
+    st.session_state.setdefault("auth_refresh_token", "")
     st.session_state.setdefault("profile_complete", False)
     st.session_state.setdefault("premium_access", False)
-    st.session_state.setdefault("dev_pro_access", True)
+    st.session_state.setdefault("dev_pro_access", False)
     st.session_state.setdefault("workflow_type", DEFAULT_WORKFLOW)
 
     workflow_type = _current_workflow()
     current_page = st.session_state.get("current_page", DEFAULT_PAGE)
+    if current_page in PAGE_ALIASES:
+        current_page = PAGE_ALIASES[current_page]
 
     if workflow_type == "startup":
         if current_page not in STARTUP_PAGES:
@@ -122,6 +148,9 @@ def ensure_required_state() -> None:
 
 
 def render_gates() -> bool:
+    if not ensure_authenticated():
+        return False
+
     if not st.session_state["auth_complete"]:
         render_welcome()
         return False
@@ -135,13 +164,13 @@ def render_gates() -> bool:
 
 def _recommended_page() -> tuple[str, str]:
     if not st.session_state.get("phase_0_complete"):
-        return FIT_PAGE_LABEL, "Start with fit: time demand, ownership reality, and downside exposure."
+        return "Operator Fit", "Start with fit: time demand, ownership reality, and downside exposure."
     if not st.session_state.get("phase_1_complete"):
-        return "Concept Validation", "Pressure-test whether the concept itself deserves more time."
+        return "Opportunity Review", "Pressure-test whether the opportunity deserves more time before momentum builds."
     if not st.session_state.get("financial_model_done"):
-        return "Financial Model", "Run the economics before treating momentum as proof."
+        return "Financial Reality", "Run the economics before treating momentum as proof."
     if not st.session_state.get("phase_2_complete"):
-        return "Post-Discovery", "Tighten the unknowns before you call this investable."
+        return "Commitment Review", "Tighten the unknowns before you treat the deal as commitment-ready."
     if not st.session_state.get("phase_3_complete"):
         return "Final Decision", "Turn the evidence into a clear go, no-go, or conditions-based call."
     return "Report", "Review the final signal and unresolved conditions."
@@ -160,7 +189,7 @@ def _render_workflow_sidebar(workflow_type: str) -> bool:
     if workflow_type == "franchise":
         return True
 
-    st.sidebar.caption("This workflow path is staged for future expansion.")
+    st.sidebar.caption("Startup and Acquisition are future placeholders only. Franchise is the active beta.")
     if st.sidebar.button("Switch to Franchise workflow", use_container_width=True):
         st.session_state["workflow_type"] = "franchise"
         st.session_state["current_page"] = DEFAULT_PAGE
@@ -191,26 +220,17 @@ def _render_startup_sidebar() -> None:
 
 def render_sidebar() -> None:
     render_sidebar_branding()
+    render_auth_sidebar_summary()
 
     workflow_type = _current_workflow()
-
-    if workflow_type == "startup":
-        _render_startup_sidebar()
-        return
 
     if not _render_workflow_sidebar(workflow_type):
         return
 
-    is_paid_pro = bool(st.session_state.get("premium_access", False))
-    has_dev_pro = bool(st.session_state.get("dev_pro_access", False))
-    pro_enabled = is_paid_pro or has_dev_pro
+    pro_enabled = False
 
-    plan_label = "Pro" if pro_enabled else "Core"
-    plan_subtext = "Developer override enabled" if has_dev_pro and not is_paid_pro else (
-        "Execution tools unlocked" if pro_enabled else "Core workflow only"
-    )
-    st.sidebar.caption("Your plan")
-    st.sidebar.info(f"{plan_label}\n\n{plan_subtext}")
+    st.sidebar.caption("Beta path")
+    st.sidebar.info(f"7-step Franchise Beta\n\n{assessment_type_label()} selected")
 
     packet = build_decision_packet()
     next_page, next_reason = _recommended_page()
@@ -238,19 +258,12 @@ def render_sidebar() -> None:
         with st.sidebar.expander(section_name, expanded=current_page in section_pages):
             for page_name in section_pages:
                 locked = is_pro_page(page_name) and not pro_enabled
-                label = page_name + (" 🔒" if locked else " •" if current_page == page_name else "")
+                label = page_name + (" •" if current_page == page_name else "")
                 if st.button(label, key=f"nav_{page_name}", use_container_width=True, disabled=locked):
                     _go_to(page_name)
 
     st.sidebar.markdown("---")
-    st.sidebar.caption("Developer access")
-
-    dev_enabled = st.sidebar.checkbox(
-        "Enable Pro dev access",
-        value=bool(st.session_state.get("dev_pro_access", False)),
-        key="sidebar_dev_pro_access",
-    )
-    st.session_state["dev_pro_access"] = bool(dev_enabled)
+    st.sidebar.caption("Paid review is manual in this phase. No Stripe or native apps are part of the Franchise Beta.")
 
     render_reset_controls()
 
@@ -271,6 +284,9 @@ def render_reset_controls() -> None:
 
 def get_current_page() -> str:
     page = st.session_state.get("current_page", DEFAULT_PAGE)
+    if page in PAGE_ALIASES:
+        page = PAGE_ALIASES[page]
+        st.session_state["current_page"] = page
     workflow_type = _current_workflow()
     if workflow_type == "startup":
         return page if page in STARTUP_PAGES else STARTUP_DEFAULT_PAGE
@@ -283,11 +299,6 @@ def render_current_page(page: str) -> None:
     render_compact_brand_bar()
 
     workflow_type = _current_workflow()
-
-    if workflow_type == "startup":
-        renderer = STARTUP_PAGE_RENDERERS.get(page, render_startup_overview)
-        renderer()
-        return
 
     if workflow_type != "franchise":
         render_workflow_placeholder()
@@ -307,7 +318,7 @@ def render_prev_next_buttons(page: str) -> None:
     if workflow_type == "startup":
         visible_pages = list(STARTUP_PAGES)
     elif workflow_type == "franchise":
-        visible_pages = list(PAGES)
+        visible_pages = list(SIDEBAR_PAGES)
     else:
         return
 

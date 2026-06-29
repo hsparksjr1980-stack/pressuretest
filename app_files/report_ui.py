@@ -15,6 +15,18 @@ from reportlab.pdfgen import canvas
 
 from decision_engine import build_decision_packet
 from branding import APP_PRODUCT
+from franchise_beta import (
+    FDD_TRANSLATION_DEFINITION,
+    RISK_NOTE,
+    assessment_type_label,
+    build_decision_critical_issues,
+    fdd_translation_triggered,
+    render_beta_styles,
+    risk_badge,
+    risk_label_for_score,
+    save_beta_feedback,
+    save_paid_review_request,
+)
 from report_templates import (
     build_condition_lines,
     build_decision_headline,
@@ -167,6 +179,8 @@ def _collect_report_data() -> dict:
     top_risk = risks[0] if risks else "Not enough evidence yet"
 
     data = {
+        "assessment_type": assessment_type_label(),
+        "current_stage": st.session_state.get("current_page", "Report"),
         "full_name": st.session_state.get("full_name", ""),
         "email": st.session_state.get("email", ""),
         "city_state": st.session_state.get("city_state", ""),
@@ -194,6 +208,9 @@ def _collect_report_data() -> dict:
         "top_strength": top_strength,
         "top_risk": top_risk,
     }
+    data["decision_critical_issues"] = build_decision_critical_issues(data)
+    data["risk_label"] = risk_label_for_score(data["overall_score_value"])
+    data["fdd_translation_triggered"] = fdd_translation_triggered()
     return data
 
 
@@ -347,7 +364,7 @@ def _create_pdf(report_data: dict) -> bytes:
 
     c.setFont("Helvetica-Bold", 22)
     c.setFillColor(NAVY)
-    c.drawRightString(width - right, y + 2, "Decision Report")
+    c.drawRightString(width - right, y + 2, "Franchise Pressure-Test Report")
 
     y -= 28
     c.setFont("Helvetica", 10)
@@ -380,6 +397,24 @@ def _create_pdf(report_data: dict) -> bytes:
     y = _draw_wrapped_text(c, build_executive_summary_text(report_data), left, y, usable_width)
     y -= 10
 
+    y, page_no = _ensure_space(c, y, 92, width, height, page_no)
+    y = _draw_section_header(c, "Assessment Type and Stage", left, y, usable_width)
+    y, page_no = _draw_bullets(
+        c,
+        [
+            f"Assessment type: {report_data.get('assessment_type', 'Quick Assessment')}",
+            f"Current stage: {report_data.get('current_stage', 'Report')}",
+            RISK_NOTE,
+        ],
+        left,
+        y,
+        usable_width,
+        width,
+        height,
+        page_no,
+    )
+    y -= 10
+
     y, page_no = _ensure_space(c, y, 108, width, height, page_no)
     y = _draw_section_header(c, "Decision Snapshot", left, y, usable_width)
 
@@ -388,6 +423,15 @@ def _create_pdf(report_data: dict) -> bytes:
     _draw_metric_box(c, left + box_w + 12, y, box_w, 62, "Final Call", report_data["final_choice"], report_data["overall_score_value"])
     _draw_metric_box(c, left + (box_w + 12) * 2, y, box_w, 62, "Overall Score", report_data["overall_score_display"], report_data["overall_score_value"])
     y -= 82
+
+    y, page_no = _ensure_space(c, y, 150, width, height, page_no)
+    y = _draw_section_header(c, "Decision-Critical Issues", left, y, usable_width)
+    issue_lines = [
+        f"{issue['title']} ({issue['label']}): {issue['why']} Verify next: {issue['verify']}"
+        for issue in report_data.get("decision_critical_issues", [])
+    ]
+    y, page_no = _draw_bullets(c, issue_lines, left, y, usable_width, width, height, page_no)
+    y -= 10
 
     y, page_no = _ensure_space(c, y, 140, width, height, page_no)
     y = _draw_section_header(c, "Section Scores", left, y, usable_width)
@@ -408,11 +452,22 @@ def _create_pdf(report_data: dict) -> bytes:
     y -= 84
 
     sections = [
-        ("What Looks Stronger", build_strength_lines(report_data)),
-        ("Main Risks", build_risk_lines(report_data)),
-        ("Required Conditions Before Proceeding", build_condition_lines(report_data)),
+        ("Top Risks", build_risk_lines(report_data)),
+        ("Missing Evidence", build_condition_lines(report_data)),
+        ("Operator Fit Summary", [f"Operator Fit score: {report_data['scores']['Franchise Fit']['display']}"]),
+        ("Opportunity Review Summary", [f"Opportunity Review score: {report_data['scores']['Concept Validation']['display']}"]),
+        ("Financial Reality Summary", [f"Financial score: {report_data['scores']['Financial Model']['display']}", f"Pressure Test score: {report_data['scores']['Pressure Test']['display']}"]),
+        ("Commitment Risk Summary", [f"Commitment Review score: {report_data['scores']['Post-Discovery']['display']}"]),
+        ("Questions to Ask Franchisor", ["Which similar-market units support these assumptions?", "What local cost differences should be expected?", "What risks have caused recent franchisees to miss plan?"]),
+        ("Questions to Ask Franchisees", ["What surprised you after opening?", "How did local rent, labor, buildout, and ramp compare with expectations?", "Would you sign the same agreement again under the same terms?"]),
+        ("Questions to Ask Lender/CPA/Attorney", ["What obligations survive if the business underperforms?", "How much cash cushion remains after launch?", "Which terms should be reviewed before signing or borrowing?"]),
+        ("Recommended Next Steps", build_condition_lines(report_data)),
+        ("Important Note", [RISK_NOTE, "PressureTest is not legal, tax, accounting, lending, or investment advice."]),
         ("Profile Snapshot", build_profile_lines(report_data)),
     ]
+
+    if report_data.get("fdd_translation_triggered"):
+        sections.insert(2, ("FDD Translation Risk", [FDD_TRANSLATION_DEFINITION]))
 
     for title, items in sections:
         y, page_no = _ensure_space(c, y, 120, width, height, page_no)
@@ -449,17 +504,105 @@ def _inject_local_styles() -> None:
     )
 
 
+def _render_decision_critical_issues(report_data: dict) -> None:
+    issues = list(report_data.get("decision_critical_issues", []))
+    st.markdown("### Decision-Critical Issues")
+    for issue in issues:
+        st.markdown(
+            f"""
+            <div class="rc-card">
+                {risk_badge(str(issue.get("label", "Needs Verification")))}
+                <div class="rc-card-title">{str(issue.get("title", ""))}</div>
+                <div class="rc-card-body"><strong>Why it matters:</strong> {str(issue.get("why", ""))}</div>
+                <div class="rc-card-body"><strong>What to verify next:</strong> {str(issue.get("verify", ""))}</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+
+def _render_paid_review_form(report_data: dict) -> None:
+    st.markdown("### Want a second set of eyes?")
+    st.write(
+        "PressureTest can prepare a reviewed franchise opportunity report that checks your assumptions, highlights red flags, and gives you a clearer question list before you sign, borrow, lease, or invest."
+    )
+    with st.form("paid_review_request_form"):
+        c1, c2 = st.columns(2)
+        with c1:
+            name = st.text_input("Name", value=st.session_state.get("full_name", ""))
+            email = st.text_input("Email", value=st.session_state.get("email", ""))
+            franchise_brand = st.text_input("Franchise brand", value=report_data.get("franchise_name", ""))
+            stage = st.selectbox("Stage", ["Early research", "FDD received", "Discovery day", "Lease/site review", "Financing", "Close to signing", "Other"])
+        with c2:
+            capital_at_risk = st.selectbox("Capital at risk", ["Not sure", "Under $100k", "$100k-$250k", "$250k-$500k", "$500k-$1M", "$1M+"])
+            fdd_received = st.selectbox("FDD received?", ["Not sure", "Yes", "No", "Not yet"])
+            signed_anything = st.selectbox("Signed anything?", ["No", "Yes", "Pending", "Not sure"])
+            preferred_contact = st.selectbox("Preferred contact method", ["Email", "Phone", "Text"])
+        review_scope = st.text_area("What do you want reviewed?", placeholder="Examples: FDD, local market assumptions, lease exposure, debt pressure, buildout estimate, spouse/partner concerns")
+        submitted = st.form_submit_button("Request Paid Review", type="primary", use_container_width=True)
+    if submitted:
+        save_paid_review_request(
+            {
+                "name": name,
+                "email": email,
+                "franchise_brand": franchise_brand,
+                "stage": stage,
+                "capital_at_risk": capital_at_risk,
+                "fdd_received": fdd_received,
+                "signed_anything": signed_anything,
+                "review_scope": review_scope,
+                "preferred_contact": preferred_contact,
+            }
+        )
+        st.success("Paid review request saved for manual follow-up.")
+
+
+def _render_beta_feedback_form() -> None:
+    st.markdown("### Beta Feedback")
+    with st.form("beta_feedback_form"):
+        c1, c2 = st.columns(2)
+        with c1:
+            changed_decision = st.radio("Would this have changed your decision?", ["Not sure", "Yes", "No"], horizontal=True)
+            made_slow_down = st.radio("Did this make you slow down?", ["Not sure", "Yes", "No"], horizontal=True)
+            would_pay_299 = st.radio("Would you pay $299 for a reviewed version?", ["Not sure", "Yes", "No"], horizontal=True)
+            would_show_to_advisor = st.radio("Would you show this to your spouse, lender, CPA, attorney, or business partner?", ["Not sure", "Yes", "No"], horizontal=True)
+        with c2:
+            missing_question = st.text_area("What question is missing?")
+            too_soft = st.text_area("What felt too soft?")
+            too_harsh = st.text_area("What felt too harsh?")
+        most_useful = st.text_area("What part was most useful?")
+        confusing = st.text_area("What part was confusing?")
+        submitted = st.form_submit_button("Send Beta Feedback", use_container_width=True)
+    if submitted:
+        save_beta_feedback(
+            {
+                "changed_decision": changed_decision,
+                "made_slow_down": made_slow_down,
+                "missing_question": missing_question,
+                "too_soft": too_soft,
+                "too_harsh": too_harsh,
+                "would_pay_299": would_pay_299,
+                "would_show_to_advisor": would_show_to_advisor,
+                "most_useful": most_useful,
+                "confusing": confusing,
+            }
+        )
+        st.success("Beta feedback saved.")
+
+
 def render_report_screen() -> None:
+    render_beta_styles()
     _inject_local_styles()
     report_data = _collect_report_data()
     pdf_bytes = _create_pdf(report_data)
+    st.session_state["report_generated"] = True
 
     open_shell()
 
     render_page_header(
-        eyebrow=APP_PRODUCT,
-        title="Report",
-        subtitle="Generate a cleaner decision memo with the recommendation, risks, conditions, and section findings in one printable file.",
+        eyebrow="Step 7 of 7 — Report",
+        title="Franchise Pressure-Test Report",
+        subtitle="The report is the product: a cautious decision memo focused on what matters before you sign, borrow, lease, or invest.",
         wide=True,
     )
 
@@ -467,8 +610,10 @@ def render_report_screen() -> None:
         eyebrow="Report posture",
         title=report_data["recommendation"],
         body=build_decision_headline(report_data),
-        chips=["Printable", "Decision memo", "Shareable"],
+        chips=[report_data["assessment_type"], "Decision memo", "Shareable"],
     )
+
+    st.markdown(f'<div class="pt-risk-note">{risk_badge(report_data["risk_label"])} {RISK_NOTE}</div>', unsafe_allow_html=True)
 
     col1, col2, col3 = st.columns(3, gap="large")
     with col1:
@@ -493,10 +638,11 @@ def render_report_screen() -> None:
         )
 
     st.markdown('<div class="rc-gap-md"></div>', unsafe_allow_html=True)
+    _render_decision_critical_issues(report_data)
 
     render_section_intro(
-        title="What the PDF now does better",
-        body="The export opens with the recommendation, executive summary, section scores, main risks, proceed conditions, and a clearer memo-style layout for printing or sharing.",
+        title="Report structure",
+        body="This memo leads with the recommendation and Decision-Critical Issues, then separates top risks, missing evidence, FDD Translation Risk, summaries, advisor questions, next steps, paid review, and beta feedback.",
     )
 
     left, right = st.columns([1.05, 1], gap="large")
@@ -506,12 +652,11 @@ def render_report_screen() -> None:
             label="Included in the report",
             title="Core contents",
             items=[
-                "Executive summary",
-                "Decision snapshot",
-                "Section score summary",
-                "Main risks",
-                "Required proceed conditions",
-                "Profile snapshot",
+                "Recommendation and current stage",
+                "Decision-Critical Issues",
+                "Top Risks and Missing Evidence",
+                "FDD Translation Risk when triggered",
+                "Questions for franchisor, franchisees, lender, CPA, and attorney",
             ],
         )
 
@@ -537,5 +682,16 @@ def render_report_screen() -> None:
 
     st.markdown('<div class="rc-gap-md"></div>', unsafe_allow_html=True)
     st.markdown(f'<div class="rr-note">{build_executive_summary_text(report_data)}</div>', unsafe_allow_html=True)
+
+    if report_data.get("fdd_translation_triggered"):
+        render_section_intro(
+            title="FDD Translation Risk",
+            body=FDD_TRANSLATION_DEFINITION,
+        )
+
+    st.markdown('<div class="rc-gap-md"></div>', unsafe_allow_html=True)
+    _render_paid_review_form(report_data)
+    st.markdown('<div class="rc-gap-md"></div>', unsafe_allow_html=True)
+    _render_beta_feedback_form()
 
     close_shell()

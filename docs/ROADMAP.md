@@ -1,91 +1,57 @@
-
 # PressureTest Roadmap
 
-# v1.7 Scope (Audit-Aligned, Limited Release)
+## Current Milestone
 
-v1.7 is intentionally constrained to five high-ROI improvements. The goal is to stabilize core user flow, reduce overwhelm, and improve consistency before adding net-new features.
+**Franchise Beta UX + Report Trust Pass**
 
-## 1) Stabilize app/nav/report flow files
+The current milestone is focused on making the active Franchise Beta easier to complete, more credible to trust, mobile-ready, and sharper at identifying the few issues that actually matter before a user signs, borrows, leases, or invests.
 
-### Objective
-Eliminate flow instability and conflicting behaviors in core routing, navigation, and report rendering.
+## Active Scope
 
-### In Scope
-- Stabilize app orchestration and page handoff behavior.
-- Resolve inconsistent navigation/state/report pathways.
-- Standardize report entry points and expected user progression.
+In scope:
 
-### Success Criteria
-- One clear navigation path through core pages.
-- Report flow behavior is predictable and consistent.
-- No conflicting implementations active in app/nav/report flow files.
+- Keep PressureTest focused on PressureTest: Franchise.
+- Preserve the 7-step Franchise Beta workflow.
+- Make Quick Assessment the default path.
+- Keep Full Review as a depth toggle within the same workflow.
+- Reduce question fatigue by keeping core questions visible and placing deeper questions in Go Deeper sections.
+- Improve report hierarchy so the report leads with Recommendation and Decision-Critical Issues.
+- Add and explain FDD Translation Risk.
+- Use only the current risk labels: Low Concern, Needs Verification, Material Risk, Stop and Review.
+- Keep the paid review CTA manual.
+- Keep beta feedback after the report and store it somewhere reviewable.
+- Improve mobile-ready web behavior.
 
-## 2) Centralize Free/Pro boundary copy and logic
+## Out of Scope
 
-### Objective
-Use one source of truth for boundary messaging and unlock behavior.
+Out of scope for this phase:
 
-### In Scope
-- Consolidate Free/Pro copy into a shared source.
-- Standardize gating logic and unlock checks across pages.
-- Keep tone aligned with system rules: direct, practical, no hype, no fear tactics.
+- Stripe
+- Native iOS apps
+- Native Android apps
+- AI agent layer
+- Pro tools
+- Startup expansion
+- Acquisition expansion
+- New product areas
+- Major redesign
+- Framework rebuild
+- Complicated auth changes
 
-### Success Criteria
-- Boundary language is consistent across all gated surfaces.
-- Unlock behavior is consistent regardless of entry point.
-- Reduced duplication of paywall/gating logic.
+## Acceptance Criteria
 
-## 3) Create reusable assessment page template
-
-### Objective
-Create a shared template pattern for assessment-style pages to improve consistency and maintainability.
-
-### In Scope
-- Define common assessment scaffold (header, progress, section grouping, scoring summary, next-step CTA).
-- Apply shared structure to core assessment experiences.
-- Reduce repeated per-page implementation patterns.
-
-### Success Criteria
-- Core assessment pages follow one consistent interaction pattern.
-- Shared template reduces repeated logic and layout drift.
-- Faster iteration for future assessment refinements.
-
-## 4) Reduce onboarding text density with progressive disclosure
-
-### Objective
-Lower cognitive load in early user flow by chunking content and revealing detail as needed.
-
-### In Scope
-- Break large onboarding/assessment content into smaller guided steps.
-- Replace dense static text blocks with staged disclosure patterns.
-- Improve clarity of “what to do next” at each step.
-
-### Success Criteria
-- Early flow feels lighter and easier to complete.
-- Fewer walls of text in onboarding-adjacent pages.
-- Clear next action visible at each major step.
-
-## 5) Standardize shared UI primitives
-
-### Objective
-Use one consistent set of reusable UI primitives for cards, spacing, typography, and status/pill elements.
-
-### In Scope
-- Align core pages to a shared primitive system.
-- Reduce page-specific style drift where practical.
-- Improve visual consistency while preserving current brand direction.
-
-### Success Criteria
-- Page-to-page UI feels cohesive and deliberate.
-- Reduced duplicate component/style patterns.
-- Improved maintainability for future UX updates.
-
-## Explicitly Out of Scope for v1.7
-
-- New major feature modules (deal workspace, buildout tracker, vendor tracking, etc.)
-- SEO/content expansion initiatives
-- Broader platform expansion beyond core diligence flow stabilization
-
-## v1.7 Release Principle
-
-Stability and consistency first. v1.7 is a foundation release to reduce overwhelm, improve trust, and make subsequent feature work lower risk.
+- Franchise remains the only active product.
+- Startup and Acquisition remain disabled future placeholders only.
+- Quick Assessment / Full Review depth toggle exists.
+- Quick Assessment is default.
+- Quick Assessment can be completed in roughly 10-15 minutes.
+- Full Review unlocks deeper sections without creating a separate workflow.
+- Go Deeper sections preserve detail without overwhelming the user.
+- Report leads with recommendation and Decision-Critical Issues.
+- FDD Translation Risk is captured and explained.
+- Risk labels are consistent and professional.
+- Report reads like a decision memo, not a basic summary.
+- App receives a lightweight trust and mobile polish pass.
+- Paid review CTA remains manual and intact.
+- Beta feedback remains intact and reviewable.
+- No Stripe, native app, AI agent, Pro tools, Startup expansion, or Acquisition expansion is added.

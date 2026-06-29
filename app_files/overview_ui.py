@@ -3,6 +3,7 @@ from __future__ import annotations
 import streamlit as st
 
 from branding import APP_PRODUCT
+from franchise_beta import render_beta_styles, render_depth_toggle, render_pressure_check
 from gotcha_engine import render_gotcha_section
 from ui_styles import (
     close_shell,
@@ -18,22 +19,22 @@ from ui_styles import (
 def _recommended_next_step() -> tuple[str, str]:
     if not st.session_state.get("phase_0_complete"):
         return (
-            "Franchise Fit",
+            "Operator Fit",
             "Start by testing whether the ownership model, time demand, and downside fit you.",
         )
     if not st.session_state.get("phase_1_complete"):
         return (
-            "Concept Validation",
+            "Opportunity Review",
             "Pressure-test the concept before you give more weight to momentum or brand story.",
         )
     if not st.session_state.get("financial_model_done"):
         return (
-            "Financial Model",
+            "Financial Reality",
             "Check the economics before treating the opportunity as investable.",
         )
     if not st.session_state.get("phase_2_complete"):
         return (
-            "Post-Discovery",
+            "Commitment Review",
             "Use discovery to tighten assumptions and surface unresolved issues.",
         )
     return (
@@ -64,11 +65,13 @@ def _profile_summary() -> list[str]:
 
 def _workflow_status() -> list[str]:
     steps = [
-        ("Franchise Fit", st.session_state.get("phase_0_complete", False)),
-        ("Concept Validation", st.session_state.get("phase_1_complete", False)),
-        ("Financial Model", st.session_state.get("financial_model_done", False)),
-        ("Post-Discovery", st.session_state.get("phase_2_complete", False)),
+        ("Start Here", True),
+        ("Operator Fit", st.session_state.get("phase_0_complete", False)),
+        ("Opportunity Review", st.session_state.get("phase_1_complete", False)),
+        ("Financial Reality", st.session_state.get("financial_model_done", False)),
+        ("Commitment Review", st.session_state.get("phase_2_complete", False)),
         ("Final Decision", st.session_state.get("phase_3_complete", False)),
+        ("Report", st.session_state.get("report_generated", False)),
     ]
     return [f"{name}: {'Complete' if done else 'Not complete'}" for name, done in steps]
 
@@ -123,13 +126,19 @@ def _overview_snapshot() -> dict[str, str]:
 
 
 def render_overview() -> None:
+    render_beta_styles()
     open_shell()
 
     render_page_header(
         eyebrow=APP_PRODUCT,
-        title="Overview",
-        subtitle="Use this page to see what matters now, where the risk is, and what to do next.",
+        title="Start Here",
+        subtitle="Stress-test a franchise before you sign, borrow, lease, or invest.",
         wide=True,
+    )
+
+    render_depth_toggle()
+    render_pressure_check(
+        "PressureTest is pro-diligence. It is not legal, tax, accounting, lending, or investment advice."
     )
 
     next_step, next_reason = _recommended_next_step()
@@ -204,9 +213,11 @@ def render_overview() -> None:
             label="How to use this",
             title="Decision discipline",
             items=[
-                "Focus first on fit, then concept, then economics.",
+                "Quick Assessment is the default path.",
+                "Full Review is a depth toggle in the same workflow, not a separate product.",
+                "The report is the core product artifact.",
                 "Treat unanswered assumptions as risk, not as neutral.",
-                "Use the final decision only after the earlier pages are complete.",
+                "Use the final decision and report before committing more money or signing obligations.",
             ],
         )
 

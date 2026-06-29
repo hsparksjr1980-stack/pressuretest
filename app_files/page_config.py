@@ -15,24 +15,17 @@ class PageConfig:
 
 
 _PAGE_CONFIGS: Final[list[PageConfig]] = [
-    PageConfig("Overview", "Phase 1 — Self & Idea"),
-    PageConfig("Franchise Fit", "Phase 1 — Self & Idea"),
-    PageConfig("Concept Validation", "Phase 1 — Self & Idea"),
-    PageConfig("Opportunity Fit & Recommendations", "Phase 1 — Self & Idea"),
-    PageConfig("Financial Model", "Phase 1 — Self & Idea"),
-    PageConfig("Free Report", "Output"),
-    PageConfig("Plans & Support", "Commercial"),
-    PageConfig("Post-Discovery", "Phase 2 — Pre-Commitment"),
-    PageConfig("Final Decision", "Phase 3 — Decision"),
-    PageConfig("Report", "Output"),
+    PageConfig("Start Here", "Franchise Beta"),
+    PageConfig("Operator Fit", "Franchise Beta"),
+    PageConfig("Opportunity Review", "Franchise Beta"),
+    PageConfig("Financial Reality", "Franchise Beta"),
+    PageConfig("Commitment Review", "Franchise Beta"),
+    PageConfig("Final Decision", "Franchise Beta"),
+    PageConfig("Report", "Franchise Beta"),
     PageConfig("Paywall", "Commercial", "standard", False),
-    PageConfig("Deal Workspace", "Phase 4 — Execution", "pro"),
-    PageConfig("Deal Model", "Phase 4 — Execution", "pro"),
-    PageConfig("Buildout & Launch Tracker", "Phase 4 — Execution", "pro"),
-    PageConfig("Execution Report", "Phase 4 — Execution", "pro"),
 ]
 
-DEFAULT_PAGE: Final[str] = "Overview"
+DEFAULT_PAGE: Final[str] = "Start Here"
 
 PAGES: Final[list[str]] = [page.name for page in _PAGE_CONFIGS]
 SIDEBAR_PAGES: Final[list[str]] = [page.name for page in _PAGE_CONFIGS if page.show_in_sidebar]

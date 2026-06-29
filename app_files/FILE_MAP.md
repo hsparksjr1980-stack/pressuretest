@@ -1,48 +1,35 @@
-# Missing Foundation Pack
+# PressureTest File Map
 
-These files add the missing structural layer between the current page-based app and the PRD-driven product.
+Current active product scope: **PressureTest: Franchise**.
 
-## New / Expanded Foundation Files
+Startup and Acquisition directories may exist as legacy or placeholder architecture, but they are not active workflows in this phase.
 
-- `app_state.py` — central session-state initialization and reset handling
-- `page_config.py` — single source of truth for pages, tiers, and phase labels
-- `phase_gate.py` — controls page unlock rules and flow gating
-- `paywall_logic.py` — central Pro access and decision-lock behavior
-- `guardrails_engine.py` — stores and evaluates required deal guardrails
-- `pressure_test_engine.py` — basic downside / “what breaks first” scenario engine
-- `decision_engine.py` — normalizes verdicts into one master decision packet
-- `buildout_tracker_logic.py` — buildout task template, summaries, blocker checks
-- `buildout_tracker_ui.py` — Pro tracker page for buildout and launch execution
-- `plans_support_content.py` — structured tier / consulting / add-on content
-- `plans_support_ui.py` — real Plans & Support page instead of placeholder text
-- `report_templates.py` — starter report generator for productized outputs
+## Active Franchise Beta Files
 
-## Updated Integration Files
+- `app.py` — Streamlit app shell, beta navigation, workflow routing
+- `app_state.py` — session defaults, assessment depth, reset handling
+- `page_config.py` — 7-step Franchise Beta page configuration
+- `franchise_beta.py` — assessment depth, risk labels, Decision-Critical Issues, FDD Translation Risk, paid review and beta feedback storage helpers
+- `overview_ui.py` — Start Here
+- `phase0_ui.py` — Operator Fit
+- `phase1_ui.py` — Opportunity Review
+- `financial_model_ui.py` — Financial Reality
+- `post_discovery_ui.py` — Commitment Review
+- `final_decision_ui.py` — Final Decision
+- `report_ui.py` — Franchise Pressure-Test Report, PDF export, manual paid review CTA, beta feedback
+- `report_templates.py` — report text helpers
+- `decision_engine.py` — decision packet aggregation
+- `ui_styles.py` and `theme.py` — shared visual styling
 
-- `app.py` — adds initialization, gating, Plans page, and Buildout Tracker page
-- `nav_ui.py` — shows locked vs unlocked pages and prevents skipping ahead
-- `final_decision_ui.py` — locks the decision and ties it to the Pro path
+## Manual Capture Files
 
-## What this pack does not replace yet
+- `data/paid_review_requests.csv` and `data/paid_review_requests.jsonl` — created locally when paid review requests are submitted
+- `data/beta_feedback.csv` and `data/beta_feedback.jsonl` — created locally when beta feedback is submitted
 
-- Your existing scoring logic in phase files
-- Real payments / Stripe integration
-- Real database persistence
-- PDF export flow
-- Authentication beyond current session approach
+## Deferred / Placeholder Areas
 
-## Recommended add order
-
-1. `page_config.py`
-2. `app_state.py`
-3. `phase_gate.py`
-4. `paywall_logic.py`
-5. `guardrails_engine.py`
-6. `decision_engine.py`
-7. `plans_support_content.py`
-8. `plans_support_ui.py`
-9. `buildout_tracker_logic.py`
-10. `buildout_tracker_ui.py`
-11. Replace `nav_ui.py`
-12. Replace `final_decision_ui.py`
-13. Replace `app.py`
+- Startup workflow: future placeholder only
+- Acquisition workflow: future placeholder only
+- Stripe: not part of this phase
+- Native iOS / Android: not part of this phase
+- Pro tools: not part of this phase

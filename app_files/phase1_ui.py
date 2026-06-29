@@ -6,6 +6,15 @@ from dataclasses import dataclass
 
 import streamlit as st
 
+from franchise_beta import (
+    FDD_TRANSLATION_DEFINITION,
+    collect_fdd_translation_inputs,
+    fdd_translation_triggered,
+    is_full_review,
+    render_beta_styles,
+    render_depth_toggle,
+    render_pressure_check,
+)
 from gotcha_engine import render_gotcha_section
 from ui_styles import (
     close_shell,
@@ -303,24 +312,50 @@ def _render_core_inputs() -> None:
             placeholder="City, trade area, or market description",
         )
 
+    st.markdown('<div class="rc-gap-md"></div>', unsafe_allow_html=True)
+    render_section_intro(
+        title="FDD Translation Risk",
+        body=FDD_TRANSLATION_DEFINITION,
+    )
+    collect_fdd_translation_inputs()
+    if fdd_translation_triggered():
+        st.warning(
+            "System-wide information may not translate directly to this market. Local economics should be validated before further commitment."
+        )
+
 
 def _render_question_groups() -> None:
     render_section_intro(
-        title="Concept validation questions",
-        body="Answer based on what you can defend with evidence today. This stage is about pressure testing assumptions, not confirming excitement.",
+        title="Opportunity Review questions",
+        body="Answer based on what you can defend with evidence today. Quick Assessment shows core questions; Full Review opens Go Deeper sections.",
+    )
+    render_pressure_check(
+        "The question is not whether the brand has locations. It is whether the model has been proven in your market, with your costs and financing pressure."
     )
     st.markdown('<div class="rc-gap-md"></div>', unsafe_allow_html=True)
 
+    full_review = is_full_review()
     for group_index, group in enumerate(QUESTION_GROUPS, start=1):
         with st.expander(f"{group_index}. {group.title}", expanded=(group_index == 1)):
             st.caption(group.description)
-            for question in group.questions:
+            for question in group.questions[:2]:
                 question_number = int(question.split(".", 1)[0])
                 st.selectbox(
                     question,
                     ANSWER_OPTIONS,
                     key=f"cv_q{question_number}",
                 )
+            if full_review:
+                st.markdown("**Go Deeper**")
+                for question in group.questions[2:]:
+                    question_number = int(question.split(".", 1)[0])
+                    st.selectbox(
+                        question,
+                        ANSWER_OPTIONS,
+                        key=f"cv_q{question_number}",
+                    )
+            else:
+                st.caption("Switch to Full Review on Start Here to answer the deeper questions in this section.")
 
 
 def _render_notes() -> None:
@@ -381,7 +416,7 @@ def _render_results(
 
     with col2:
         next_step = (
-            "Continue to Opportunity Fit & Recommendations"
+            "Continue to Financial Reality"
             if score >= 55
             else "Continue carefully and validate the weaker assumptions first"
         )
@@ -423,19 +458,21 @@ def _render_results(
 
 
 def render_phase_1() -> None:
+    render_beta_styles()
     score, verdict, verdict_body, strengths, watchouts, answered_count, total_questions = _score_from_answers()
 
     open_shell()
 
     render_page_header(
-        eyebrow="Phase 1 — Concept Validation",
-        title="Test whether the concept holds up beyond first impressions.",
+        eyebrow="Step 3 of 7 — Opportunity Review",
+        title="Test whether the opportunity holds up beyond first impressions.",
         subtitle=(
             "This stage reviews local demand, competitive positioning, economic realism, "
             "system quality, and whether your assumptions remain credible under pressure."
         ),
         wide=True,
     )
+    render_depth_toggle()
 
     st.markdown('<div class="rc-gap-lg"></div>', unsafe_allow_html=True)
 
@@ -493,12 +530,12 @@ def render_phase_1() -> None:
     st.markdown('<div class="rc-gap-lg"></div>', unsafe_allow_html=True)
 
     if st.button(
-        "Continue to Opportunity Fit & Recommendations",
+        "Continue to Financial Reality",
         key="phase1_continue",
         use_container_width=True,
         type="primary",
     ):
-        st.session_state["current_page"] = "Opportunity Fit & Recommendations"
+        st.session_state["current_page"] = "Financial Reality"
         st.rerun()
 
     close_shell()

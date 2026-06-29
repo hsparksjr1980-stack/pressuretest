@@ -1,10 +1,12 @@
 import streamlit as st
 
+from franchise_beta import render_beta_styles, render_depth_toggle, render_pressure_check
 from gotcha_engine import render_gotcha_section
 from ui_styles import close_shell, open_shell, render_page_header, render_section_intro
 
 
 def render_financial_model():
+    render_beta_styles()
     # -----------------------------
     # Helpers
     # -----------------------------
@@ -225,13 +227,17 @@ def render_financial_model():
     open_shell()
 
     render_page_header(
-        eyebrow="Phase 1 — Financial Model",
+        eyebrow="Step 4 of 7 — Financial Reality",
         title="Review the economics with a practical lens.",
         subtitle=(
             "Step through each section, save your assumptions, and then review the "
             "reality checks and final results together."
         ),
         wide=True,
+    )
+    render_depth_toggle()
+    render_pressure_check(
+        "Local rent, labor, buildout, debt pressure, and ramp timing can materially change what system-wide examples appear to prove."
     )
 
     st.markdown('<div class="rc-gap-lg"></div>', unsafe_allow_html=True)
@@ -1417,6 +1423,7 @@ def render_financial_model():
 
         st.session_state["financial_score"] = financial_score
         st.session_state["pressure_test_score"] = pressure_test_score
+        st.session_state["financial_model_done"] = True
         st.session_state["flag_buildout_too_high"] = modeled_total_capital > fdd_high
         st.session_state["flag_rent_too_high"] = occupancy_pct_actual > 0.10
         st.session_state["flag_no_margin_for_error"] = (dscr < 1.10) or (break_even_cushion < 0.05)
@@ -1527,10 +1534,12 @@ def render_financial_model():
                 st.write(f"- {item}")
         else:
             st.write("- No major risk flags triggered under the current assumptions, but this still needs real-world validation.")
+
+        if st.button("Continue to Commitment Review", key="financial_continue_commitment", use_container_width=True, type="primary"):
+            st.session_state["current_page"] = "Commitment Review"
+            st.rerun()
     else:
         st.info("Complete and save each section above. Reality Checks and Results will appear once all sections are submitted.")
-
-        st.session_state["current_page"] = "Free Report"
 
 
     close_shell()

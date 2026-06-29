@@ -18,9 +18,9 @@ Startup and Acquisition are future placeholders only. They should not be describ
 
 ## Current Milestone
 
-**Franchise Beta UX + Report Trust Pass**
+**Franchise Beta Modern UI + Trust Pass**
 
-The milestone goal is not to make the app bigger. The goal is to make Franchise Beta easier to complete, more credible to trust, mobile-ready, and sharper at identifying the few issues that actually matter before a user signs, borrows, leases, or invests.
+The milestone goal is not to make the app bigger. The goal is to make the correct Franchise Beta workflow feel modern, polished, credible, mobile-ready, and report-focused before private beta users go through it.
 
 ## Product Direction
 
@@ -48,6 +48,30 @@ PressureTest is not anti-franchise or pro-franchise. It is pro-diligence.
 - Stripe is not part of this phase.
 - Native iOS and Android apps are not part of this phase.
 - The current requirement is mobile-ready web.
+
+## UI Quality Bar
+
+Design target: modern underwriting tool + guided decision memo.
+
+The app should not feel like a default Streamlit app, a basic questionnaire, a school project, a generic form builder, or a rough prototype.
+
+The app should feel:
+
+- Clean
+- Serious
+- Modern
+- Calm
+- Premium enough to trust
+- Easy to complete
+- Report-focused
+
+The first screen should clearly communicate:
+
+- PressureTest: Franchise
+- Stress-test a franchise before you invest.
+- Quick Assessment is the default path.
+- Full Review is a deeper version of the same workflow.
+- The report is the main artifact.
 
 ## Core Report Concepts
 

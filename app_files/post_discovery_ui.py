@@ -317,18 +317,20 @@ def _render_question_groups() -> None:
             st.caption(group.description)
             for question in group.questions[:2]:
                 question_number = int(question.split(".", 1)[0])
-                st.selectbox(
+                st.radio(
                     question,
                     ANSWER_OPTIONS,
+                    horizontal=True,
                     key=f"pd_q{question_number}",
                 )
             if full_review:
                 st.markdown("**Go Deeper**")
                 for question in group.questions[2:]:
                     question_number = int(question.split(".", 1)[0])
-                    st.selectbox(
+                    st.radio(
                         question,
                         ANSWER_OPTIONS,
+                        horizontal=True,
                         key=f"pd_q{question_number}",
                     )
             else:

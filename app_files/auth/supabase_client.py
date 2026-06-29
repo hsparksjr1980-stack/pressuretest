@@ -5,8 +5,17 @@ from functools import lru_cache
 from typing import Any
 
 import streamlit as st
-from dotenv import load_dotenv
-from supabase import Client, create_client
+try:
+    from dotenv import load_dotenv
+except ModuleNotFoundError:
+    def load_dotenv() -> None:
+        return None
+
+try:
+    from supabase import Client, create_client
+except ModuleNotFoundError:
+    Client = Any
+    create_client = None
 
 load_dotenv()
 
@@ -31,16 +40,16 @@ def get_supabase_settings() -> tuple[str | None, str | None]:
 
 def is_supabase_configured() -> bool:
     url, anon_key = get_supabase_settings()
-    return bool(url and anon_key)
+    return bool(url and anon_key and create_client is not None)
 
 
 @lru_cache(maxsize=1)
 def get_supabase_client() -> Client:
     url, anon_key = get_supabase_settings()
-    if not url or not anon_key:
+    if not url or not anon_key or create_client is None:
         raise SupabaseConfigurationError(
             "Supabase is not configured. Add SUPABASE_URL and SUPABASE_ANON_KEY "
-            "to Streamlit secrets or environment variables."
+            "to Streamlit secrets or environment variables and install auth dependencies."
         )
     return create_client(url, anon_key)
 

@@ -2,16 +2,16 @@ from __future__ import annotations
 
 import streamlit as st
 
-NAVY = "#0B1730"
-NAVY_2 = "#13213A"
-PRIMARY = "#F97316"
-PRIMARY_HOVER = "#EA580C"
-ACCENT = "#FBBF24"
-BG = "#F8FAFC"
+NAVY = "#111827"
+NAVY_2 = "#1F2937"
+PRIMARY = "#B45309"
+PRIMARY_HOVER = "#92400E"
+ACCENT = "#D97706"
+BG = "#F5F7FA"
 CARD = "#FFFFFF"
-BORDER = "#E2E8F0"
+BORDER = "#D8DEE8"
 TEXT = "#0F172A"
-TEXT_MUTED = "#5B6577"
+TEXT_MUTED = "#526071"
 
 
 def apply_theme() -> None:
@@ -19,19 +19,22 @@ def apply_theme() -> None:
         f"""
         <style>
             .stApp {{
-                background-color: {BG};
+                background:
+                    radial-gradient(circle at 18% -10%, rgba(180, 83, 9, 0.08), transparent 28%),
+                    linear-gradient(180deg, #F8FAFC 0%, {BG} 44%, #EEF2F7 100%);
                 color: {TEXT};
             }}
 
             .block-container {{
-                max-width: 1120px;
-                padding-top: 1rem;
-                padding-bottom: 2rem;
+                max-width: 1180px;
+                padding-top: 1.35rem;
+                padding-bottom: 3rem;
             }}
 
             [data-testid="stSidebar"] {{
-                background: #DCEAF7;
-                border-right: 1px solid rgba(11, 23, 48, 0.08);
+                background: #F8FAFC;
+                border-right: 1px solid rgba(15, 23, 42, 0.08);
+                box-shadow: 12px 0 36px rgba(15, 23, 42, 0.04);
             }}
 
             [data-testid="stSidebar"] .stMarkdown,
@@ -48,10 +51,12 @@ def apply_theme() -> None:
 
             [data-testid="stSidebar"] button {{
                 width: 100%;
-                background: rgba(255, 255, 255, 0.72);
+                background: rgba(255, 255, 255, 0.86);
                 color: {TEXT};
-                border: 1px solid rgba(11, 23, 48, 0.10);
+                border: 1px solid rgba(15, 23, 42, 0.10);
                 border-radius: 12px;
+                min-height: 2.45rem;
+                font-weight: 650;
             }}
 
             [data-testid="stSidebar"] button:hover {{
@@ -84,6 +89,9 @@ def apply_theme() -> None:
                 border: 1px solid rgba(15, 23, 42, 0.10);
                 background: {CARD};
                 color: {TEXT};
+                min-height: 2.65rem;
+                font-weight: 700;
+                box-shadow: 0 8px 18px rgba(15, 23, 42, 0.045);
             }}
 
             div[data-testid="stButton"] > button:hover {{
@@ -108,6 +116,22 @@ def apply_theme() -> None:
             .stSelectbox div[data-baseweb="select"] > div {{
                 border-radius: 12px;
                 border-color: {BORDER};
+                background: #FFFFFF;
+                min-height: 2.65rem;
+                box-shadow: 0 6px 16px rgba(15, 23, 42, 0.035);
+            }}
+
+            label, .stRadio label, .stSelectbox label, .stTextInput label, .stTextArea label {{
+                color: #1F2937 !important;
+                font-weight: 650 !important;
+            }}
+
+            div[role="radiogroup"] label {{
+                background: #FFFFFF;
+                border: 1px solid #D8DEE8;
+                border-radius: 999px;
+                padding: .35rem .65rem;
+                margin-right: .25rem;
             }}
 
             .stProgress > div > div > div > div {{
@@ -117,8 +141,22 @@ def apply_theme() -> None:
             [data-testid="stMetric"] {{
                 background: {CARD};
                 border: 1px solid {BORDER};
-                border-radius: 16px;
+                border-radius: 12px;
                 padding: 0.75rem 0.9rem;
+                box-shadow: 0 10px 24px rgba(15, 23, 42, 0.045);
+            }}
+
+            div[data-testid="stExpander"] {{
+                border: 1px solid {BORDER};
+                border-radius: 12px;
+                background: rgba(255,255,255,.82);
+                box-shadow: 0 12px 28px rgba(15, 23, 42, 0.04);
+                overflow: hidden;
+            }}
+
+            div[data-testid="stExpander"] details summary p {{
+                font-weight: 800;
+                color: {TEXT};
             }}
         </style>
         """,

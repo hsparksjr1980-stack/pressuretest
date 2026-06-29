@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import io
+import html
 import os
 from datetime import datetime
 
@@ -126,6 +127,10 @@ def _derive_final_choice() -> str:
 
 def _collect_report_data() -> dict:
     packet = build_decision_packet()
+    has_any_progress = any(
+        bool(st.session_state.get(key))
+        for key in ("phase_0_complete", "phase_1_complete", "financial_model_done", "phase_2_complete", "phase_3_complete")
+    )
 
     readiness = st.session_state.get("readiness_score")
     concept = st.session_state.get("concept_score") or st.session_state.get("concept_validation_score")
@@ -135,6 +140,9 @@ def _collect_report_data() -> dict:
 
     overall_raw = packet.get("final_score", packet.get("weighted_score"))
     recommendation = packet.get("master_verdict", packet.get("recommendation", "Decision Summary"))
+    if not has_any_progress:
+        recommendation = "Needs More Evidence"
+        overall_raw = None
     final_choice = _derive_final_choice()
 
     strengths = list(packet.get("strengths", []))
@@ -177,6 +185,10 @@ def _collect_report_data() -> dict:
 
     top_strength = strengths[0] if strengths else "No clear strength identified yet"
     top_risk = risks[0] if risks else "Not enough evidence yet"
+    if not has_any_progress:
+        risks = ["Not enough evidence has been entered to support a recommendation."]
+        conditions = ["Complete the Quick Assessment before relying on the report."]
+        top_risk = "Missing evidence"
 
     data = {
         "assessment_type": assessment_type_label(),
@@ -498,6 +510,61 @@ def _inject_local_styles() -> None:
                 line-height: 1.55;
                 color: #5B6577;
             }
+            .rr-shell {
+                background: #FFFFFF;
+                border: 1px solid #D8DEE8;
+                border-radius: 16px;
+                padding: 1.15rem;
+                box-shadow: 0 18px 42px rgba(15, 23, 42, .06);
+                margin: 1rem 0;
+            }
+            .rr-recommendation {
+                background: linear-gradient(135deg, #111827 0%, #263244 100%);
+                color: #F8FAFC;
+                border-radius: 16px;
+                padding: 1.25rem;
+                box-shadow: 0 22px 55px rgba(17, 24, 39, .22);
+                margin: 1rem 0;
+            }
+            .rr-recommendation h2 {
+                margin: .2rem 0 .45rem 0;
+                color: #F8FAFC;
+                font-size: 1.55rem;
+            }
+            .rr-recommendation p {
+                margin: 0;
+                color: #E5E7EB;
+                line-height: 1.55;
+            }
+            .rr-section-grid {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: .85rem;
+                margin: 1rem 0;
+            }
+            .rr-form-wrap {
+                background: #FFFBEB;
+                border: 1px solid #FDE68A;
+                border-radius: 16px;
+                padding: 1.15rem;
+                margin: 1rem 0;
+                box-shadow: 0 14px 34px rgba(180, 83, 9, .10);
+            }
+            .rr-form-title {
+                color: #111827;
+                font-size: 1.25rem;
+                font-weight: 850;
+                margin-bottom: .3rem;
+            }
+            .rr-form-copy {
+                color: #526071;
+                line-height: 1.5;
+                margin-bottom: .75rem;
+            }
+            @media (max-width: 760px) {
+                .rr-section-grid { grid-template-columns: 1fr; }
+                .rr-shell, .rr-recommendation, .rr-form-wrap { border-radius: 12px; padding: .9rem; }
+            }
         </style>
         """,
         unsafe_allow_html=True,
@@ -510,7 +577,7 @@ def _render_decision_critical_issues(report_data: dict) -> None:
     for issue in issues:
         st.markdown(
             f"""
-            <div class="rc-card">
+            <div class="rc-card" style="border-left:4px solid #B45309;">
                 {risk_badge(str(issue.get("label", "Needs Verification")))}
                 <div class="rc-card-title">{str(issue.get("title", ""))}</div>
                 <div class="rc-card-body"><strong>Why it matters:</strong> {str(issue.get("why", ""))}</div>
@@ -522,9 +589,18 @@ def _render_decision_critical_issues(report_data: dict) -> None:
 
 
 def _render_paid_review_form(report_data: dict) -> None:
-    st.markdown("### Want a second set of eyes?")
-    st.write(
-        "PressureTest can prepare a reviewed franchise opportunity report that checks your assumptions, highlights red flags, and gives you a clearer question list before you sign, borrow, lease, or invest."
+    st.markdown(
+        """
+        <div class="rr-form-wrap">
+            <div class="rc-kicker">Manual paid review</div>
+            <div class="rr-form-title">Want a second set of eyes?</div>
+            <div class="rr-form-copy">
+                Request a Reviewed Franchise Opportunity Report — starting at $299.
+                PressureTest can check your assumptions, highlight red flags, and give you a clearer question list before you sign, borrow, lease, or invest.
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
     with st.form("paid_review_request_form"):
         c1, c2 = st.columns(2)
@@ -606,11 +682,20 @@ def render_report_screen() -> None:
         wide=True,
     )
 
-    render_action_banner(
-        eyebrow="Report posture",
-        title=report_data["recommendation"],
-        body=build_decision_headline(report_data),
-        chips=[report_data["assessment_type"], "Decision memo", "Shareable"],
+    st.markdown(
+        f"""
+        <div class="rr-recommendation">
+            <div class="rc-kicker" style="color:#FCD34D;">Recommendation</div>
+            <h2>{html.escape(str(report_data["recommendation"]))}</h2>
+            <p>{html.escape(build_decision_headline(report_data))}</p>
+            <div class="rc-chip-row">
+                <span class="rc-chip">{html.escape(str(report_data["assessment_type"]))}</span>
+                <span class="rc-chip">Decision memo</span>
+                <span class="rc-chip">Shareable</span>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
 
     st.markdown(f'<div class="pt-risk-note">{risk_badge(report_data["risk_label"])} {RISK_NOTE}</div>', unsafe_allow_html=True)
@@ -640,36 +725,29 @@ def render_report_screen() -> None:
     st.markdown('<div class="rc-gap-md"></div>', unsafe_allow_html=True)
     _render_decision_critical_issues(report_data)
 
-    render_section_intro(
-        title="Report structure",
-        body="This memo leads with the recommendation and Decision-Critical Issues, then separates top risks, missing evidence, FDD Translation Risk, summaries, advisor questions, next steps, paid review, and beta feedback.",
+    st.markdown('<div class="rr-section-grid">', unsafe_allow_html=True)
+    render_bullet_panel("Top Risks", "What appears most exposed", build_risk_lines(report_data))
+    render_bullet_panel("Missing Evidence", "What should be verified", build_condition_lines(report_data))
+    render_bullet_panel(
+        "Questions to Ask",
+        "Franchisor and franchisees",
+        [
+            "Which similar-market units support these assumptions?",
+            "How did local rent, labor, buildout, and ramp compare with expectations?",
+            "What risks have caused recent franchisees to miss plan?",
+        ],
     )
+    render_bullet_panel(
+        "Recommended Next Steps",
+        "Before moving forward",
+        build_condition_lines(report_data),
+    )
+    st.markdown('</div>', unsafe_allow_html=True)
 
-    left, right = st.columns([1.05, 1], gap="large")
-
-    with left:
-        render_bullet_panel(
-            label="Included in the report",
-            title="Core contents",
-            items=[
-                "Recommendation and current stage",
-                "Decision-Critical Issues",
-                "Top Risks and Missing Evidence",
-                "FDD Translation Risk when triggered",
-                "Questions for franchisor, franchisees, lender, CPA, and attorney",
-            ],
-        )
-
-    with right:
-        render_bullet_panel(
-            label="Download",
-            title="Export a printable PDF",
-            items=[
-                "Clean cover and hierarchy",
-                "Print-safe spacing",
-                "Board-ready decision summary",
-            ],
-        )
+    render_section_intro(
+        title="Download the decision memo",
+        body="Export a printable report with recommendation, Decision-Critical Issues, risk labels, missing evidence, FDD Translation Risk, advisor questions, and next steps.",
+    )
 
     st.download_button(
         label="Download PDF Report",

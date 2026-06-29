@@ -26,6 +26,12 @@ def inject_global_styles() -> None:
             .rc-shell {{
                 width: 100%;
                 margin: 0 auto;
+                background: rgba(255, 255, 255, 0.66);
+                border: 1px solid rgba(216, 222, 232, 0.78);
+                border-radius: 18px;
+                padding: 1.35rem;
+                box-shadow: 0 22px 55px rgba(15, 23, 42, 0.07);
+                backdrop-filter: blur(8px);
             }}
 
             .rc-gap-sm {{ height: 0.5rem; }}
@@ -34,7 +40,7 @@ def inject_global_styles() -> None:
 
             .rc-eyebrow {{
                 font-size: 0.75rem;
-                font-weight: 700;
+                font-weight: 800;
                 letter-spacing: 0.08em;
                 text-transform: uppercase;
                 color: {PRIMARY};
@@ -42,9 +48,9 @@ def inject_global_styles() -> None:
             }}
 
             .rc-title {{
-                font-size: 2.25rem;
+                font-size: 2.45rem;
                 font-weight: 800;
-                line-height: 1.05;
+                line-height: 1.02;
                 color: {NAVY};
                 margin-bottom: 0.45rem;
             }}
@@ -54,7 +60,7 @@ def inject_global_styles() -> None:
             }}
 
             .rc-subtitle {{
-                font-size: 1rem;
+                font-size: 1.03rem;
                 line-height: 1.5;
                 color: {TEXT_MUTED};
                 margin-bottom: 0.9rem;
@@ -66,19 +72,20 @@ def inject_global_styles() -> None:
             .rc-bullet-panel {{
                 background: {CARD};
                 border: 1px solid {BORDER};
-                border-radius: 16px;
-                padding: 1rem;
-                margin-bottom: 0.75rem;
+                border-radius: 12px;
+                padding: 1rem 1.05rem;
+                margin-bottom: 0.8rem;
+                box-shadow: 0 12px 30px rgba(15, 23, 42, 0.055);
             }}
 
             .rc-card-soft {{
-                background: #FFF7ED;
+                background: #F8FAFC;
             }}
 
             .rc-card-navy {{
-                background: #0B1730;
+                background: linear-gradient(135deg, #111827 0%, #1F2937 100%);
                 color: #F8FAFC;
-                border-color: #0B1730;
+                border-color: #111827;
             }}
 
             .rc-card-navy .rc-card-label,
@@ -102,7 +109,7 @@ def inject_global_styles() -> None:
 
             .rc-card-title,
             .rc-section-title {{
-                font-size: 1.1rem;
+                font-size: 1.08rem;
                 font-weight: 800;
                 line-height: 1.25;
                 color: {NAVY};
@@ -123,8 +130,8 @@ def inject_global_styles() -> None:
                 display: inline-block;
                 padding: 0.3rem 0.6rem;
                 border-radius: 999px;
-                background: #FFF7ED;
-                border: 1px solid #FED7AA;
+                background: #F8FAFC;
+                border: 1px solid #D8DEE8;
                 color: {NAVY};
                 font-size: 0.78rem;
                 font-weight: 700;
@@ -143,12 +150,13 @@ def inject_global_styles() -> None:
             }}
 
             .rc-action-banner {{
-                background: #0B1730;
+                background: linear-gradient(135deg, #111827 0%, #233044 100%);
                 color: #F8FAFC;
-                border: 1px solid #0B1730;
-                border-radius: 16px;
-                padding: 1rem;
+                border: 1px solid #111827;
+                border-radius: 14px;
+                padding: 1.1rem 1.15rem;
                 margin-bottom: 1rem;
+                box-shadow: 0 18px 40px rgba(17, 24, 39, 0.18);
             }}
 
             .rc-action-banner .rc-kicker,
@@ -172,6 +180,131 @@ def inject_global_styles() -> None:
                 font-weight: 700;
                 margin-right: 0.35rem;
                 margin-bottom: 0.35rem;
+            }}
+
+            .pt-panel {{
+                background: #FFFFFF;
+                border: 1px solid #D8DEE8;
+                border-radius: 14px;
+                padding: 1.1rem;
+                box-shadow: 0 14px 34px rgba(15, 23, 42, 0.055);
+                margin-bottom: 1rem;
+            }}
+
+            .pt-hero {{
+                background: linear-gradient(135deg, #111827 0%, #233044 58%, #314256 100%);
+                border: 1px solid rgba(255,255,255,.12);
+                border-radius: 18px;
+                padding: 1.7rem;
+                color: #F8FAFC;
+                box-shadow: 0 24px 60px rgba(17, 24, 39, .24);
+                margin-bottom: 1rem;
+            }}
+
+            .pt-hero h1 {{
+                color: #F8FAFC;
+                font-size: 2.65rem;
+                line-height: 1.02;
+                margin: .25rem 0 .65rem 0;
+                letter-spacing: 0;
+            }}
+
+            .pt-hero p {{
+                color: #E5E7EB;
+                font-size: 1.03rem;
+                line-height: 1.58;
+                margin: 0;
+                max-width: 760px;
+            }}
+
+            .pt-mini-grid {{
+                display: grid;
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                gap: .8rem;
+            }}
+
+            .pt-mini-card {{
+                background: #FFFFFF;
+                border: 1px solid #D8DEE8;
+                border-radius: 12px;
+                padding: .9rem;
+                box-shadow: 0 10px 24px rgba(15, 23, 42, .045);
+            }}
+
+            .pt-mini-card strong {{
+                display: block;
+                color: #111827;
+                margin-bottom: .25rem;
+            }}
+
+            .pt-mini-card span {{
+                color: #526071;
+                font-size: .92rem;
+                line-height: 1.45;
+            }}
+
+            .pt-sidebar-panel {{
+                background: #FFFFFF;
+                border: 1px solid #D8DEE8;
+                border-radius: 12px;
+                padding: .85rem .9rem;
+                margin: .65rem 0;
+                box-shadow: 0 10px 24px rgba(15, 23, 42, .045);
+            }}
+
+            .pt-sidebar-kicker {{
+                color: #92400E;
+                font-size: .68rem;
+                font-weight: 850;
+                letter-spacing: .08em;
+                text-transform: uppercase;
+                margin-bottom: .25rem;
+            }}
+
+            .pt-sidebar-title {{
+                color: #111827;
+                font-size: .98rem;
+                line-height: 1.22;
+                font-weight: 850;
+                margin-bottom: .2rem;
+            }}
+
+            .pt-sidebar-muted {{
+                color: #526071;
+                font-size: .82rem;
+                line-height: 1.35;
+            }}
+
+            .pt-sidebar-track {{
+                height: .4rem;
+                background: #E5E7EB;
+                border-radius: 999px;
+                overflow: hidden;
+                margin-top: .55rem;
+            }}
+
+            .pt-sidebar-track > div {{
+                height: 100%;
+                background: linear-gradient(90deg, #B45309, #D97706);
+                border-radius: 999px;
+            }}
+
+            @media (max-width: 760px) {{
+                .rc-shell {{
+                    padding: .9rem;
+                    border-radius: 14px;
+                    box-shadow: none;
+                }}
+                .pt-hero {{
+                    padding: 1.1rem;
+                    border-radius: 14px;
+                }}
+                .pt-hero h1 {{
+                    font-size: 1.85rem;
+                }}
+                .pt-mini-grid {{
+                    grid-template-columns: 1fr;
+                }}
             }}
         </style>
         """,

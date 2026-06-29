@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import streamlit as st
 
+from franchise_beta import render_beta_styles
 from shared_ui import render_brand_header
 from ui_styles import (
     close_shell,
@@ -25,11 +26,12 @@ def _get_index(options: list[str], value: str, default: str) -> int:
 
 def _complete_profile() -> None:
     st.session_state["profile_complete"] = True
-    st.session_state["current_page"] = "Overview"
+    st.session_state["current_page"] = "Start Here"
     st.rerun()
 
 
 def render_profile_setup() -> None:
+    render_beta_styles()
     open_shell()
 
     render_brand_header(
@@ -38,15 +40,15 @@ def render_profile_setup() -> None:
     )
 
     render_section_intro(
-        title="Set up your profile before starting the evaluation.",
+        title="Set up the opportunity before starting the evaluation.",
         body=(
-            "Provide a few basics so the assessment can guide your decision flow "
-            "with better context."
+            "A few basics help the report read like a decision memo instead of a generic questionnaire."
         ),
     )
 
     st.markdown('<div class="rc-gap-md"></div>', unsafe_allow_html=True)
 
+    st.markdown('<div class="pt-panel">', unsafe_allow_html=True)
     info_col_1, info_col_2 = st.columns(2, gap="large")
 
     with info_col_1:
@@ -97,7 +99,7 @@ def render_profile_setup() -> None:
             key="ownership_style",
         )
 
-    st.markdown('<div class="rc-gap-md"></div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
     render_card(
         label="Commitment Check",
@@ -128,6 +130,6 @@ def render_profile_setup() -> None:
             _complete_profile()
 
     with action_col_2:
-        st.caption("You can update these details later.")
+        st.caption("This context carries into the report and paid review request.")
 
     close_shell()

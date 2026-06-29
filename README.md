@@ -14,7 +14,7 @@ The active beta product is the **7-step Franchise Beta workflow**:
 6. Final Decision
 7. Report
 
-The current milestone is **Franchise Beta UX + Report Trust Pass**. The goal is to make the Franchise Beta easier to complete, more credible to trust, mobile-ready, and sharper at identifying the few issues that actually matter before a user signs, borrows, leases, or invests.
+The current milestone is **Franchise Beta Modern UI + Trust Pass**. The goal is to make the correct Franchise Beta workflow feel modern, polished, credible, mobile-ready, and report-focused before private beta users go through it.
 
 ## Current Scope
 
@@ -76,10 +76,13 @@ Open the local Streamlit URL shown in the terminal.
 
 Use the Franchise Beta workflow and verify:
 
+- First impression clearly communicates PressureTest: Franchise and "Stress-test a franchise before you invest."
+- Quick Assessment and Full Review appear as polished selection cards.
 - Quick Assessment is selected by default on Start Here.
 - Full Review can be selected without losing existing answers.
 - Operator Fit, Opportunity Review, Financial Reality, Commitment Review, Final Decision, and Report are reachable in order.
 - Report generation shows Recommendation, Decision-Critical Issues, Top Risks, Missing Evidence, FDD Translation Risk when triggered, paid review CTA, and Beta Feedback.
+- Sidebar shows useful workflow, step, progress, and risk signal information without developer-facing controls.
 - Risk labels use only Low Concern, Needs Verification, Material Risk, and Stop and Review.
 - Paid review request form saves manual follow-up data locally.
 - Beta feedback form saves reviewable feedback locally.

@@ -26,6 +26,18 @@ from ui_styles import (
 
 
 ANSWER_OPTIONS = ["Select one...", "Yes", "Somewhat", "No"]
+SCALE_OPTIONS = [1, 2, 3, 4, 5]
+
+
+def _scale_label(value: int) -> str:
+    labels = {
+        1: "Low",
+        2: "Limited",
+        3: "Mixed",
+        4: "Strong",
+        5: "Very strong",
+    }
+    return labels[value]
 
 
 @dataclass(frozen=True)
@@ -262,45 +274,50 @@ def _render_core_inputs() -> None:
     col1, col2 = st.columns(2, gap="large")
 
     with col1:
-        st.slider(
+        st.radio(
             "Market Confidence",
-            min_value=1,
-            max_value=5,
-            value=int(st.session_state.get("cv_market_confidence_score", 3)),
+            SCALE_OPTIONS,
+            horizontal=True,
+            format_func=_scale_label,
+            index=SCALE_OPTIONS.index(int(st.session_state.get("cv_market_confidence_score", 3))),
             key="cv_market_confidence_score",
             help="1 = weak confidence, 5 = strong confidence",
         )
-        st.slider(
+        st.radio(
             "Competition / Positioning Confidence",
-            min_value=1,
-            max_value=5,
-            value=int(st.session_state.get("cv_competition_position_score", 3)),
+            SCALE_OPTIONS,
+            horizontal=True,
+            format_func=_scale_label,
+            index=SCALE_OPTIONS.index(int(st.session_state.get("cv_competition_position_score", 3))),
             key="cv_competition_position_score",
             help="1 = weak position, 5 = strong position",
         )
-        st.slider(
+        st.radio(
             "Economic Confidence",
-            min_value=1,
-            max_value=5,
-            value=int(st.session_state.get("cv_economic_confidence_score", 3)),
+            SCALE_OPTIONS,
+            horizontal=True,
+            format_func=_scale_label,
+            index=SCALE_OPTIONS.index(int(st.session_state.get("cv_economic_confidence_score", 3))),
             key="cv_economic_confidence_score",
             help="1 = weak economics, 5 = strong economics",
         )
 
     with col2:
-        st.slider(
+        st.radio(
             "Support Confidence",
-            min_value=1,
-            max_value=5,
-            value=int(st.session_state.get("cv_support_confidence_score", 3)),
+            SCALE_OPTIONS,
+            horizontal=True,
+            format_func=_scale_label,
+            index=SCALE_OPTIONS.index(int(st.session_state.get("cv_support_confidence_score", 3))),
             key="cv_support_confidence_score",
             help="1 = weak support, 5 = strong support",
         )
-        st.slider(
+        st.radio(
             "Decision Discipline",
-            min_value=1,
-            max_value=5,
-            value=int(st.session_state.get("cv_decision_discipline_score", 3)),
+            SCALE_OPTIONS,
+            horizontal=True,
+            format_func=_scale_label,
+            index=SCALE_OPTIONS.index(int(st.session_state.get("cv_decision_discipline_score", 3))),
             key="cv_decision_discipline_score",
             help="1 = emotional / rushed, 5 = disciplined / evidence-based",
         )
@@ -340,18 +357,20 @@ def _render_question_groups() -> None:
             st.caption(group.description)
             for question in group.questions[:2]:
                 question_number = int(question.split(".", 1)[0])
-                st.selectbox(
+                st.radio(
                     question,
                     ANSWER_OPTIONS,
+                    horizontal=True,
                     key=f"cv_q{question_number}",
                 )
             if full_review:
                 st.markdown("**Go Deeper**")
                 for question in group.questions[2:]:
                     question_number = int(question.split(".", 1)[0])
-                    st.selectbox(
+                    st.radio(
                         question,
                         ANSWER_OPTIONS,
+                        horizontal=True,
                         key=f"cv_q{question_number}",
                     )
             else:

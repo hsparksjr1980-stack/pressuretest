@@ -16,14 +16,18 @@ Startup and Acquisition code may exist in the repo as legacy or placeholder arch
 
 ## Current Milestone
 
-**Franchise Beta UX + Report Trust Pass**
+**Franchise Beta Modern UI + Trust Pass**
 
 Implementation priorities:
 
+- The app should feel like a modern underwriting tool + guided decision memo.
+- First screen must clearly communicate PressureTest: Franchise and "Stress-test a franchise before you invest."
+- Quick Assessment and Full Review should feel like polished selection cards.
 - Quick Assessment is the default path.
 - Full Review is a depth toggle inside the same workflow.
 - Go Deeper sections hold detail without creating a separate workflow.
 - The report is the core artifact.
+- The report should be the most polished screen.
 - Decision-Critical Issues and FDD Translation Risk are core report concepts.
 - Paid review remains manual.
 - Beta feedback remains after the report and is stored locally for review.

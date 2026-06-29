@@ -13,7 +13,7 @@ from auth import ensure_authenticated, render_auth_sidebar_summary
 from branding import APP_PRODUCT, FIT_PAGE_LABEL
 from buildout_tracker_ui import render_buildout_tracker
 from decision_engine import build_decision_packet
-from franchise_beta import assessment_type_label
+from franchise_beta import FRANCHISE_STEPS, assessment_type_label, render_step_progress, risk_label_for_score
 from deal_model_ui import render_deal_model
 from deal_workspace_ui import render_deal_workspace
 from execution_report_ui import render_execution_report
@@ -183,12 +183,12 @@ def _go_to(page_name: str) -> None:
 
 def _render_workflow_sidebar(workflow_type: str) -> bool:
     workflow_config = get_workflow_config(workflow_type)
-    st.sidebar.caption("Active workflow")
-    st.sidebar.info(f"{workflow_config['label']}\n\n{workflow_config['status']}")
 
     if workflow_type == "franchise":
         return True
 
+    st.sidebar.caption("Active workflow")
+    st.sidebar.info(f"{workflow_config['label']}\n\n{workflow_config['status']}")
     st.sidebar.caption("Startup and Acquisition are future placeholders only. Franchise is the active beta.")
     if st.sidebar.button("Switch to Franchise workflow", use_container_width=True):
         st.session_state["workflow_type"] = "franchise"
@@ -229,27 +229,52 @@ def render_sidebar() -> None:
 
     pro_enabled = False
 
-    st.sidebar.caption("Beta path")
-    st.sidebar.info(f"7-step Franchise Beta\n\n{assessment_type_label()} selected")
-
     packet = build_decision_packet()
     next_page, next_reason = _recommended_page()
     risks = packet.get("risks") or packet.get("key_risks") or []
     top_risk = risks[0] if risks else "No meaningful risk signal yet. Complete more of the workflow."
+    current_page = st.session_state["current_page"]
+    current_index = FRANCHISE_STEPS.index(current_page) if current_page in FRANCHISE_STEPS else 0
+    progress_ratio = (current_index + 1) / len(FRANCHISE_STEPS)
+    has_any_progress = any(
+        bool(st.session_state.get(key))
+        for key in ("phase_0_complete", "phase_1_complete", "financial_model_done", "phase_2_complete", "phase_3_complete")
+    )
+    risk_label = risk_label_for_score(packet.get("weighted_score")) if has_any_progress else "Needs Verification"
 
-    st.sidebar.caption("Decision pulse")
-    st.sidebar.write(f"**{packet.get('recommendation', 'Not enough data')}**")
-    st.sidebar.caption(f"Weighted score: {packet.get('weighted_score', 0)} · Confidence: {packet.get('confidence', 'Unknown')}")
-    st.sidebar.caption(f"Biggest unresolved risk: {top_risk}")
+    st.sidebar.markdown(
+        f"""
+        <div class="pt-sidebar-panel">
+            <div class="pt-sidebar-kicker">Current workflow</div>
+            <div class="pt-sidebar-title">PressureTest: Franchise</div>
+            <div class="pt-sidebar-muted">7-step Franchise Beta</div>
+        </div>
+        <div class="pt-sidebar-panel">
+            <div class="pt-sidebar-kicker">Assessment type</div>
+            <div class="pt-sidebar-title">{assessment_type_label()}</div>
+            <div class="pt-sidebar-muted">Full Review is a depth toggle, not a separate product.</div>
+        </div>
+        <div class="pt-sidebar-panel">
+            <div class="pt-sidebar-kicker">Current step</div>
+            <div class="pt-sidebar-title">{current_index + 1}. {current_page}</div>
+            <div class="pt-sidebar-track"><div style="width:{progress_ratio * 100:.0f}%"></div></div>
+        </div>
+        <div class="pt-sidebar-panel">
+            <div class="pt-sidebar-kicker">Current risk signal</div>
+            <div class="pt-sidebar-title">{risk_label}</div>
+            <div class="pt-sidebar-muted">{top_risk}</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
     if st.sidebar.button(f"Go to: {next_page}", use_container_width=True, type="primary"):
         _go_to(next_page)
 
     st.sidebar.caption(next_reason)
     st.sidebar.markdown("---")
-    st.sidebar.caption("Workflow navigation")
+    st.sidebar.caption("Navigation")
 
-    current_page = st.session_state["current_page"]
     grouped_pages: dict[str, list[str]] = defaultdict(list)
     for page_name in SIDEBAR_PAGES:
         grouped_pages[get_page_config(page_name).section].append(page_name)
@@ -261,9 +286,6 @@ def render_sidebar() -> None:
                 label = page_name + (" •" if current_page == page_name else "")
                 if st.button(label, key=f"nav_{page_name}", use_container_width=True, disabled=locked):
                     _go_to(page_name)
-
-    st.sidebar.markdown("---")
-    st.sidebar.caption("Paid review is manual in this phase. No Stripe or native apps are part of the Franchise Beta.")
 
     render_reset_controls()
 
@@ -309,6 +331,7 @@ def render_current_page(page: str) -> None:
         st.error(f'No renderer is registered for page "{page}".')
         return
 
+    render_step_progress(page)
     renderer()
 
 

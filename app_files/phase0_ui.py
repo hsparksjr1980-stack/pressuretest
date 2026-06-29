@@ -17,6 +17,18 @@ from ui_styles import (
 
 
 ANSWER_OPTIONS = ["Select one...", "Yes", "Somewhat", "No"]
+SCALE_OPTIONS = [1, 2, 3, 4, 5]
+
+
+def _scale_label(value: int) -> str:
+    labels = {
+        1: "Low",
+        2: "Limited",
+        3: "Mixed",
+        4: "Strong",
+        5: "Very strong",
+    }
+    return labels[value]
 
 
 @dataclass(frozen=True)
@@ -256,45 +268,50 @@ def _render_core_inputs() -> None:
             ["Owner-Operator", "Manager-Led", "Investor / Semi-Absentee"],
             key="ownership_style",
         )
-        st.slider(
+        st.radio(
             "Time Availability",
-            min_value=1,
-            max_value=5,
-            value=int(st.session_state.get("time_availability_score", 3)),
+            SCALE_OPTIONS,
+            horizontal=True,
+            format_func=_scale_label,
+            index=SCALE_OPTIONS.index(int(st.session_state.get("time_availability_score", 3))),
             key="time_availability_score",
             help="1 = very limited, 5 = fully available",
         )
-        st.slider(
+        st.radio(
             "Operational Willingness",
-            min_value=1,
-            max_value=5,
-            value=int(st.session_state.get("operational_willingness_score", 3)),
+            SCALE_OPTIONS,
+            horizontal=True,
+            format_func=_scale_label,
+            index=SCALE_OPTIONS.index(int(st.session_state.get("operational_willingness_score", 3))),
             key="operational_willingness_score",
             help="1 = prefers not to run daily operations, 5 = very hands-on",
         )
 
     with col2:
-        st.slider(
+        st.radio(
             "People Management Comfort",
-            min_value=1,
-            max_value=5,
-            value=int(st.session_state.get("people_management_comfort_score", 3)),
+            SCALE_OPTIONS,
+            horizontal=True,
+            format_func=_scale_label,
+            index=SCALE_OPTIONS.index(int(st.session_state.get("people_management_comfort_score", 3))),
             key="people_management_comfort_score",
             help="1 = not comfortable, 5 = very comfortable",
         )
-        st.slider(
+        st.radio(
             "Risk Tolerance",
-            min_value=1,
-            max_value=5,
-            value=int(st.session_state.get("risk_tolerance_score", 3)),
+            SCALE_OPTIONS,
+            horizontal=True,
+            format_func=_scale_label,
+            index=SCALE_OPTIONS.index(int(st.session_state.get("risk_tolerance_score", 3))),
             key="risk_tolerance_score",
             help="1 = conservative, 5 = aggressive",
         )
-        st.slider(
+        st.radio(
             "Capital Flexibility",
-            min_value=1,
-            max_value=5,
-            value=int(st.session_state.get("capital_flexibility_score", 3)),
+            SCALE_OPTIONS,
+            horizontal=True,
+            format_func=_scale_label,
+            index=SCALE_OPTIONS.index(int(st.session_state.get("capital_flexibility_score", 3))),
             key="capital_flexibility_score",
             help="1 = tight capital, 5 = strong flexibility",
         )
@@ -322,18 +339,20 @@ def _render_question_groups() -> None:
             st.caption(group.description)
             for question in core_questions:
                 question_number = int(question.split(".", 1)[0])
-                st.selectbox(
+                st.radio(
                     question,
                     ANSWER_OPTIONS,
+                    horizontal=True,
                     key=f"rc_q{question_number}",
                 )
             if full_review:
                 st.markdown("**Go Deeper**")
                 for question in deeper_questions:
                     question_number = int(question.split(".", 1)[0])
-                    st.selectbox(
+                    st.radio(
                         question,
                         ANSWER_OPTIONS,
+                        horizontal=True,
                         key=f"rc_q{question_number}",
                     )
             elif deeper_questions:

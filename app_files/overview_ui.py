@@ -130,13 +130,23 @@ def render_overview() -> None:
     open_shell()
 
     render_page_header(
-        eyebrow=APP_PRODUCT,
-        title="Start Here",
-        subtitle="Stress-test a franchise before you sign, borrow, lease, or invest.",
+        eyebrow="PressureTest: Franchise",
+        title="Stress-test a franchise before you invest.",
+        subtitle="Build a report-first read on operator fit, local economics, commitment risk, missing evidence, and Decision-Critical Issues.",
         wide=True,
     )
 
     render_depth_toggle()
+    st.markdown(
+        """
+        <div class="pt-mini-grid">
+            <div class="pt-mini-card"><strong>What you'll get</strong><span>A clear recommendation posture based on the information provided.</span></div>
+            <div class="pt-mini-card"><strong>What to verify</strong><span>Missing evidence, FDD Translation Risk, and questions for the franchisor and advisors.</span></div>
+            <div class="pt-mini-card"><strong>What matters most</strong><span>Decision-Critical Issues near the top of the report.</span></div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
     render_pressure_check(
         "PressureTest is pro-diligence. It is not legal, tax, accounting, lending, or investment advice."
     )

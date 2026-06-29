@@ -20,6 +20,15 @@ FULL_REVIEW_COPY = (
 )
 
 RISK_LABELS = ("Low Concern", "Needs Verification", "Material Risk", "Stop and Review")
+FRANCHISE_STEPS = (
+    "Start Here",
+    "Operator Fit",
+    "Opportunity Review",
+    "Financial Reality",
+    "Commitment Review",
+    "Final Decision",
+    "Report",
+)
 
 RISK_NOTE = (
     "Risk labels are based only on the information provided. Low Concern does not mean safe "
@@ -58,12 +67,20 @@ def assessment_type_label() -> str:
 
 def render_depth_toggle() -> None:
     current = get_assessment_depth()
+    quick_selected = current == "quick"
     st.markdown(
-        """
-        <div class="pt-depth-panel">
-            <div class="pt-depth-kicker">Assessment depth</div>
-            <div class="pt-depth-title">Choose how deep to go. Quick Assessment is the default.</div>
-            <div class="pt-depth-copy">Full Review unlocks deeper sections in the same workflow and keeps your existing answers.</div>
+        f"""
+        <div class="pt-depth-grid">
+            <div class="pt-depth-card {'pt-depth-selected' if quick_selected else ''}">
+                <div class="pt-depth-kicker">Default path</div>
+                <div class="pt-depth-title">Quick Assessment</div>
+                <div class="pt-depth-copy">{html.escape(QUICK_ASSESSMENT_COPY)}</div>
+            </div>
+            <div class="pt-depth-card {'pt-depth-selected' if not quick_selected else ''}">
+                <div class="pt-depth-kicker">Depth toggle</div>
+                <div class="pt-depth-title">Full Review</div>
+                <div class="pt-depth-copy">{html.escape(FULL_REVIEW_COPY)}</div>
+            </div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -92,11 +109,37 @@ def render_pressure_check(text: str) -> None:
     )
 
 
+def render_step_progress(current_step: str) -> None:
+    if current_step not in FRANCHISE_STEPS:
+        return
+    current_index = FRANCHISE_STEPS.index(current_step)
+    chips = []
+    for index, step in enumerate(FRANCHISE_STEPS):
+        state = "done" if index < current_index else "active" if index == current_index else "todo"
+        chips.append(
+            f'<span class="pt-step-chip pt-step-{state}">{index + 1}. {html.escape(step)}</span>'
+        )
+    progress_pct = ((current_index + 1) / len(FRANCHISE_STEPS)) * 100
+    st.markdown(
+        f"""
+        <div class="pt-step-panel">
+            <div class="pt-step-topline">
+                <span>Step {current_index + 1} of {len(FRANCHISE_STEPS)}</span>
+                <span>{html.escape(assessment_type_label())}</span>
+            </div>
+            <div class="pt-step-track"><div style="width:{progress_pct:.0f}%"></div></div>
+            <div class="pt-step-row">{''.join(chips)}</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
 def render_beta_styles() -> None:
     st.markdown(
         """
         <style>
-            .pt-depth-panel,
+            .pt-depth-card,
             .pt-pressure-check,
             .pt-risk-note {
                 border: 1px solid #D8DEE8;
@@ -105,6 +148,33 @@ def render_beta_styles() -> None:
                 padding: 1rem;
                 margin: .75rem 0;
                 box-shadow: 0 10px 28px rgba(15, 23, 42, .045);
+            }
+            .pt-depth-grid {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: .8rem;
+                margin: .75rem 0 .4rem 0;
+            }
+            .pt-depth-card {
+                min-height: 148px;
+                position: relative;
+            }
+            .pt-depth-selected {
+                border-color: #B45309;
+                box-shadow: 0 16px 34px rgba(180, 83, 9, .12);
+            }
+            .pt-depth-selected:after {
+                content: "Selected";
+                position: absolute;
+                top: .85rem;
+                right: .85rem;
+                background: #FFFBEB;
+                color: #92400E;
+                border: 1px solid #FDE68A;
+                border-radius: 999px;
+                padding: .2rem .5rem;
+                font-size: .7rem;
+                font-weight: 800;
             }
             .pt-depth-kicker,
             .pt-pressure-label {
@@ -128,6 +198,67 @@ def render_beta_styles() -> None:
                 font-size: .94rem;
                 line-height: 1.5;
             }
+            .pt-pressure-check {
+                border-left: 4px solid #B45309;
+                background: #FFFBEB;
+            }
+            .pt-step-panel {
+                background: #FFFFFF;
+                border: 1px solid #D8DEE8;
+                border-radius: 14px;
+                padding: .85rem .95rem;
+                margin: .4rem 0 1rem 0;
+                box-shadow: 0 12px 28px rgba(15, 23, 42, .045);
+            }
+            .pt-step-topline {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: .7rem;
+                color: #526071;
+                font-size: .78rem;
+                font-weight: 800;
+                letter-spacing: .04em;
+                text-transform: uppercase;
+                margin-bottom: .55rem;
+            }
+            .pt-step-track {
+                height: .42rem;
+                background: #E5E7EB;
+                border-radius: 999px;
+                overflow: hidden;
+                margin-bottom: .7rem;
+            }
+            .pt-step-track > div {
+                height: 100%;
+                background: linear-gradient(90deg, #B45309, #D97706);
+                border-radius: 999px;
+            }
+            .pt-step-row {
+                display: flex;
+                flex-wrap: wrap;
+                gap: .35rem;
+            }
+            .pt-step-chip {
+                display: inline-block;
+                border-radius: 999px;
+                padding: .26rem .55rem;
+                font-size: .74rem;
+                font-weight: 800;
+                border: 1px solid #D8DEE8;
+                background: #F8FAFC;
+                color: #526071;
+            }
+            .pt-step-done {
+                background: #F0FDF4;
+                border-color: #BBF7D0;
+                color: #166534;
+            }
+            .pt-step-active {
+                background: #111827;
+                border-color: #111827;
+                color: #F8FAFC;
+            }
             .pt-risk-badge {
                 display: inline-block;
                 border-radius: 999px;
@@ -150,6 +281,8 @@ def render_beta_styles() -> None:
                 }
                 div[data-testid="column"] { width: 100% !important; flex: 1 1 100% !important; }
                 .stButton > button, .stDownloadButton > button { min-height: 44px; }
+                .pt-depth-grid { grid-template-columns: 1fr; }
+                .pt-step-topline { align-items: flex-start; flex-direction: column; }
             }
         </style>
         """,

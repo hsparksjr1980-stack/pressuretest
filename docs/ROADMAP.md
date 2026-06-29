@@ -2,9 +2,9 @@
 
 ## Current Milestone
 
-**Franchise Beta UX + Report Trust Pass**
+**Franchise Beta Modern UI + Trust Pass**
 
-The current milestone is focused on making the active Franchise Beta easier to complete, more credible to trust, mobile-ready, and sharper at identifying the few issues that actually matter before a user signs, borrows, leases, or invests.
+The current milestone is focused on making the active Franchise Beta feel like a credible modern decision tool: polished first impression, clearer workflow pages, cleaner sidebar, more professional report surface, and mobile-ready web behavior.
 
 ## Active Scope
 
@@ -21,6 +21,9 @@ In scope:
 - Keep the paid review CTA manual.
 - Keep beta feedback after the report and store it somewhere reviewable.
 - Improve mobile-ready web behavior.
+- Modernize the visual system without changing the core workflow.
+- Make the report the most polished part of the app.
+- Keep paid review CTA professional and manual.
 
 ## Out of Scope
 
@@ -52,6 +55,10 @@ Out of scope for this phase:
 - Risk labels are consistent and professional.
 - Report reads like a decision memo, not a basic summary.
 - App receives a lightweight trust and mobile polish pass.
+- First screen feels credible within 10 seconds.
+- Quick Assessment and Full Review feel like intentional selection cards.
+- Report screen feels like the main product artifact.
+- Sidebar is useful and not cluttered with internal controls.
 - Paid review CTA remains manual and intact.
 - Beta feedback remains intact and reviewable.
 - No Stripe, native app, AI agent, Pro tools, Startup expansion, or Acquisition expansion is added.

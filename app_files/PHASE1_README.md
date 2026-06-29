@@ -1,6 +1,6 @@
 # PressureTest Franchise Beta Notes
 
-Phase 1 is currently the **Franchise Beta UX + Report Trust Pass**.
+Phase 1 is currently the **Franchise Beta Modern UI + Trust Pass**.
 
 Active scope:
 
@@ -8,6 +8,7 @@ Active scope:
 - 7-step Franchise Beta workflow
 - Quick Assessment default
 - Full Review depth toggle
+- Modern underwriting tool + guided decision memo visual direction
 - Decision memo style report
 - Decision-Critical Issues
 - FDD Translation Risk

@@ -8,8 +8,8 @@ export default function Footer() {
           <h3 className="text-lg font-semibold">PressureTest</h3>
 
           <p className="mt-4 text-sm leading-7 text-slate-400">
-            Structured diligence and operational planning for prospective
-            franchise and small-business operators.
+            Structured franchise diligence for prospective operators before
+            they sign, borrow, lease, or invest.
           </p>
         </div>
 

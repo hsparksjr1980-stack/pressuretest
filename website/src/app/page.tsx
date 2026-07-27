@@ -14,7 +14,7 @@ export default function Home() {
     <main className="min-h-screen bg-[#0b0f14] px-6 py-20 text-white">
       <section className="mx-auto max-w-6xl">
         <p className="mb-5 text-sm uppercase tracking-[0.3em] text-slate-500">
-          Franchise & Small-Business Diligence
+          PressureTest: Franchise
         </p>
 
         <h1 className="max-w-5xl text-5xl font-bold leading-tight tracking-tight md:text-7xl">

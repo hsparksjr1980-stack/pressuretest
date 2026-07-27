@@ -1,10 +1,10 @@
 import Link from "next/link";
 
 const reviewAreas = [
-  "Franchise diligence workflows",
-  "Startup readiness workflows",
-  "Financial pressure testing",
-  "Decision-readiness reporting",
+  "Franchise diligence workflow",
+  "Operator fit and ownership pressure",
+  "Local economics and capital risk",
+  "Decision-critical issues report",
 ];
 
 export default function Contact() {
@@ -22,9 +22,9 @@ export default function Contact() {
           </h1>
 
           <p className="mt-8 max-w-2xl text-lg leading-8 text-slate-300">
-            PressureTest is being shaped around real diligence moments:
-            comparing opportunities, challenging assumptions, and deciding what
-            still needs proof before capital is at risk.
+            PressureTest: Franchise is being shaped around real diligence
+            moments: challenging assumptions, reviewing local economics, and
+            deciding what still needs proof before capital is at risk.
           </p>
 
           <div className="mt-10 flex flex-wrap gap-4">

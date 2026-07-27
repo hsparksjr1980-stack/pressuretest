@@ -1,4 +1,4 @@
-import { cp, mkdir, rm, writeFile } from "node:fs/promises";
+import { cp, mkdir, readdir, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -11,9 +11,37 @@ await rm(distDir, { force: true, recursive: true });
 await mkdir(serverDir, { recursive: true });
 await cp(outDir, distDir, { recursive: true });
 
+async function collectAssets(dir, prefix = "") {
+  const entries = await readdir(dir);
+  const assets = [];
+
+  for (const entry of entries) {
+    if (entry === "server") {
+      continue;
+    }
+
+    const absolute = join(dir, entry);
+    const relative = `${prefix}/${entry}`;
+    const details = await stat(absolute);
+
+    if (details.isDirectory()) {
+      assets.push(...await collectAssets(absolute, relative));
+    } else if (details.isFile()) {
+      const bytes = await readFile(absolute);
+      assets.push([relative, bytes.toString("base64")]);
+    }
+  }
+
+  return assets;
+}
+
+const embeddedAssets = await collectAssets(distDir);
+
 await writeFile(
   join(serverDir, "index.js"),
-  `const contentTypes = {
+  `const embeddedAssets = new Map(${JSON.stringify(embeddedAssets)});
+
+const contentTypes = {
   ".css": "text/css; charset=utf-8",
   ".gif": "image/gif",
   ".html": "text/html; charset=utf-8",
@@ -33,21 +61,28 @@ function extension(pathname) {
   return match ? match[0].toLowerCase() : "";
 }
 
-async function fetchAsset(env, request, pathname) {
-  const url = new URL(request.url);
-  url.pathname = pathname;
-  return env.ASSETS.fetch(new Request(url, request));
+function decodeBase64(value) {
+  const binary = atob(value);
+  const bytes = new Uint8Array(binary.length);
+
+  for (let index = 0; index < binary.length; index += 1) {
+    bytes[index] = binary.charCodeAt(index);
+  }
+
+  return bytes;
 }
 
-async function findAsset(env, request, pathname) {
+function findAsset(pathname) {
   const variants = pathname.startsWith("/")
     ? [pathname, pathname.slice(1)]
     : [pathname, "/" + pathname];
 
   for (const variant of variants) {
-    const response = await fetchAsset(env, request, variant);
-    if (response.status !== 404) {
-      return { response, pathname: variant };
+    const normalized = variant.startsWith("/") ? variant : "/" + variant;
+    const body = embeddedAssets.get(normalized);
+
+    if (body) {
+      return { body, pathname: normalized };
     }
   }
 
@@ -67,29 +102,29 @@ export default {
       : [
           cleanPath === "/" ? "/index.html" : cleanPath + ".html",
           cleanPath === "/" ? "/index.html" : cleanPath + "/index.html"
-        ];
+    ];
 
     for (const pathname of candidates) {
-      const match = await findAsset(env, request, pathname);
+      const match = findAsset(pathname);
       if (match) {
-        const headers = new Headers(match.response.headers);
+        const headers = new Headers();
         const type = contentTypes[extension(match.pathname)];
-        if (type && !headers.has("content-type")) {
+        if (type) {
           headers.set("content-type", type);
         }
-        return new Response(match.response.body, {
-          status: match.response.status,
-          statusText: match.response.statusText,
+        return new Response(request.method === "HEAD" ? null : decodeBase64(match.body), {
+          status: 200,
           headers
         });
       }
     }
 
-    const notFound = await findAsset(env, request, "/404.html");
+    const notFound = findAsset("/404.html");
     if (notFound) {
-      return new Response(notFound.response.body, {
+      const headers = new Headers({ "content-type": "text/html; charset=utf-8" });
+      return new Response(request.method === "HEAD" ? null : decodeBase64(notFound.body), {
         status: 404,
-        headers: notFound.response.headers
+        headers
       });
     }
 

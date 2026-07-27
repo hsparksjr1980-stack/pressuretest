@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 const focusAreas = [
   "Operator fit",
   "Working capital pressure",
@@ -12,7 +14,7 @@ export default function Home() {
     <main className="min-h-screen bg-[#0b0f14] px-6 py-20 text-white">
       <section className="mx-auto max-w-6xl">
         <p className="mb-5 text-sm uppercase tracking-[0.3em] text-slate-500">
-          Franchise & Small-Business Diligence
+          PressureTest: Franchise
         </p>
 
         <h1 className="max-w-5xl text-5xl font-bold leading-tight tracking-tight md:text-7xl">
@@ -26,19 +28,19 @@ export default function Home() {
         </p>
 
         <div className="mt-10 flex flex-wrap gap-4">
-          <a
+          <Link
             href="/how-it-works"
             className="rounded-xl bg-white px-6 py-3 font-semibold text-black hover:bg-slate-200"
           >
             See How It Works
-          </a>
+          </Link>
 
-          <a
+          <Link
             href="/pricing"
             className="rounded-xl border border-slate-700 px-6 py-3 font-semibold text-white hover:border-slate-500"
           >
             View Pricing
-          </a>
+          </Link>
         </div>
       </section>
 

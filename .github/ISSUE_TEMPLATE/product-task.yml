@@ -1,0 +1,53 @@
+name: Product task
+description: Approved weekly product task for PressureTest.
+title: "[Product] "
+labels:
+  - product
+body:
+  - type: input
+    id: weekly_cycle
+    attributes:
+      label: Weekly cycle
+      description: Week or date range for this product task.
+      placeholder: "YYYY-MM-DD to YYYY-MM-DD"
+    validations:
+      required: true
+  - type: textarea
+    id: objective
+    attributes:
+      label: Objective
+      description: What should this task accomplish?
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Specific criteria required before Howard review.
+    validations:
+      required: true
+  - type: textarea
+    id: out_of_scope
+    attributes:
+      label: Out of scope
+      description: What must not change during this task?
+    validations:
+      required: true
+  - type: dropdown
+    id: risk
+    attributes:
+      label: Risk level
+      options:
+        - Low
+        - Medium
+        - High
+    validations:
+      required: true
+  - type: textarea
+    id: validation
+    attributes:
+      label: Required validation
+      description: Lint, typecheck, build, tests, manual QA, or review required.
+    validations:
+      required: true
+

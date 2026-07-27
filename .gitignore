@@ -14,6 +14,37 @@ ENV/
 
 # Streamlit cache and local config
 .streamlit/cache/
+.streamlit/secrets.toml
+.streamlit/secrets*.toml
+.env
+.env.*
+!.env.example
+
+# Python/tooling caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Build and package outputs
+build/
+dist/
+*.egg-info/
+
+# Local data, uploads, and databases
+data/
+uploads/
+*.db
+*.sqlite
+*.sqlite3
+
+# Node dependencies and outputs outside nested project ignores
+node_modules/
+.next/
+out/
+coverage/
 
 # Local temp/runtime files
 *.tmp

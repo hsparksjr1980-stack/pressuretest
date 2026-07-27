@@ -1,0 +1,6 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Howard OS operating docs
+    url: https://github.com/hsparksjr1980-stack/pressuretest/tree/main/docs/howard-os
+    about: Review the operating model before creating weekly tasks.
+

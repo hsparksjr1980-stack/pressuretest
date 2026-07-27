@@ -1,0 +1,55 @@
+name: Marketing task
+description: Approved weekly marketing task for PressureTest.
+title: "[Marketing] "
+labels:
+  - marketing
+body:
+  - type: input
+    id: weekly_cycle
+    attributes:
+      label: Weekly cycle
+      placeholder: "YYYY-MM-DD to YYYY-MM-DD"
+    validations:
+      required: true
+  - type: input
+    id: audience
+    attributes:
+      label: Audience
+      description: Who is this for?
+    validations:
+      required: true
+  - type: textarea
+    id: objective
+    attributes:
+      label: Objective
+      description: What should this marketing task accomplish?
+    validations:
+      required: true
+  - type: input
+    id: deliverable
+    attributes:
+      label: Deliverable
+      description: "Example: blog draft, landing-page copy, email draft."
+    validations:
+      required: true
+  - type: input
+    id: channel
+    attributes:
+      label: Channel
+      description: "Example: website, email, LinkedIn, internal draft."
+    validations:
+      required: true
+  - type: textarea
+    id: claims
+    attributes:
+      label: Claims and compliance requirements
+      description: Sources, prohibited claims, disclaimers, and approval notes.
+    validations:
+      required: true
+  - type: textarea
+    id: out_of_scope
+    attributes:
+      label: Out of scope
+      description: What must not be published, claimed, or changed?
+    validations:
+      required: true

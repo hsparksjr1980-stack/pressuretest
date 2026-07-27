@@ -39,6 +39,21 @@ async function fetchAsset(env, request, pathname) {
   return env.ASSETS.fetch(new Request(url, request));
 }
 
+async function findAsset(env, request, pathname) {
+  const variants = pathname.startsWith("/")
+    ? [pathname, pathname.slice(1)]
+    : [pathname, "/" + pathname];
+
+  for (const variant of variants) {
+    const response = await fetchAsset(env, request, variant);
+    if (response.status !== 404) {
+      return { response, pathname: variant };
+    }
+  }
+
+  return null;
+}
+
 export default {
   async fetch(request, env) {
     if (request.method !== "GET" && request.method !== "HEAD") {
@@ -55,26 +70,30 @@ export default {
         ];
 
     for (const pathname of candidates) {
-      const response = await fetchAsset(env, request, pathname);
-      if (response.status !== 404) {
-        const headers = new Headers(response.headers);
-        const type = contentTypes[extension(pathname)];
+      const match = await findAsset(env, request, pathname);
+      if (match) {
+        const headers = new Headers(match.response.headers);
+        const type = contentTypes[extension(match.pathname)];
         if (type && !headers.has("content-type")) {
           headers.set("content-type", type);
         }
-        return new Response(response.body, {
-          status: response.status,
-          statusText: response.statusText,
+        return new Response(match.response.body, {
+          status: match.response.status,
+          statusText: match.response.statusText,
           headers
         });
       }
     }
 
-    const notFound = await fetchAsset(env, request, "/404.html");
-    return new Response(notFound.body, {
-      status: 404,
-      headers: notFound.headers
-    });
+    const notFound = await findAsset(env, request, "/404.html");
+    if (notFound) {
+      return new Response(notFound.response.body, {
+        status: 404,
+        headers: notFound.response.headers
+      });
+    }
+
+    return new Response("Not found", { status: 404 });
   }
 };
 `

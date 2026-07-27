@@ -9,7 +9,7 @@ const reviewAreas = [
 
 export default function Contact() {
   return (
-    <main className="min-h-screen bg-[#0b0f14] px-6 py-20 text-white">
+    <main className="site-shell min-h-screen px-6 py-20 text-white">
       <section className="mx-auto grid max-w-6xl gap-12 lg:grid-cols-[1fr_420px]">
         <div>
           <p className="mb-5 text-sm uppercase tracking-[0.3em] text-slate-500">
@@ -30,26 +30,26 @@ export default function Contact() {
           <div className="mt-10 flex flex-wrap gap-4">
             <Link
               href="/pricing"
-              className="rounded-xl bg-white px-6 py-3 font-semibold text-black hover:bg-slate-200"
+              className="rounded-lg bg-white px-6 py-3 font-semibold text-black transition hover:bg-slate-200"
             >
               View Pricing
             </Link>
 
             <Link
               href="/how-it-works"
-              className="rounded-xl border border-slate-700 px-6 py-3 font-semibold text-white hover:border-slate-500"
+              className="rounded-lg border border-white/15 bg-white/5 px-6 py-3 font-semibold text-white backdrop-blur-xl transition hover:border-red-300/70 hover:bg-white/10"
             >
               See How It Works
             </Link>
           </div>
         </div>
 
-        <aside className="self-start rounded-lg border border-slate-800 bg-slate-950 p-6">
+        <aside className="glass-panel self-start rounded-lg p-6">
           <h2 className="text-2xl font-semibold">What early users review</h2>
 
           <div className="mt-6 space-y-4 text-slate-300">
             {reviewAreas.map((area) => (
-              <div key={area} className="border-b border-slate-800 pb-4">
+              <div key={area} className="border-b border-white/10 pb-4">
                 {area}
               </div>
             ))}

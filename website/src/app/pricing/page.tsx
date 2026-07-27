@@ -38,7 +38,7 @@ const tiers = [
 
 export default function Pricing() {
   return (
-    <main className="min-h-screen bg-[#0b0f14] px-6 py-20 text-white">
+    <main className="site-shell min-h-screen px-6 py-20 text-white">
       <section className="mx-auto max-w-6xl">
         <p className="mb-4 text-sm uppercase tracking-[0.3em] text-slate-500">
           Pricing
@@ -57,7 +57,7 @@ export default function Pricing() {
           {tiers.map((tier) => (
             <div
               key={tier.name}
-              className="rounded-2xl border border-slate-800 bg-slate-950 p-6"
+              className="glass-panel-soft rounded-lg p-6"
             >
               <h2 className="text-2xl font-semibold">{tier.name}</h2>
               <p className="mt-4 text-4xl font-bold">{tier.price}</p>
@@ -73,7 +73,7 @@ export default function Pricing() {
 
               <Link
                 href="/contact"
-                className="mt-8 inline-block rounded-xl bg-white px-5 py-3 font-semibold text-black hover:bg-slate-200"
+                className="mt-8 inline-block rounded-lg bg-white px-5 py-3 font-semibold text-black transition hover:bg-slate-200"
               >
                 Join Waitlist
               </Link>

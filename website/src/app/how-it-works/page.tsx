@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export default function HowItWorks() {
   return (
-    <main className="min-h-screen bg-[#0b0f14] px-6 py-8 text-white">
+    <main className="site-shell min-h-screen px-6 py-8 text-white">
       <section className="mx-auto max-w-6xl py-20">
         <Link href="/" className="text-sm text-slate-400 hover:text-white">
           ← Back to Home
@@ -46,7 +46,7 @@ export default function HowItWorks() {
           ].map(([number, title, body]) => (
             <div
               key={title}
-              className="grid gap-4 rounded-2xl border border-slate-800 bg-slate-950 p-6 md:grid-cols-[80px_1fr]"
+              className="glass-panel-soft grid gap-4 rounded-lg p-6 md:grid-cols-[80px_1fr]"
             >
               <div className="text-sm font-semibold text-slate-500">
                 {number}

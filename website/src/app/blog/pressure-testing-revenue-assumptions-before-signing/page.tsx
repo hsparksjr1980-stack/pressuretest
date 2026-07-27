@@ -1,7 +1,7 @@
 export default function ArticlePage() {
   return (
-    <main className="min-h-screen bg-[#0b0f14] px-6 py-20 text-white">
-      <article className="mx-auto max-w-4xl">
+    <main className="site-shell min-h-screen px-6 py-20 text-white">
+      <article className="glass-panel mx-auto max-w-4xl rounded-lg p-8 md:p-12">
         <a href="/blog" className="text-sm text-slate-500 hover:text-white">
           ← Back to Blog
         </a>

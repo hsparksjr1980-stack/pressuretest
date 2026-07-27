@@ -2,14 +2,14 @@ import Link from "next/link";
 
 export default function Footer() {
   return (
-    <footer className="border-t border-slate-800 bg-[#0b0f14] px-6 py-12 text-white">
+    <footer className="border-t border-white/10 bg-[#070a0d]/90 px-6 py-12 text-white">
       <div className="mx-auto flex max-w-6xl flex-col gap-10 md:flex-row md:justify-between">
         <div className="max-w-sm">
-          <h3 className="text-lg font-semibold">PressureTest</h3>
+          <h3 className="text-lg font-semibold">PressureTest: Franchise</h3>
 
           <p className="mt-4 text-sm leading-7 text-slate-400">
-            Structured franchise diligence for prospective operators before
-            they sign, borrow, lease, or invest.
+            Educational diligence software for prospective franchise operators
+            before they sign, borrow, lease, or invest.
           </p>
         </div>
 
@@ -87,8 +87,9 @@ export default function Footer() {
         </div>
       </div>
 
-      <div className="mx-auto mt-12 max-w-6xl border-t border-slate-800 pt-6 text-sm text-slate-500">
-        © 2026 PressureTest. Educational diligence platform.
+      <div className="mx-auto mt-12 max-w-6xl border-t border-white/10 pt-6 text-sm text-slate-500">
+        © 2026 PressureTest. Educational diligence software. Not legal, tax,
+        accounting, lending, financial, or investment advice.
       </div>
     </footer>
   );

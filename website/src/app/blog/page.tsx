@@ -24,7 +24,7 @@ const articles = [
 
 export default function BlogPage() {
   return (
-    <main className="min-h-screen bg-[#0b0f14] px-6 py-20 text-white">
+    <main className="site-shell min-h-screen px-6 py-20 text-white">
       <section className="mx-auto max-w-6xl">
         <p className="mb-4 text-sm uppercase tracking-[0.3em] text-slate-500">
           PressureTest Library
@@ -44,7 +44,7 @@ export default function BlogPage() {
             <a
               key={article.title}
               href={article.href}
-              className="block rounded-2xl border border-slate-800 bg-slate-950 p-8 hover:border-slate-600"
+              className="glass-panel-soft block rounded-lg p-8 transition hover:border-red-300/50 hover:bg-white/10"
             >
               <p className="mb-3 text-sm uppercase tracking-[0.25em] text-slate-500">
                 {article.category}

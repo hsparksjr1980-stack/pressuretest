@@ -5,9 +5,9 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 
 export const metadata: Metadata = {
-  title: "PressureTest",
+  title: "PressureTest: Franchise",
   description:
-    "Operator-focused franchise and small-business diligence platform.",
+    "Educational franchise diligence software for prospective operators.",
 };
 
 export default function RootLayout({
@@ -17,7 +17,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="bg-[#0b0f14] text-white">
+      <body className="bg-[#070a0d] text-white">
         <Navbar />
         {children}
         <Footer />

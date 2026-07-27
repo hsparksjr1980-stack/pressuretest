@@ -1,7 +1,7 @@
 export default function DisclaimerPage() {
   return (
-    <main className="min-h-screen bg-[#0b0f14] px-6 py-20 text-white">
-      <section className="mx-auto max-w-4xl">
+    <main className="site-shell min-h-screen px-6 py-20 text-white">
+      <section className="glass-panel mx-auto max-w-4xl rounded-lg p-8 md:p-12">
         <p className="mb-4 text-sm uppercase tracking-[0.3em] text-slate-500">
           Disclaimer
         </p>

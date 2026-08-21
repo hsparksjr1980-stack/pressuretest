@@ -15,30 +15,42 @@ from ui_styles import (
 )
 
 
+DEPTH_OPTIONS = ["Quick Assessment", "Full Review"]
+DEPTH_COPY = {
+    "Quick Assessment": "Best if you want a first-pass read before spending more time or money. Takes about 10–15 minutes and produces an initial pressure-test report.",
+    "Full Review": "Best if you are closer to signing, borrowing, leasing, or investing. Includes deeper diligence questions and produces a more complete report.",
+}
+
+
+def _assessment_depth() -> str:
+    current = str(st.session_state.get("assessment_depth") or "Quick Assessment")
+    return current if current in DEPTH_OPTIONS else "Quick Assessment"
+
+
 def _recommended_next_step() -> tuple[str, str]:
     if not st.session_state.get("phase_0_complete"):
         return (
-            "Franchise Fit",
+            "Operator Fit",
             "Start by testing whether the ownership model, time demand, and downside fit you.",
         )
     if not st.session_state.get("phase_1_complete"):
         return (
-            "Concept Validation",
-            "Pressure-test the concept before you give more weight to momentum or brand story.",
+            "Opportunity Review",
+            "Pressure-test the local market, system proof, and assumptions before giving weight to momentum or brand story.",
         )
     if not st.session_state.get("financial_model_done"):
         return (
-            "Financial Model",
-            "Check the economics before treating the opportunity as investable.",
+            "Financial Reality",
+            "Check whether the local economics can survive real rent, labor, buildout, debt, and cash reserve pressure.",
         )
     if not st.session_state.get("phase_2_complete"):
         return (
-            "Post-Discovery",
-            "Use discovery to tighten assumptions and surface unresolved issues.",
+            "Commitment Review",
+            "Use this stage to identify what must be verified before signing, borrowing, leasing, or investing.",
         )
     return (
         "Final Decision",
-        "Bring the evidence together and decide whether to proceed, pause, or walk away.",
+        "Bring the evidence together and decide whether to move forward, walk away, or proceed only if conditions are met.",
     )
 
 
@@ -49,7 +61,9 @@ def _profile_summary() -> list[str]:
     franchise_name = st.session_state.get("franchise_name")
     units = st.session_state.get("units_considered")
     ownership_style = st.session_state.get("ownership_style")
+    depth = _assessment_depth()
 
+    items.append(f"Assessment type: {depth}")
     if full_name:
         items.append(f"Profile: {full_name}")
     if franchise_name:
@@ -64,10 +78,10 @@ def _profile_summary() -> list[str]:
 
 def _workflow_status() -> list[str]:
     steps = [
-        ("Franchise Fit", st.session_state.get("phase_0_complete", False)),
-        ("Concept Validation", st.session_state.get("phase_1_complete", False)),
-        ("Financial Model", st.session_state.get("financial_model_done", False)),
-        ("Post-Discovery", st.session_state.get("phase_2_complete", False)),
+        ("Operator Fit", st.session_state.get("phase_0_complete", False)),
+        ("Opportunity Review", st.session_state.get("phase_1_complete", False)),
+        ("Financial Reality", st.session_state.get("financial_model_done", False)),
+        ("Commitment Review", st.session_state.get("phase_2_complete", False)),
         ("Final Decision", st.session_state.get("phase_3_complete", False)),
     ]
     return [f"{name}: {'Complete' if done else 'Not complete'}" for name, done in steps]
@@ -85,7 +99,7 @@ def _overview_snapshot() -> dict[str, str]:
     if completed == 0:
         return {
             "signal": "Early",
-            "signal_explainer": "You are still at the start. Use the first pages to test fit before getting attached to the opportunity.",
+            "signal_explainer": "Based on the information provided, you are still at the start. Use the first pages to test fit before getting attached to the opportunity.",
             "top_risk": "Not enough evidence yet",
             "top_risk_explainer": "The biggest current risk is making assumptions before you have enough signal.",
             "stance": "Too early to call",
@@ -97,9 +111,9 @@ def _overview_snapshot() -> dict[str, str]:
             "signal": "Promising, but incomplete",
             "signal_explainer": "You have early directional signal, but the economics have not been pressure-tested yet.",
             "top_risk": "Economics still untested",
-            "top_risk_explainer": "Without a financial view, a good concept can still be a bad deal.",
+            "top_risk_explainer": "Without a financial view, a promising concept can still become a weak deal.",
             "stance": "Needs pressure testing",
-            "stance_explainer": "Do not move forward confidently until the numbers hold up.",
+            "stance_explainer": "Do not move forward confidently until the numbers are verified.",
         }
 
     if not phase_3:
@@ -116,10 +130,87 @@ def _overview_snapshot() -> dict[str, str]:
         "signal": "Built",
         "signal_explainer": "You have enough completed work to make a more grounded recommendation.",
         "top_risk": "Execution risk",
-        "top_risk_explainer": "Even good decisions can fail in execution if conditions and discipline are weak.",
+        "top_risk_explainer": "Even stronger decisions can fail in execution if conditions and discipline are weak.",
         "stance": "Ready for decision",
         "stance_explainer": "Review the final decision page and report before committing.",
     }
+
+
+def _render_depth_toggle() -> None:
+    current = _assessment_depth()
+    render_section_intro(
+        title="Choose assessment depth",
+        body="Use one Franchise workflow. Quick Assessment keeps the path short; Full Review opens deeper diligence sections without losing existing answers.",
+    )
+    selected = st.radio(
+        "Assessment depth",
+        DEPTH_OPTIONS,
+        index=DEPTH_OPTIONS.index(current),
+        horizontal=True,
+        key="assessment_depth",
+    )
+    cols = st.columns(2, gap="large")
+    with cols[0]:
+        render_card(
+            label="Default",
+            title="Quick Assessment",
+            body=DEPTH_COPY["Quick Assessment"],
+            navy=selected == "Quick Assessment",
+        )
+    with cols[1]:
+        render_card(
+            label="Go deeper",
+            title="Full Review",
+            body=DEPTH_COPY["Full Review"],
+            navy=selected == "Full Review",
+        )
+    st.caption("You can switch from Quick Assessment to Full Review later. Existing answers stay in the same workflow and report.")
+
+
+def _render_fdd_translation_inputs() -> None:
+    render_section_intro(
+        title="FDD Translation Risk snapshot",
+        body="System-wide information may not translate directly to this market. Capture these early so the report can flag what needs local verification.",
+    )
+    st.markdown('<div class="rc-gap-sm"></div>', unsafe_allow_html=True)
+    c1, c2 = st.columns(2, gap="large")
+    with c1:
+        st.selectbox(
+            "Is this market already proven for this franchise?",
+            [
+                "",
+                "Yes, there are successful nearby or similar-market locations",
+                "Somewhat, but the market is still developing",
+                "No, this is a new or unproven market",
+                "Not sure",
+            ],
+            key="fdd_market_proof",
+        )
+        st.selectbox(
+            "Have you spoken with franchisees in markets similar to yours?",
+            ["", "Yes", "No", "Not yet", "Not sure"],
+            key="similar_market_franchisee_calls",
+        )
+    with c2:
+        st.selectbox(
+            "Are the financial examples or performance claims from markets similar to yours?",
+            ["", "Yes, similar market/location/cost structure", "Somewhat similar", "No, different market or unclear comparison", "Not sure"],
+            key="fdd_market_similarity",
+        )
+        st.selectbox(
+            "Are your local rent, labor, buildout, and supply costs materially different from examples you have seen?",
+            ["", "No major difference identified", "Some differences", "Material differences", "Not sure yet"],
+            key="local_cost_difference",
+        )
+    if _assessment_depth() == "Full Review":
+        with st.expander("Go Deeper: FDD Translation Risk notes", expanded=False):
+            st.text_area(
+                "What local evidence would make these assumptions more credible?",
+                value=st.session_state.get("fdd_translation_notes", ""),
+                key="fdd_translation_notes",
+                height=100,
+                placeholder="Examples: similar-market franchisees, rent comps, labor model, buildout bids, supply chain differences",
+            )
 
 
 def render_overview() -> None:
@@ -127,18 +218,23 @@ def render_overview() -> None:
 
     render_page_header(
         eyebrow=APP_PRODUCT,
-        title="Overview",
-        subtitle="Use this page to see what matters now, where the risk is, and what to do next.",
+        title="Start Here",
+        subtitle="Stress-test a franchise before you sign, borrow, lease, or invest.",
         wide=True,
     )
+
+    _render_depth_toggle()
+    st.markdown('<div class="rc-gap-lg"></div>', unsafe_allow_html=True)
+    _render_fdd_translation_inputs()
+    st.markdown('<div class="rc-gap-lg"></div>', unsafe_allow_html=True)
 
     next_step, next_reason = _recommended_next_step()
 
     render_action_banner(
-        eyebrow="Recommended next step",
+        eyebrow="Pressure Check",
         title=next_step,
         body=next_reason,
-        chips=["Focus", "Risk", "Decision quality"],
+        chips=["Caution-first", "Decision memo", "Franchise Beta"],
     )
 
     snapshot = _overview_snapshot()
@@ -181,7 +277,7 @@ def render_overview() -> None:
 
         render_bullet_panel(
             label="Workflow status",
-            title="Progress through the evaluation",
+            title="Progress through the Franchise Beta path",
             items=_workflow_status(),
             empty_text="No workflow data yet.",
         )
@@ -204,9 +300,10 @@ def render_overview() -> None:
             label="How to use this",
             title="Decision discipline",
             items=[
-                "Focus first on fit, then concept, then economics.",
+                "Quick Assessment is for a first-pass pressure test.",
+                "Full Review is for users closer to signing, borrowing, leasing, or investing.",
                 "Treat unanswered assumptions as risk, not as neutral.",
-                "Use the final decision only after the earlier pages are complete.",
+                "Use the report as a decision memo for advisors and partners.",
             ],
         )
 

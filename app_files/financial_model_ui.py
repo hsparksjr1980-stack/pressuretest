@@ -912,6 +912,7 @@ def render_financial_model():
     # Combined analysis
     # -----------------------------
     all_done = all(section_done(k) for k, _ in progress_items)
+    st.session_state["financial_model_done"] = all_done
 
     if all_done:
         st.markdown('<div class="rc-gap-lg"></div>', unsafe_allow_html=True)
@@ -1530,7 +1531,15 @@ def render_financial_model():
     else:
         st.info("Complete and save each section above. Reality Checks and Results will appear once all sections are submitted.")
 
-        st.session_state["current_page"] = "Free Report"
-
+    if all_done:
+        st.markdown('<div class="rc-gap-lg"></div>', unsafe_allow_html=True)
+        if st.button(
+            "Continue to Commitment Review",
+            key="financial_model_continue",
+            use_container_width=True,
+            type="primary",
+        ):
+            st.session_state["current_page"] = "Commitment Review"
+            st.rerun()
 
     close_shell()

@@ -493,12 +493,12 @@ def render_phase_1() -> None:
     st.markdown('<div class="rc-gap-lg"></div>', unsafe_allow_html=True)
 
     if st.button(
-        "Continue to Opportunity Fit & Recommendations",
+        "Continue to Financial Reality",
         key="phase1_continue",
         use_container_width=True,
         type="primary",
     ):
-        st.session_state["current_page"] = "Opportunity Fit & Recommendations"
+        st.session_state["current_page"] = "Financial Reality"
         st.rerun()
 
     close_shell()

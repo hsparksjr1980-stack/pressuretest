@@ -24,10 +24,7 @@ DEPTH_COPY = {
 
 def _assessment_depth() -> str:
     current = str(st.session_state.get("assessment_depth") or "Quick Assessment")
-    if current not in DEPTH_OPTIONS:
-        current = "Quick Assessment"
-    st.session_state["assessment_depth"] = current
-    return current
+    return current if current in DEPTH_OPTIONS else "Quick Assessment"
 
 
 def _recommended_next_step() -> tuple[str, str]:

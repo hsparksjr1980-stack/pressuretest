@@ -26,6 +26,7 @@ These are candidates only, not approved work:
 - Reconcile stale README and docs with current Franchise Beta source facts.
 - Strengthen report presentation with Decision-Critical Issues.
 - Clarify FDD Translation Risk in report and workflow inputs.
+- Add an FDD Hidden-Risk Decoder that flags where legally disclosed information may still leave buyers exposed, including confidentiality limits on former franchisee calls, outlet turnover, signed-but-not-opened franchisees, supplier restrictions, territory carveouts, discretionary support language, earnings-claim caveats, renewal/termination traps, personal guarantees, lease exposure, financing cross-defaults, and contract attachments.
 - Improve mobile readability across Streamlit pages.
 - Align website metadata with Franchise positioning.
 - Expand validation coverage for website typecheck and build.
@@ -40,4 +41,3 @@ Do not change without Howard approval:
 - Database or production data handling.
 - Deployment configuration.
 - Active product scope.
-

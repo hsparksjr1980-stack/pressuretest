@@ -30,3 +30,24 @@ These are not approved for execution until converted into ready GitHub issues:
 
 TODO: Add cycle dates after Howard defines the current weekly cycle.
 
+Post-approval audit (2026-08-01): no current-cycle marketing task, approved
+deliverable version, channel, audience, or publication authorization is
+recorded. Marketing remains `BLOCKED`; nothing entered `PUBLISHING QUEUE` and
+nothing was published or sent.
+
+Post-approval audit (2026-08-08): the current Saturday package contains no
+eligible marketing task or versioned deliverable and requests no publication or
+sending approval. Marketing remains `BLOCKED` before `PROPOSED`; nothing entered
+`PUBLISHING QUEUE`, and nothing was published, sent, scheduled, or promoted.
+
+Post-approval audit (2026-08-15): the current Saturday package contains no
+eligible marketing task or versioned deliverable and expressly requests no
+publication or sending approval. Marketing remains `BLOCKED` before `PROPOSED`;
+nothing entered `PUBLISHING QUEUE`, and nothing was published, sent, scheduled,
+promoted, or purchased.
+
+Post-approval audit (2026-08-22): no eligible marketing task or versioned
+deliverable exists, and the Saturday package requests no publication or sending
+approval. Marketing remains `BLOCKED` before `PROPOSED`; nothing entered
+`PUBLISHING QUEUE`, and nothing was published, sent, scheduled, promoted, or
+purchased.
